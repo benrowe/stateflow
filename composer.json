@@ -31,12 +31,12 @@
     "scripts": {
         "test": "phpunit",
         "test:coverage": "phpunit --coverage-html coverage",
-        "phpstan": "phpstan analyse",
-        "cs:check": "php-cs-fixer fix --dry-run --diff",
-        "cs:fix": "php-cs-fixer fix",
+        "quality": "phpstan analyse",
+        "lint": "php-cs-fixer fix --dry-run --diff",
+        "lint:fix": "php-cs-fixer fix",
         "check": [
-            "@cs:check",
-            "@phpstan",
+            "@lint",
+            "@quality",
             "@test"
         ]
     },
