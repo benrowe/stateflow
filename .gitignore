@@ -1,0 +1,36 @@
+# Composer
+/vendor/
+composer.lock
+
+# PHPUnit
+/.phpunit.cache
+/coverage/
+.phpunit.result.cache
+
+# PHPStan
+/.phpstan.cache
+/phpstan.neon
+
+# PHP-CS-Fixer
+/.php-cs-fixer.cache
+/.php_cs.cache
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+/build/
+/dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
