@@ -14,6 +14,9 @@ RUN pecl install pcov \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Configure git to trust the /app directory
+RUN git config --global --add safe.directory /app
+
 # Set working directory
 WORKDIR /app
 
