@@ -1,4 +1,4 @@
-.PHONY: init build workspace test quality lint lint-fix check clean help
+.PHONY: init build workspace test test-single test-coverage quality lint lint-fix check clean help
 
 # Docker configuration
 IMAGE_NAME = stateflow-php
@@ -23,8 +23,14 @@ workspace: ## Enter the Docker container workspace
 	@echo "Entering workspace..."
 	$(DOCKER_RUN_IT) /bin/bash
 
-test: ## Run PHPUnit tests
+test: ## Run PHPUnit tests (parallel execution with 4 processes)
 	$(DOCKER_RUN) composer test
+
+test-single: ## Run PHPUnit tests without parallelization
+	$(DOCKER_RUN) composer test:single
+
+test-coverage: ## Run PHPUnit tests with coverage report
+	$(DOCKER_RUN) composer test:coverage
 
 quality: ## Run PHPStan static analysis
 	$(DOCKER_RUN) composer quality
