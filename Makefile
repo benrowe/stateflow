@@ -1,4 +1,4 @@
-.PHONY: init build workspace test test-single test-coverage quality lint lint-fix check clean help
+.PHONY: init build build-base workspace test test-single test-coverage quality lint lint-fix check clean help
 
 # Docker configuration
 IMAGE_NAME = stateflow-php
@@ -11,13 +11,16 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-build: ## Build the Docker image
+build: ## Build the Docker image with dependencies
 	@echo "Building Docker image..."
-	docker build -t $(IMAGE_NAME) .
+	docker build --target dev -t $(IMAGE_NAME) .
 
-init: build ## Build Docker image and install composer dependencies
-	@echo "Installing Composer dependencies..."
-	$(DOCKER_RUN) composer install
+build-base: ## Build base Docker image without dependencies
+	@echo "Building base Docker image..."
+	docker build --target base -t $(IMAGE_NAME)-base .
+
+init: build ## Build Docker image (dependencies included)
+	@echo "Docker image built successfully with all dependencies!"
 
 workspace: ## Enter the Docker container workspace
 	@echo "Entering workspace..."
