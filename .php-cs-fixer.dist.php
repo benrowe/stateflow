@@ -72,4 +72,5 @@ return $config
     ])
     ->setFinder($finder)
     ->setRiskyAllowed(true)
-    ->setUsingCache(true);
+    ->setUsingCache(true)
+    ->setParallelConfig(new PhpCsFixer\Runner\Parallel\ParallelConfig());
