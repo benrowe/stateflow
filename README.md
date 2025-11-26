@@ -10,11 +10,12 @@ A flexible and intuitive state machine library for PHP.
 - Event-driven architecture
 - Extensible and customizable
 - Full test coverage
-- PHP 8.1+ support
+- PHP 8.2+ support
 
 ## Requirements
 
-- PHP 8.1 or higher
+- PHP 8.2 or higher
+- Docker (for development)
 
 ## Installation
 
@@ -22,6 +23,28 @@ Install via Composer:
 
 ```bash
 composer require benrowe/stateflow
+```
+
+## Development Setup
+
+This project uses Docker for development, so you don't need PHP installed locally.
+
+Initialize the project (build Docker image and install dependencies):
+
+```bash
+make init
+```
+
+View all available commands:
+
+```bash
+make help
+```
+
+Enter the Docker workspace (interactive shell):
+
+```bash
+make workspace
 ```
 
 ## Usage
@@ -34,16 +57,22 @@ use BenRowe\StateFlow\StateMachine;
 
 ## Testing
 
-Run the test suite:
+Run the test suite (parallel execution with 4 processes):
 
 ```bash
-composer test
+make test
+```
+
+Run tests without parallelization:
+
+```bash
+make test-single
 ```
 
 Run tests with coverage:
 
 ```bash
-composer test:coverage
+make test-coverage
 ```
 
 ## Code Quality
@@ -51,25 +80,25 @@ composer test:coverage
 Check code style:
 
 ```bash
-composer cs:check
+make lint
 ```
 
 Fix code style issues:
 
 ```bash
-composer cs:fix
+make lint-fix
 ```
 
 Run static analysis:
 
 ```bash
-composer phpstan
+make quality
 ```
 
-Run all checks:
+Run all checks (lint, quality, tests):
 
 ```bash
-composer check
+make check
 ```
 
 ## Contributing
