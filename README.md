@@ -4,6 +4,7 @@ A flexible and intuitive state machine library for PHP.
 
 ## Features
 
+- Deterministic State management
 - Simple and intuitive API
 - Support for state transitions with guards and callbacks
 - Event-driven architecture
