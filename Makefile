@@ -3,7 +3,7 @@
 # Docker configuration
 IMAGE_NAME = stateflow-php
 DOCKER_RUN = docker run --rm -v $(PWD):/app -w /app $(IMAGE_NAME)
-DOCKER_RUN_IT = docker run --rm -it -v $(PWD):/app -w /app $(IMAGE_NAME)
+DOCKER_RUN_IT = docker run --rm -it -v $(PWD):/app -v $(HOME)/.gitconfig:/home/appuser/.gitconfig:ro -v $(HOME)/.ssh/:/home/appuser/.ssh:ro -w /app $(IMAGE_NAME)
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'

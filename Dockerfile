@@ -12,9 +12,6 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Configure git to trust the /app directory
-RUN git config --global --add safe.directory /app
-
 # Set working directory
 WORKDIR /app
 
@@ -35,6 +32,16 @@ RUN composer install \
     --prefer-dist \
     --optimize-autoloader \
     && composer clear-cache
+
+ARG UID=1000
+ARG GID=1000
+
+# Create group and user matching host
+RUN groupadd -g ${GID} appuser \
+ && useradd -m -u ${UID} -g ${GID} appuser
+
+USER appuser
+WORKDIR /app
 
 # Default command
 CMD ["/bin/bash"]
