@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Create Release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## What's Changed
+
+            See the [full changelog](https://github.com/${{ github.repository }}/compare/${{ github.ref_name }}...master) for all changes in this release.
+
+            ## Installation
+
+            ```bash
+            composer require benrowe/stateflow:^${{ steps.version.outputs.version }}
+            ```
+          draft: false
+          prerelease: false
+
+      - name: Generate Release Notes
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
