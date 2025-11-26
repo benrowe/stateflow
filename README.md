@@ -4,11 +4,12 @@ A flexible and intuitive state machine library for PHP.
 
 ## Features
 
-- Deterministic State management
+- Deterministic State transition management
 - Simple and intuitive API
 - Support for state transitions with Gates and Actions
 - Event-driven architecture
 - Extensible and customizable
+- Mutex lock machanism to control race conditions
 - Full test coverage
 - PHP 8.2+ support
 
