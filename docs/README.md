@@ -25,6 +25,7 @@ StateFlow is a stateful workflow engine that determines if we can transition fro
 6. [Interface Definitions](./interfaces.md) - Complete API reference
 7. [Usage Examples](./examples.md) - Common usage patterns
 8. [Open Questions](./open-questions.md) - Unresolved design decisions
+9. [Contributing Guide](./contributing.md) - Development setup and guidelines
 
 ## Quick Start Example
 
