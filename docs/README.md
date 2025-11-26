@@ -18,12 +18,13 @@ StateFlow is a stateful workflow engine that determines if we can transition fro
 ## Documentation Structure
 
 1. [Architecture Overview](./architecture.md) - High-level design goals and principles
-2. [Core Concepts](./core-concepts.md) - State, Gates, Actions, Configuration
-3. [Observability](./observability.md) - Event system and monitoring
-4. [Locking System](./locking.md) - Mutex locks and race condition handling
-5. [Interface Definitions](./interfaces.md) - Complete API reference
-6. [Usage Examples](./examples.md) - Common usage patterns
-7. [Open Questions](./open-questions.md) - Unresolved design decisions
+2. [Flow Diagrams](./diagrams.md) - Visual flowcharts and sequence diagrams
+3. [Core Concepts](./core-concepts.md) - State, Gates, Actions, Configuration
+4. [Observability](./observability.md) - Event system and monitoring
+5. [Locking System](./locking.md) - Mutex locks and race condition handling
+6. [Interface Definitions](./interfaces.md) - Complete API reference
+7. [Usage Examples](./examples.md) - Common usage patterns
+8. [Open Questions](./open-questions.md) - Unresolved design decisions
 
 ## Quick Start Example
 

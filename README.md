@@ -52,6 +52,7 @@ make workspace
 Comprehensive architecture and design documentation is available in the [`docs/`](./docs) directory:
 
 - [Architecture Overview](./docs/architecture.md) - High-level design goals and principles
+- [Flow Diagrams](./docs/diagrams.md) - Visual flowcharts and sequence diagrams
 - [Core Concepts](./docs/core-concepts.md) - State, Gates, Actions, Configuration
 - [Observability](./docs/observability.md) - Event system and monitoring
 - [Locking System](./docs/locking.md) - Mutex locks and race condition handling
