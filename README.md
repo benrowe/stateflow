@@ -6,7 +6,7 @@ A flexible and intuitive state machine library for PHP.
 
 - Deterministic State management
 - Simple and intuitive API
-- Support for state transitions with guards and callbacks
+- Support for state transitions with Gates and Actions
 - Event-driven architecture
 - Extensible and customizable
 - Full test coverage
@@ -47,12 +47,25 @@ Enter the Docker workspace (interactive shell):
 make workspace
 ```
 
+## Documentation
+
+Comprehensive architecture and design documentation is available in the [`docs/`](./docs) directory:
+
+- [Architecture Overview](./docs/architecture.md) - High-level design goals and principles
+- [Core Concepts](./docs/core-concepts.md) - State, Gates, Actions, Configuration
+- [Observability](./docs/observability.md) - Event system and monitoring
+- [Locking System](./docs/locking.md) - Mutex locks and race condition handling
+- [Interface Definitions](./docs/interfaces.md) - Complete API reference
+- [Usage Examples](./docs/examples.md) - Common usage patterns
+- [Open Questions](./docs/open-questions.md) - Unresolved design decisions
+
 ## Usage
 
 ```php
 use BenRowe\StateFlow\StateMachine;
 
-// Coming soon - usage examples will be added as the library develops
+// Coming soon - usage examples will be added as implementation progresses
+// See docs/examples.md for planned usage patterns
 ```
 
 ## Testing
