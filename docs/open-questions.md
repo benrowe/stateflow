@@ -320,24 +320,13 @@ class ProcessOrderAction implements Action
 }
 ```
 
-### Questions
+### Decision
 
-1. Should nested workflows be supported explicitly?
+StateFlow will **not provide explicit, built-in support for nested workflows**.
 
-2. Should nested workflow context be tracked in parent?
-   ```php
-   $context->getActionExecutions()[0]['nestedWorkflows'] = [
-       ['machine' => 'PaymentMachine', 'context' => /* ... */],
-   ];
-   ```
+Adding this feature introduces significant complexity, including tracking the state of child workflows, handling nested pauses, and managing context serialization across parent and child machines.
 
-3. How do we handle pause in nested workflows?
-   - If child pauses, should parent pause?
-   - Should parent serialize child context?
-
-### Decision Needed
-
-Do we need explicit support for nested workflows, or is the current design sufficient?
+The current design is sufficient for users to implement this pattern themselves if needed. An `Action` can instantiate and run another `StateMachine`, then `pause` or `stop` the parent workflow based on the outcome of the child workflow. This approach keeps the core library simple while providing the necessary flexibility for advanced use cases.
 
 ---
 
@@ -439,7 +428,7 @@ Is the current design (machine owns state) correct?
 | 3 | Lock renewal | Medium | Large TTLs, manual renewal method |
 | 4 | Action dependencies | Low | Linear ordering sufficient for now |
 | 5 | Idempotency | Medium | User handles in gates |
-| 6 | Nested workflows | Low | Not built-in, user manages |
+| 6 | Nested workflows | Low | Decided: Not built-in, user manages |
 | 7 | Rollback | Medium | Decided: Not built-in, user manages |
 | 8 | Partial updates | Low | Decided: Allowed |
 | 9 | Machine state | Low | Current design is fine |
