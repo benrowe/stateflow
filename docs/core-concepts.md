@@ -270,22 +270,26 @@ class HasRequiredFieldsGate implements Gate
 }
 ```
 
-**Business rule:**
+**Idempotency check:**
 ```php
-class NotArchivedGate implements Gate
+class NotAlreadyPublishedGate implements Gate
 {
     public function evaluate(GateContext $context): GateResult
     {
-        $state = $context->currentState->toArray();
+        $current = $context->currentState->toArray();
+        $desired = $context->desiredDelta;
 
-        return $state['status'] !== 'archived'
-            ? GateResult::ALLOW
-            : GateResult::DENY;
+        // Assuming 'status' is a key in your state
+        if (isset($desired['status']) && $current['status'] === $desired['status']) {
+            return GateResult::SKIP_IDEMPOTENT;
+        }
+
+        return GateResult::ALLOW;
     }
 
     public function message(): ?string
     {
-        return 'Cannot modify archived items';
+        return 'Transition not allowed: already in the target state.';
     }
 }
 ```
