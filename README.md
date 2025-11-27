@@ -62,7 +62,6 @@ class Order implements State {
 
 // Configure the workflow
 $machine = new StateMachine(
-    initialState: new Order('pending'),
     configProvider: fn($state, $delta) => new Configuration(
         transitionGates: [new CanProcessGate()],  // Must pass to proceed
         actions: [
@@ -76,7 +75,10 @@ $machine = new StateMachine(
 );
 
 // Execute transition with automatic locking
-$context = $machine->transitionTo(['status' => 'processing']);
+$order = new Order('pending');
+$worker = $machine->transition($order, ['status' => 'processing']);
+$context = $worker->execute();
+
 
 if ($context->isCompleted()) {
     echo "Order processed!";
@@ -86,7 +88,8 @@ if ($context->isCompleted()) {
     saveToDatabase($context->serialize());
 
     // Resume hours later...
-    $machine->resume($context);
+    $resumedWorker = $machine->fromContext($context);
+    $resumedWorker->execute();
 }
 ```
 
@@ -98,21 +101,29 @@ Specify only what changes:
 
 ```php
 // Just this
-$machine->transitionTo(['status' => 'published']);
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
+
 
 // Not this
-$machine->transitionTo(['status' => 'published', 'author' => 'same', 'created' => 'same', ...]);
+$worker = $machine->transition($state, ['status' => 'published', 'author' => 'same', 'created' => 'same', ...]);
+$context = $worker->execute();
 ```
 
 ### ⚙️ Granular Execution Control
 
-Control workflow execution at the per-action level:
+The `StateWorker` gives you full control over the workflow execution:
 
 ```php
-// Step through one action at a time
-$machine->transitionTo(['status' => 'published']); // Executes first action, pauses
-$machine->nextAction(); // Executes second action, pauses
-$machine->nextAction(); // Executes third action, completes
+$worker = $machine->transition($state, ['status' => 'published']);
+
+// 1. Run gates first
+$gateResult = $worker->runGates();
+
+// 2. Then run actions if gates pass
+if (!$gateResult->shouldStopTransition()) {
+    $context = $worker->runActions();
+}
 
 // Or let actions pause themselves for async operations
 class ProcessVideoAction implements Action {
@@ -125,24 +136,27 @@ class ProcessVideoAction implements Action {
 }
 
 // Resume later when ready
-$machine->resume($context);
+$resumedWorker = $machine->fromContext($pausedContext);
+$resumedWorker->execute();
 ```
 
 ### 🔒 Race Condition Prevention
 
-Built-in mutex locking with multiple strategies:
+Built-in mutex locking, configured on the `StateMachine`:
 
 ```php
-$machine->transitionTo(
-    ['status' => 'published'],
-    new LockConfiguration(
-        strategy: LockStrategy::WAIT,  // or FAIL_FAST, SKIP
-        ttl: 300,                       // 5 minute lock
-    )
+$lockProvider = new RedisLockProvider($redis, $config);
+$machine = new StateMachine(
+    configProvider: $configProvider,
+    lockProvider: $lockProvider,
 );
+
+// This transition will be automatically locked
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 ```
 
-If another process tries to transition the same entity, it will wait, fail, or skip based on your strategy.
+If another process tries to transition the same entity, it will wait, fail, or skip based on your lock provider's behavior.
 
 ### 👀 Fully Observable
 
@@ -210,7 +224,6 @@ composer require benrowe/stateflow
 | [Locking System](./docs/locking.md) | Race condition handling |
 | [Interface Reference](./docs/interfaces.md) | Complete API documentation |
 | [Usage Examples](./docs/examples.md) | Real-world patterns |
-| [Open Questions](./docs/open-questions.md) | Design decisions to resolve |
 
 ## Real-World Example
 
@@ -259,7 +272,6 @@ $configProvider = function(State $state, array $delta): Configuration {
 
 // 3. Create machine with observability and locking
 $machine = new StateMachine(
-    initialState: new OrderState('ORD-123', 'pending', 99.99),
     configProvider: $configProvider,
     eventDispatcher: new MetricsDispatcher(),
     lockProvider: new RedisLockProvider($redis),
@@ -272,10 +284,9 @@ $machine = new StateMachine(
 
 // 4. Execute with race protection
 try {
-    $context = $machine->transitionTo(
-        ['status' => 'processing'],
-        new LockConfiguration(strategy: LockStrategy::FAIL_FAST)
-    );
+    $order = new OrderState('ORD-123', 'pending', 99.99);
+    $worker = $machine->transition($order, ['status' => 'processing']);
+    $context = $worker->execute();
 
     if ($context->isCompleted()) {
         return response()->json(['status' => 'success']);
@@ -301,9 +312,9 @@ try {
 
 ## Status
 
-🚧 **Currently in Planning Phase**
+🚧 **Alpha Stage**
 
-The architecture is fully designed and documented. Implementation is pending. See [Open Questions](./docs/open-questions.md) for remaining design decisions.
+The architecture is designed and documented. The project is under active development.
 
 ## Contributing
 
