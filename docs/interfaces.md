@@ -74,10 +74,18 @@ enum GateResult
 {
     case ALLOW;
     case DENY;
+    case SKIP_IDEMPOTENT; // Added for idempotency checks
     // Future: DEFER, CONDITIONAL, etc.
 
-    public function shouldStopTransition(): bool;
-    public function shouldSkipAction(): bool;
+    public function shouldStopTransition(): bool
+    {
+        return $this === self::DENY;
+    }
+
+    public function shouldSkipAction(): bool
+    {
+        return $this === self::DENY || $this === self::SKIP_IDEMPOTENT;
+    }
 }
 ```
 

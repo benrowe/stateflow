@@ -255,43 +255,15 @@ $machine->transitionTo(['status' => 'published']);
 $machine->transitionTo(['status' => 'published']);
 ```
 
-### Questions
+### Decision
 
-1. Should the machine detect duplicate transitions?
-   ```php
-   if ($currentState->status === $desiredDelta['status']) {
-       // Already in target state, skip transition
-       return TransitionContext::alreadyCompleted();
-   }
-   ```
+**Idempotency checks will be handled by Transition Gates.**
 
-2. Should this be configurable?
-   ```php
-   $machine->transitionTo(
-       ['status' => 'published'],
-       allowIdempotent: true  // Skip if already in target state
-   );
-   ```
+This approach provides maximum flexibility to the user, allowing them to define idempotency logic that is specific to their domain and transition requirements. Since idempotency often involves comparing the current state with the desired delta, and potentially other business rules, a `Gate` is the most appropriate place for this validation.
 
-3. Or should users handle this in gates?
-   ```php
-   class NotAlreadyPublishedGate implements Gate
-   {
-       public function evaluate(GateContext $context): GateResult
-       {
-           $current = $context->currentState->toArray();
-           $desired = $context->desiredDelta;
+For example, a `Gate` can check if the entity is already in the target state and, if so, return `GateResult::DENY` or a custom `GateResult` that signals to skip the transition entirely.
 
-           return $current['status'] === $desired['status']
-               ? GateResult::DENY
-               : GateResult::ALLOW;
-       }
-   }
-   ```
-
-### Decision Needed
-
-Should the machine provide built-in idempotency checks?
+While not built-in initially, the framework could provide **common, reusable Idempotency Gates** in the future to simplify common scenarios, without enforcing a specific idempotency strategy on the user.
 
 ---
 
@@ -427,7 +399,7 @@ Is the current design (machine owns state) correct?
 | 2 | State merge location | High | Decided: Actions handle merging |
 | 3 | Lock renewal | Medium | Large TTLs, manual renewal method |
 | 4 | Action dependencies | Low | Linear ordering sufficient for now |
-| 5 | Idempotency | Medium | User handles in gates |
+| 5 | Idempotency | Medium | Decided: Handled by Transition Gates (with future common gates) |
 | 6 | Nested workflows | Low | Decided: Not built-in, user manages |
 | 7 | Rollback | Medium | Decided: Not built-in, user manages |
 | 8 | Partial updates | Low | Decided: Allowed |

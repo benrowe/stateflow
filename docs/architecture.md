@@ -136,6 +136,7 @@ $machine->transitionTo(
          └────────┬───────────────┘
                   │
                   ├─── DENY ──► STOP (release lock)
+                  ├─── SKIP_IDEMPOTENT ──► Mark Skipped Idempotent, Return Context
                   │
                   ▼ ALLOW
          ┌────────────────────────┐
@@ -235,6 +236,7 @@ The `StateMachine` orchestrates, but `TransitionContext` owns:
 enum GateResult {
     case ALLOW;
     case DENY;
+    case SKIP_IDEMPOTENT; // Added for idempotency checks
     // Future: DEFER, CONDITIONAL, etc.
 }
 
