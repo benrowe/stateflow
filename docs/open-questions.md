@@ -156,29 +156,13 @@ if ($context->isPaused()) {
 $machine->resume($context);  // Lock expired! Throws LockLostException
 ```
 
-### Questions
+### Decision
 
-1. Should we support lock renewal?
-   ```php
-   $machine->renewLock(); // Extend TTL
-   ```
+The `LockProvider` interface will be extended to provide a method for **manually extending the TTL of an existing lock**.
 
-2. Should there be a background job that auto-renews locks?
-   ```php
-   new LockConfiguration(
-       ttl: 60,
-       autoRenew: true,  // Keep renewing every 30s
-   );
-   ```
+This allows users to manage long-running paused workflows by explicitly renewing the lock when the workflow is resumed or periodically through an external process.
 
-3. Or should users just set very large TTLs?
-   ```php
-   new LockConfiguration(ttl: 86400); // 24 hours
-   ```
-
-### Decision Needed
-
-How to handle long-running paused workflows?
+**Automatic lock renewal will not be supported within StateFlow.** Implementing auto-renewal effectively creates a "never expiring" lock, which can hide underlying issues and create maintenance challenges. The responsibility for managing the lock's lifetime and explicit renewal lies with the user's application logic.
 
 ---
 
@@ -382,7 +366,7 @@ This new design provides a more flexible and powerful API, allowing users to cho
 |---|----------|----------|-------------------|
 | 1 | Serialization | High | Decided: User provides factories |
 | 2 | State merge location | High | Decided: Actions handle merging |
-| 3 | Lock renewal | Medium | Large TTLs, manual renewal method |
+| 3 | Lock renewal | Medium | Decided: Manual TTL extension via LockProvider, no auto-renewal |
 | 4 | Action dependencies | Low | Decided: Strictly FIFO, no explicit dependencies |
 | 5 | Idempotency | Medium | Decided: Handled by Transition Gates (with future common gates) |
 | 6 | Nested workflows | Low | Decided: Not built-in, user manages |

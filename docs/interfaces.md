@@ -449,6 +449,15 @@ interface LockProvider
      * Check if a lock exists
      */
     public function exists(string $key): bool;
+
+    /**
+     * Extend the TTL of an existing lock.
+     *
+     * @param string $key Unique lock identifier
+     * @param int $ttl New time-to-live in seconds
+     * @return bool True if the lock was renewed, false otherwise (e.g., lock didn't exist or wasn't owned).
+     */
+    public function renew(string $key, int $ttl): bool;
 }
 ```
 

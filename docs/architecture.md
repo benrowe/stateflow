@@ -118,7 +118,8 @@ $context = $worker->execute();
 ```
 - Request A acquires a lock when `execute()` is called.
 - Request B, using the same machine (and thus the same lock provider), will wait or fail based on the lock provider's behavior.
-- The lock persists through pauses.
+- The lock persists through pauses, and can be manually extended via the `LockProvider` interface.
+- Automatic lock renewal is not supported; it is the user's responsibility to renew the lock if necessary for long-running paused workflows.
 - The lock is released on completion, stop, or manual release.
 
 ## Execution Flow
