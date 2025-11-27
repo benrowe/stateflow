@@ -121,35 +121,18 @@ $newState = $context->currentState->with(['status' => 'published']);
 return ActionResult::continue($newState);
 ```
 
-### Questions
+### Decision
 
-1. Should gates see merged state or just current + delta?
-   - Pro (merged): Gates validate final state
-   - Con (merged): Need to merge before knowing if transition allowed
+State merging is the responsibility of the **Action**.
 
-2. Should there be a "default merge action" that runs if user doesn't provide one?
-   ```php
-   new Configuration(
-       transitionGates: [new CanPublish()],
-       actions: [
-           new AutoMergeAction(),  // Applies delta automatically
-           new NotifyAction(),
-       ],
-   );
-   ```
+This approach provides the most flexibility:
+-   **Actions Control State:** Since actions are the components that perform the actual work, they are in the best position to know how the state should be updated.
+-   **Complex Merging Logic:** It allows for complex merging logic that goes beyond a simple `array_merge`. An action can decide to conditionally apply, transform, or ignore parts of the `desiredDelta`.
+-   **Sequential State Changes:** Each action in a sequence receives the state as updated by the previous action, allowing for a chain of mutations.
 
-3. What if multiple actions modify state? Is each action composing on previous?
-   ```php
-   Action1: state->with(['a' => 1])  → {a: 1}
-   Action2: state->with(['b' => 2])  → {a: 1, b: 2}
-   Action3: state->with(['c' => 3])  → {a: 1, b: 2, c: 3}
-   ```
+Gates will only receive the `currentState` and the `desiredDelta`. They are for validation *before* the change, not for validating the *outcome* of the change. If the outcome needs validation, a subsequent `Action` or `Gate` should be used.
 
-### Decision Needed
-
-- Where should merging happen?
-- Should gates see merged state?
-- Should there be a default merge behavior?
+There will be no "default merge action." The responsibility is explicitly on the user-provided actions. If no action updates the state, the state remains unchanged.
 
 ---
 
@@ -482,7 +465,7 @@ Is the current design (machine owns state) correct?
 | # | Question | Priority | Proposed Solution |
 |---|----------|----------|-------------------|
 | 1 | Serialization | High | Decided: User provides factories |
-| 2 | State merge location | High | Actions handle merging |
+| 2 | State merge location | High | Decided: Actions handle merging |
 | 3 | Lock renewal | Medium | Large TTLs, manual renewal method |
 | 4 | Action dependencies | Low | Linear ordering sufficient for now |
 | 5 | Idempotency | Medium | User handles in gates |

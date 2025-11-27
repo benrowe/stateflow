@@ -32,7 +32,8 @@ interface State
 **Why `with()` instead of machine-managed merging?**
 - State merging can be complex (deep merge, shallow merge, null handling, etc.)
 - Users know their domain and requirements
-- Machine stays agnostic to state structure
+- The machine stays agnostic to state structure, and delegates the responsibility of merging to the `Action`s.
+
 
 ### Implementation Example
 
