@@ -65,7 +65,10 @@ if ($context->isPaused()) {
 }
 
 // Resume later after external event
-$context = unserialize(loadFromDatabase());
+$serializedContext = loadFromDatabase();
+$stateFactory = new MyStateFactory();
+$actionFactory = new MyActionFactory();
+$context = TransitionContext::unserialize($serializedContext, $stateFactory, $actionFactory);
 $machine->resume($context);
 ```
 
@@ -290,9 +293,12 @@ Users provide implementations for:
 **Instead of:** In-memory only
 **Trade-off:** Serialization complexity, but enables async workflows
 
+### Chose: Factory-Based Serialization
+**Instead of:** Standard `serialize()`/`unserialize()`
+**Trade-off:** Requires users to provide factories, but enables reconstruction of custom `State` and `Action` objects without tying the serialized data to a specific class structure.
+
 ## Future Considerations
 
 See [Open Questions](./open-questions.md) for unresolved design decisions, including:
-- Serialization/deserialization of State and Action objects
 - State merge location and timing
 - Lock renewal for very long-running workflows

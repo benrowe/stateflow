@@ -630,8 +630,35 @@ class TransitionContext
 
     // Serialization
     public function serialize(): string;
-    public function unserialize(string $data): void;
+    public function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): void;
 }
+
+### Serialization and Deserialization
+
+To support resumable workflows, the `TransitionContext` can be serialized. However, since the context holds user-defined `State` and `Action` objects, a mechanism is needed to reconstruct them upon deserialization.
+
+This is achieved using **factories** that you provide.
+
+-   `StateFactory`: A user-implemented class that knows how to create a `State` object from an array.
+-   `ActionFactory`: A user-implemented class that knows how to create an `Action` object from its class name.
+
+When you resume a workflow, you pass these factories to the `unserialize()` method, giving you full control over object reconstruction.
+
+```php
+// Serialize and store
+$pausedContext = $machine->transitionTo(['status' => 'pending']);
+$serialized = $pausedContext->serialize();
+$database->save(['context' => $serialized]);
+
+// Later, resume from storage
+$serialized = $database->find($id)['context'];
+$stateFactory = new MyStateFactory();
+$actionFactory = new MyActionFactory();
+
+$resumedContext = TransitionContext::unserialize($serialized, $stateFactory, $actionFactory);
+$machine->resume($resumedContext);
+```
+
 ```
 
 ### Usage in Actions

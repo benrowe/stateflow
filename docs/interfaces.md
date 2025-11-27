@@ -20,6 +20,29 @@ interface State
      * User implements their merge strategy here
      */
     public function with(array $changes): State;
+}```
+
+### StateFactory
+
+```php
+interface StateFactory
+{
+    /**
+     * Create a State object from its array representation.
+     */
+    public function fromArray(array $data): State;
+}
+```
+
+### ActionFactory
+
+```php
+interface ActionFactory
+{
+    /**
+     * Create an Action object from its class name.
+     */
+    public function fromClassName(string $className): Action;
 }
 ```
 
@@ -592,7 +615,7 @@ class TransitionContext implements \Serializable
 
     // Serialization
     public function serialize(): string;
-    public function unserialize(string $data): void;
+    public static function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self;
 
     // Internal methods (used by StateMachine)
     public function beginTransition(array $desiredDelta, Configuration $config): void;
