@@ -202,42 +202,19 @@ Currently, actions run in order. But what if:
 - `ChargePaymentAction` stops (payment fails)
 - Should `SendEmailAction` still run?
 
-### Current Behavior
+### Decision
 
-If an action returns `ActionResult::stop()`, execution stops and remaining actions don't run.
+**Action execution will be strictly FIFO (First In, First Out).**
 
-### Questions
+StateFlow will **not support explicit action dependencies or Directed Acyclic Graphs (DAGs)** for orchestrating actions. This decision maintains the simplicity of the core engine and avoids introducing significant complexity for edge cases that can often be handled in other ways.
 
-1. Is linear ordering sufficient, or do we need a DAG (directed acyclic graph)?
+If complex sequencing, conditional execution based on prior action outcomes, or external dependencies are required, this logic should be encapsulated **within a single action**. An action can:
 
-2. Should actions declare dependencies?
-   ```php
-   class SendEmailAction implements Action
-   {
-       public function dependencies(): array
-       {
-           return [ChargePaymentAction::class];
-       }
-   }
-   ```
+*   Call other methods or services.
+*   Perform internal conditional logic.
+*   Query the `TransitionContext` to see which gates have passed or which actions have already executed.
 
-3. Should there be action groups?
-   ```php
-   new Configuration(
-       actions: [
-           new ActionGroup([
-               new ChargePaymentAction(),
-               new UpdateInventoryAction(),
-           ], strategy: 'all-or-nothing'),
-
-           new SendEmailAction(),
-       ],
-   );
-   ```
-
-### Decision Needed
-
-Is simple linear ordering enough, or do we need more sophisticated dependency management?
+If an action returns an `ActionResult::stop()`, it explicitly halts the current transition, meaning any subsequent actions in the queue will not be executed. Users must design their actions with this sequential execution model in mind.
 
 ---
 
@@ -406,7 +383,7 @@ This new design provides a more flexible and powerful API, allowing users to cho
 | 1 | Serialization | High | Decided: User provides factories |
 | 2 | State merge location | High | Decided: Actions handle merging |
 | 3 | Lock renewal | Medium | Large TTLs, manual renewal method |
-| 4 | Action dependencies | Low | Linear ordering sufficient for now |
+| 4 | Action dependencies | Low | Decided: Strictly FIFO, no explicit dependencies |
 | 5 | Idempotency | Medium | Decided: Handled by Transition Gates (with future common gates) |
 | 6 | Nested workflows | Low | Decided: Not built-in, user manages |
 | 7 | Rollback | Medium | Decided: Not built-in, user manages |
