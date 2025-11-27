@@ -375,19 +375,27 @@ $machineService = app(OrderStateMachine::class);
 $machineService->transition($order, ['status' => 'shipped']);
 ```
 
-### Current Design
+### Decision
 
-Approach A - machine holds state.
+The `StateMachine` will be refactored into a stateless service, and a new `StateWorker` class will be introduced to manage the execution of a single transition.
 
-### Questions
+This decision moves away from the "machine per entity" model (Approach A) and fully embraces the "machine as a service" model (Approach B), which offers better reusability and a clearer separation of concerns.
 
-1. Should machines be reusable for multiple entities?
-2. Should state be injected per transition instead of at construction?
-3. How does this affect serialization?
+The new workflow will be as follows:
 
-### Decision Needed
+1.  **`StateMachine` as a Service:** The `StateMachine` will no longer hold an internal state. It will be a reusable service that you can inject where needed.
 
-Is the current design (machine owns state) correct?
+2.  **`transition()` Method:** The primary interaction method will be `$machine->transition($existingState, $delta)`. This method takes the current state of an entity and the desired changes.
+
+3.  **`StateWorker` Object:** The `transition()` method will not execute the transition immediately. Instead, it will return a `StateWorker` object, which is responsible for the lifecycle of that specific transition.
+
+4.  **`StateWorker` Methods:** The `StateWorker` will provide fine-grained control over the transition's execution with the following public methods:
+    *   `runGates()`: Executes all configured transition gates.
+    *   `runActions()`: Executes all configured actions sequentially.
+    *   `runNextAction()`: Executes only the next action in the queue (for step-by-step execution).
+    *   `execute()`: A helper method that runs the entire transition lifecycle (`runGates` then `runActions`).
+
+This new design provides a more flexible and powerful API, allowing users to choose between a simple, one-shot `execute()` call or a more controlled, step-by-step execution. It also makes the `StateMachine` itself truly stateless and easier to manage in dependency injection containers.
 
 ---
 
@@ -403,7 +411,7 @@ Is the current design (machine owns state) correct?
 | 6 | Nested workflows | Low | Decided: Not built-in, user manages |
 | 7 | Rollback | Medium | Decided: Not built-in, user manages |
 | 8 | Partial updates | Low | Decided: Allowed |
-| 9 | Machine state | Low | Current design is fine |
+| 9 | Machine state | Low | Decided: Stateless machine, state passed in, `StateWorker` returned |
 
 ---
 

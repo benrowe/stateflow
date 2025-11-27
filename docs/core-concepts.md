@@ -513,100 +513,128 @@ class Configuration
 **Solution:** Load configuration based on what's changing.
 
 ```php
-$machine = new StateMachine(
-    initialState: new OrderState('draft'),
-    configProvider: function(State $currentState, array $desiredDelta): Configuration {
-        // Dynamic configuration based on transition
-        if (isset($desiredDelta['status'])) {
-            return match ($desiredDelta['status']) {
-                'published' => new Configuration(
-                    transitionGates: [
-                        new CanPublishGate(),
-                        new HasContentGate(),
-                    ],
-                    actions: [
-                        new SetPublishDateAction(),
-                        new GenerateSEOMetaAction(),
-                        new NotifySubscribersAction(),
-                    ],
-                ),
-                'archived' => new Configuration(
-                    transitionGates: [new CanArchiveGate()],
-                    actions: [new ArchiveAction()],
-                ),
-                'draft' => new Configuration(
-                    transitionGates: [new CanUnpublishGate()],
-                    actions: [new ClearPublishDateAction()],
-                ),
-                default => new Configuration(),
-            };
-        }
-
-        // Metadata-only changes
-        if (isset($desiredDelta['metadata'])) {
-            return new Configuration(
-                actions: [new UpdateMetadataAction()],
-            );
-        }
-
-        return new Configuration();
+$configProvider = function(State $currentState, array $desiredDelta): Configuration {
+    // Dynamic configuration based on transition
+    if (isset($desiredDelta['status'])) {
+        return match ($desiredDelta['status']) {
+            'published' => new Configuration(
+                transitionGates: [
+                    new CanPublishGate(),
+                    new HasContentGate(),
+                ],
+                actions: [
+                    new SetPublishDateAction(),
+                    new GenerateSEOMetaAction(),
+                    new NotifySubscribersAction(),
+                ],
+            ),
+            'archived' => new Configuration(
+                transitionGates: [new CanArchiveGate()],
+                actions: [new ArchiveAction()],
+            ),
+            'draft' => new Configuration(
+                transitionGates: [new CanUnpublishGate()],
+                actions: [new ClearPublishDateAction()],
+            ),
+            default => new Configuration(),
+        };
     }
-);
-```
 
-### Configuration Patterns
-
-**Class-based provider:**
-```php
-class OrderConfigurationProvider implements ConfigurationProvider
-{
-    public function provide(State $currentState, array $desiredDelta): Configuration
-    {
-        // More complex logic, database lookups, etc.
-        return new Configuration(/* ... */);
-    }
-}
-
-$machine = new StateMachine(
-    initialState: $state,
-    configProvider: new OrderConfigurationProvider(),
-);
-```
-
-**Context-aware configuration:**
-```php
-$configProvider = function(State $currentState, array $desiredDelta) use ($user): Configuration {
-    // Check permissions
-    if (!$user->can('publish')) {
+    // Metadata-only changes
+    if (isset($desiredDelta['metadata'])) {
         return new Configuration(
-            transitionGates: [new UnauthorizedGate()],
+            actions: [new UpdateMetadataAction()],
         );
     }
 
-    // User-specific actions
-    $actions = [new SetPublishDateAction()];
-    if ($user->hasFeature('auto-notify')) {
-        $actions[] = new NotifySubscribersAction();
-    }
-
-    return new Configuration(actions: $actions);
+    return new Configuration();
 };
+
+$machine = new StateMachine(configProvider: $configProvider);
+
+// Now the machine can be used for any state object
+$worker = $machine->transition($someOrderState, ['status' => 'published']);
+$context = $worker->execute();
+```
+
+---
+
+## StateMachine
+
+The `StateMachine` is a **stateless, reusable service**. Its main responsibility is to take a state object and a desired change, and create a `StateWorker` to handle the transition.
+
+### Key Methods
+
+```php
+class StateMachine
+{
+    public function __construct(
+        callable|ConfigurationProvider $configProvider,
+        ?EventDispatcher $eventDispatcher = null,
+        ?LockProvider $lockProvider = null,
+        ?LockKeyProvider $lockKeyProvider = null
+    ) {}
+
+    /**
+     * Prepare a state transition.
+     * Returns a StateWorker to execute the transition.
+     */
+    public function transition(
+        State $currentState,
+        array $desiredDelta
+    ): StateWorker;
+
+    /**
+     * Create a StateWorker from a previously paused context.
+     */
+    public function fromContext(TransitionContext $context): StateWorker;
+}
+```
+
+### Usage
+
+**Simple Execution:**
+```php
+$lockProvider = new RedisLockProvider($redis);
+$machine = new StateMachine(
+    configProvider: $configProvider,
+    lockProvider: $lockProvider,
+);
+$initialState = new OrderState(/* ... */);
+
+$worker = $machine->transition($initialState, ['status' => 'published']);
+$context = $worker->execute();
+
+if ($context->isCompleted()) {
+    $finalState = $context->getCurrentState();
+    // Persist the final state
+}
+```
+
+**Step-by-Step Execution:**
+```php
+$worker = $machine->transition($initialState, ['status' => 'published']);
+
+$gateResult = $worker->runGates();
+
+if (!$gateResult->shouldStopTransition()) {
+    $context = $worker->runActions();
+    // ...
+}
 ```
 
 ---
 
 ## TransitionContext
 
-The execution context that tracks everything about a transition.
+The `TransitionContext` is an object that **tracks everything about a single transition**. It is created and managed by the `StateWorker`. While you will interact with it to get the final result of a transition, you will rarely need to create or manage it yourself.
 
 ### Responsibilities
 
-1. **State Management** - Owns the current state
-2. **Execution History** - Records all gates evaluated and actions executed
-3. **Action Queue** - Manages which action runs next
-4. **Status Tracking** - Completed, paused, stopped, failed
-5. **Lock State** - Stores lock information for serialization
-6. **Serialization** - Can be stored and resumed
+1.  **State Management** - Owns the current state of the transition.
+2.  **Execution History** - Records all gates evaluated and actions executed.
+3.  **Status Tracking** - `Completed`, `Paused`, `Stopped`, `Failed`.
+4.  **Serialization** - Can be serialized to be resumed later.
 
 ### Key Methods
 
@@ -616,79 +644,43 @@ class TransitionContext
     // State access
     public function getCurrentState(): State;
     public function getDesiredDelta(): array;
-    public function updateState(State $newState): void;
 
     // Status checks
     public function isCompleted(): bool;
     public function isPaused(): bool;
     public function isStopped(): bool;
-    public function wasSkippedDueToLock(): bool;
 
     // Execution history
     public function getGateEvaluations(): array;
     public function getActionExecutions(): array;
-    public function getActionSkips(): array;
-
-    // Lock state
-    public function getLockState(): LockState;
-    public function setLockState(LockState $state): void;
 
     // Serialization
     public function serialize(): string;
-    public function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): void;
+    public static function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self;
 }
-
-### Serialization and Deserialization
-
-To support resumable workflows, the `TransitionContext` can be serialized. However, since the context holds user-defined `State` and `Action` objects, a mechanism is needed to reconstruct them upon deserialization.
-
-This is achieved using **factories** that you provide.
-
--   `StateFactory`: A user-implemented class that knows how to create a `State` object from an array.
--   `ActionFactory`: A user-implemented class that knows how to create an `Action` object from its class name.
-
-When you resume a workflow, you pass these factories to the `unserialize()` method, giving you full control over object reconstruction.
-
-```php
-// Serialize and store
-$pausedContext = $machine->transitionTo(['status' => 'pending']);
-$serialized = $pausedContext->serialize();
-$database->save(['context' => $serialized]);
-
-// Later, resume from storage
-$serialized = $database->find($id)['context'];
-$stateFactory = new MyStateFactory();
-$actionFactory = new MyActionFactory();
-
-$resumedContext = TransitionContext::unserialize($serialized, $stateFactory, $actionFactory);
-$machine->resume($resumedContext);
-```
-
 ```
 
 ### Usage in Actions
 
+Actions receive the `TransitionContext` via the `ActionContext`. This allows actions to inspect the history of the current transition.
 ```php
 class SmartAction implements Action
 {
     public function execute(ActionContext $context): ActionResult
     {
         $executionContext = $context->executionContext;
-
+        
         // Check if a specific gate passed
         $canNotify = collect($executionContext->getGateEvaluations())
             ->first(fn($e) => $e['gate'] === NotificationGate::class)
             ?->result === 'ALLOW';
 
-        // Check if action already ran
-        $alreadyNotified = collect($executionContext->getActionExecutions())
-            ->contains(fn($e) => $e['action'] === NotifyAction::class);
-
-        if ($canNotify && !$alreadyNotified) {
-            // Do something
+        if ($canNotify) {
+            // ...
         }
 
         return ActionResult::continue();
     }
 }
 ```
+

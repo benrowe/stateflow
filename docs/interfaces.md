@@ -538,7 +538,6 @@ class LockState
 class StateMachine
 {
     public function __construct(
-        State $initialState,
         callable|ConfigurationProvider $configProvider,
         ?EventDispatcher $eventDispatcher = null,
         ?LockProvider $lockProvider = null,
@@ -546,46 +545,57 @@ class StateMachine
     ) {}
 
     /**
-     * Execute a state transition
+     * Prepare a state transition.
+     * Returns a StateWorker to execute the transition.
      */
-    public function transitionTo(
-        array $desiredDelta,
-        ?LockConfiguration $lockConfig = null
-    ): TransitionContext;
+    public function transition(
+        State $currentState,
+        array $desiredDelta
+    ): StateWorker;
 
     /**
-     * Execute the next action in the queue
-     * Lock must still be held from previous pause
+     * Create a StateWorker from a previously paused context.
      */
-    public function nextAction(): TransitionContext;
+    public function fromContext(TransitionContext $context): StateWorker;
+}
+```
+
+### StateWorker
+
+```php
+class StateWorker
+{
+    /**
+     * Run all transition gates.
+     * Returns the final GateResult.
+     */
+    public function runGates(): GateResult;
 
     /**
-     * Resume from serialized context
-     * Handles lock state recovery
+     * Run all actions sequentially.
+     * Assumes gates have already been run and passed.
      */
-    public function resume(
-        TransitionContext $context,
-        bool $requireLock = true
-    ): TransitionContext;
+    public function runActions(): TransitionContext;
 
     /**
-     * Manually release the current lock
-     * Use this for error recovery or cleanup
+     * Run the next action in the queue.
+     * Useful for step-by-step execution of a paused workflow.
+     */
+    public function runNextAction(): TransitionContext;
+
+    /**
+     * A helper method to run the entire transition (gates and then actions).
+     * This is the most common way to use the worker.
+     */
+    public function execute(): TransitionContext;
+
+    /**
+     * Manually release the current lock.
      */
     public function releaseLock(): bool;
 
     /**
-     * Check if machine currently holds a lock
-     */
-    public function isLocked(): bool;
-
-    /**
-     * Get current lock state
-     */
-    public function getLockState(): LockState;
-
-    /**
-     * Get current context
+     * Get the current TransitionContext.
      */
     public function getContext(): TransitionContext;
 }
@@ -601,8 +611,7 @@ class TransitionContext implements \Serializable
     // State access
     public function getCurrentState(): State;
     public function getDesiredDelta(): array;
-    public function updateState(State $newState): void;
-
+    
     // Status checks
     public function isCompleted(): bool;
     public function isPaused(): bool;
@@ -616,7 +625,6 @@ class TransitionContext implements \Serializable
 
     // Lock state
     public function getLockState(): LockState;
-    public function setLockState(LockState $state): void;
 
     // Status metadata
     public function getStatusMetadata(): mixed;
@@ -624,17 +632,6 @@ class TransitionContext implements \Serializable
     // Serialization
     public function serialize(): string;
     public static function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self;
-
-    // Internal methods (used by StateMachine)
-    public function beginTransition(array $desiredDelta, Configuration $config): void;
-    public function getNextAction(): ?Action;
-    public function recordGateEvaluation(Gate $gate, GateContext $context, GateResult $result, bool $isActionGate): void;
-    public function recordActionExecution(Action $action, ActionContext $context, ActionResult $result): void;
-    public function recordActionSkipped(Action $action, GateResult $result): void;
-    public function markCompleted(): void;
-    public function markPaused(mixed $metadata = null): void;
-    public function markStopped(mixed $metadata = null): void;
-    public function markSkippedDueToLock(): self;
 }
 ```
 
