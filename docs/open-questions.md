@@ -74,80 +74,17 @@ class TransitionContext
 - More boilerplate
 - Factories need to be available at unserialize time
 
-#### Option 2: Store Fully Serialized Objects
 
-```php
-$context->serialize() => serialize([
-    'currentState' => serialize($this->currentState),  // Whole object
-    'actions' => array_map(fn($a) => serialize($a), $this->actions),
-    // ...
-]);
-```
 
-**Pros:**
-- Simple, automatic
-- No factories needed
+### Decision
 
-**Cons:**
-- Serialized data tied to class structure (breaks if class changes)
-- Larger serialized payload
-- Can't inspect/debug serialized state easily
-- Security concerns (object injection)
+After review, **Option 1: User Provides Factories** is the chosen approach.
 
-#### Option 3: Actions Must Be Stateless
+This method offers the best balance of flexibility and explicitness. It gives the user full control over how their `State` and `Action` objects are reconstructed, which is essential for a library that doesn't impose specific implementation details.
 
-Require Actions to be reconstructible from class name alone.
+While it introduces some boilerplate (requiring factories), this is a reasonable trade-off for the level of control it provides. The contracts are clear, and since users are already expected to implement the `State` interface, creating a corresponding factory is a natural extension of that responsibility.
 
-```php
-// Actions MUST have zero-arg constructor or use DI container
-$this->actions = array_map(
-    fn($class) => app($class),  // Resolve from container
-    $data['actions']
-);
-```
-
-**Pros:**
-- Simple reconstruction
-- Leverages DI container
-
-**Cons:**
-- Restricts Action design
-- What if Action needs constructor params?
-
-#### Option 4: Store State as Array, Reconstruct at Boundaries
-
-Keep state as array internally, only use State interface at machine boundaries.
-
-```php
-class TransitionContext
-{
-    private array $currentStateData;  // Not State interface
-    private StateFactory $stateFactory;
-
-    public function getCurrentState(): State
-    {
-        // Convert to State on demand
-        return $this->stateFactory->fromArray($this->currentStateData);
-    }
-}
-```
-
-**Pros:**
-- Easy serialization
-- State data is inspectable
-
-**Cons:**
-- More conversion overhead
-- Actions receive State interface but context stores arrays
-
-### Decision Needed
-
-Which approach should we use? Or a hybrid?
-
-**Recommendation:** Option 1 (User Provides Factories)
-- Most flexible
-- Clear contracts
-- Users already implementing State, adding StateFactory is natural
+The implementation will require the user to provide `StateFactory` and `ActionFactory` instances when working with serializable contexts.
 
 ---
 
@@ -544,7 +481,7 @@ Is the current design (machine owns state) correct?
 
 | # | Question | Priority | Proposed Solution |
 |---|----------|----------|-------------------|
-| 1 | Serialization | High | User provides factories |
+| 1 | Serialization | High | Decided: User provides factories |
 | 2 | State merge location | High | Actions handle merging |
 | 3 | Lock renewal | Medium | Large TTLs, manual renewal method |
 | 4 | Action dependencies | Low | Linear ordering sufficient for now |
