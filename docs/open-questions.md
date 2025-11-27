@@ -357,39 +357,13 @@ Action3: ShipOrder       ✗ (failed)
 // - Release inventory
 ```
 
-### Questions
+### Decision
 
-1. Should actions support compensation/rollback?
-   ```php
-   interface CompensatableAction extends Action
-   {
-       public function compensate(ActionContext $context): void;
-   }
-   ```
+StateFlow will **not provide built-in automatic rollback or compensation mechanisms**.
 
-2. Should the machine track successful actions for rollback?
-   ```php
-   if ($context->isStopped()) {
-       foreach (array_reverse($context->getActionExecutions()) as $exec) {
-           if ($exec['action'] instanceof CompensatableAction) {
-               $exec['action']->compensate();
-           }
-       }
-   }
-   ```
+The responsibility for handling rollback and compensation logic will lie entirely with the user. This decision is made to keep the core StateFlow solution simple and focused on state orchestration rather than distributed transaction management.
 
-3. Or should users handle this explicitly?
-   ```php
-   try {
-       $context = $machine->transitionTo(['status' => 'shipped']);
-   } catch (\Exception $e) {
-       $this->manuallyRollback($context);
-   }
-   ```
-
-### Decision Needed
-
-Should StateFlow support automatic rollback/compensation?
+Users who require compensation for failed actions should implement this logic within their own actions (e.g., by creating separate compensation actions or by handling it outside the state machine workflow).
 
 ---
 
@@ -466,7 +440,7 @@ Is the current design (machine owns state) correct?
 | 4 | Action dependencies | Low | Linear ordering sufficient for now |
 | 5 | Idempotency | Medium | User handles in gates |
 | 6 | Nested workflows | Low | Not built-in, user manages |
-| 7 | Rollback | Medium | Not built-in, user manages |
+| 7 | Rollback | Medium | Decided: Not built-in, user manages |
 | 8 | Partial updates | Low | Decided: Allowed |
 | 9 | Machine state | Low | Current design is fine |
 
