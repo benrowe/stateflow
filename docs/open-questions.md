@@ -414,17 +414,13 @@ class AuditAction implements Action {
 }
 ```
 
-### Questions
+### Decision
 
-1. Is this acceptable? (Yes, seems fine)
+Partial state updates are **allowed and explicitly supported**.
 
-2. Should we track "delta drift" - changes beyond desired delta?
+Actions are free to update any part of the state they deem necessary, even if those fields are not part of the `desiredDelta` provided to the `transitionTo` method. This means side effects are possible and a composite state (where one change alters another part of the state, such as automatically updating a `lastModifiedAt` timestamp when `status` changes) is fully within an `Action`'s domain.
 
-3. Should final state validation compare against desired delta?
-
-### Decision Needed
-
-Are partial/additional updates allowed, or should we enforce delta-only changes?
+This decision aligns with the principle that `Actions` are responsible for determining the `newState` based on the `currentState` and `desiredDelta`, and can incorporate any additional logic required.
 
 ---
 
@@ -471,7 +467,7 @@ Is the current design (machine owns state) correct?
 | 5 | Idempotency | Medium | User handles in gates |
 | 6 | Nested workflows | Low | Not built-in, user manages |
 | 7 | Rollback | Medium | Not built-in, user manages |
-| 8 | Partial updates | Low | Allowed |
+| 8 | Partial updates | Low | Decided: Allowed |
 | 9 | Machine state | Low | Current design is fine |
 
 ---
