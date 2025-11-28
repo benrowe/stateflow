@@ -6,7 +6,7 @@ namespace BenRowe\StateFlow\Action;
 
 enum ExecutionState
 {
-    case STOP;
-    case PAUSE;
     case CONTINUE;
+    case PAUSE;
+    case STOP;
 }
