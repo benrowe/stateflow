@@ -674,6 +674,40 @@ public function test_cannot_publish_without_content()
     $this->assertEquals('DENY', $gateEvals[0]['result']);
     $this->assertEquals(HasContentGate::class, $gateEvals[0]['gate']);
 }
+
+public function test_idempotent_transition_succeeds_without_running_actions()
+{
+    $actionExecuted = false;
+
+    $machine = new StateMachine(
+        configProvider: fn($s, $d) => new Configuration(
+            transitionGates: [new AlreadyInStateGate()],
+            actions: [new class($actionExecuted) implements Action {
+                public function __construct(private bool &$executed) {}
+
+                public function execute(ActionContext $context): ActionResult {
+                    $this->executed = true;
+                    return ActionResult::continue();
+                }
+            }],
+        ),
+    );
+
+    // Already in 'published' state
+    $state = new ArticleState('published');
+    $worker = $machine->transition($state, ['status' => 'published']);
+    $context = $worker->execute();
+
+    // Transition completes successfully
+    $this->assertTrue($context->isCompleted());
+
+    // But action was NOT executed (skipped)
+    $this->assertFalse($actionExecuted);
+
+    // Gate returned SKIP_IDEMPOTENT
+    $gateEvals = $context->getGateEvaluations();
+    $this->assertEquals('SKIP_IDEMPOTENT', $gateEvals[0]['result']);
+}
 ```
 
 ### Testing Actions
