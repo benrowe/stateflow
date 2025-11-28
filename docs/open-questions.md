@@ -24,7 +24,7 @@ $serialized = $context->serialize();
 
 When we unserialize:
 ```php
-$context = unserialize($serialized);
+$context = TransitionContext::unserialize($serialized, $stateFactory, $actionFactory);
 // How do we reconstruct?
 $this->currentState = ???; // How to convert array back to State?
 $this->actions = ???;      // How to convert class names to Action instances?
@@ -95,7 +95,8 @@ The implementation will require the user to provide `StateFactory` and `ActionFa
 Currently, the delta is passed through gates and actions, but when does the actual merging happen?
 
 ```php
-$machine->transitionTo(['status' => 'published']);
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 // Option A: Merge before gates?
 $mergedState = $currentState->with($delta);
@@ -143,17 +144,23 @@ There will be no "default merge action." The responsibility is explicitly on the
 If a workflow pauses for longer than the lock TTL, the lock expires:
 
 ```php
-$context = $machine->transitionTo(
-    ['status' => 'published'],
-    new LockConfiguration(ttl: 60)  // 60 seconds
+$lockProvider = new RedisLockProvider($redis, ttl: 60);  // 60 seconds
+$machine = new StateMachine(
+    configProvider: $config,
+    lockProvider: $lockProvider,
 );
+
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 if ($context->isPaused()) {
     saveToDatabase($context->serialize());
 }
 
 // 5 minutes later...
-$machine->resume($context);  // Lock expired! Throws LockLostException
+$restoredContext = TransitionContext::unserialize(loadFromDatabase(), $stateFactory, $actionFactory);
+$worker = $machine->fromContext($restoredContext);
+$finalContext = $worker->execute();  // Lock expired! Throws LockLostException
 ```
 
 ### Decision
@@ -210,10 +217,12 @@ What if a transition is executed twice?
 
 ```php
 // Request 1
-$machine->transitionTo(['status' => 'published']);
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 // Request 2 (duplicate/retry)
-$machine->transitionTo(['status' => 'published']);
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 ```
 
 ### Decision
@@ -241,7 +250,9 @@ class ProcessOrderAction implements Action
     {
         // Start a payment workflow (separate state machine)
         $paymentMachine = new StateMachine(/* ... */);
-        $paymentContext = $paymentMachine->transitionTo(['status' => 'charged']);
+        $paymentState = new PaymentState('pending');
+        $worker = $paymentMachine->transition($paymentState, ['status' => 'charged']);
+        $paymentContext = $worker->execute();
 
         if (!$paymentContext->isCompleted()) {
             // Payment workflow failed/paused
@@ -296,7 +307,8 @@ Users who require compensation for failed actions should implement this logic wi
 What if actions only update specific fields, not related to the desired delta?
 
 ```php
-$machine->transitionTo(['status' => 'published']);
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 // But Action adds a timestamp:
 class AuditAction implements Action {
@@ -327,13 +339,15 @@ This decision aligns with the principle that `Actions` are responsible for deter
 The `StateMachine` holds state internally, but should it be tied to an entity?
 
 ```php
-// Approach A: Machine per entity instance
+// Approach A: Machine per entity instance (REJECTED)
 $orderMachine = new StateMachine(initialState: $order->getState());
-$orderMachine->transitionTo(['status' => 'shipped']);
+$worker = $orderMachine->transition($order->getState(), ['status' => 'shipped']);
+$context = $worker->execute();
 
-// Approach B: Machine as service, state passed in
+// Approach B: Machine as service, state passed in (CHOSEN)
 $machineService = app(OrderStateMachine::class);
-$machineService->transition($order, ['status' => 'shipped']);
+$worker = $machineService->transition($order->getState(), ['status' => 'shipped']);
+$context = $worker->execute();
 ```
 
 ### Decision
