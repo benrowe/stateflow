@@ -12,11 +12,11 @@ enum GateResult
 
     public function shouldStopTransition(): bool
     {
-
+        return $this === self::DENY;
     }
 
     public function shouldSkipAction(): bool
     {
-
+        return $this === self::DENY || $this === self::SKIP_IDEMPOTENT;
     }
 }
