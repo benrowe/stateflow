@@ -340,8 +340,8 @@ The `StateMachine` holds state internally, but should it be tied to an entity?
 
 ```php
 // Approach A: Machine per entity instance (REJECTED)
-$orderMachine = new StateMachine(initialState: $order->getState());
-$worker = $orderMachine->transition($order->getState(), ['status' => 'shipped']);
+$orderMachine = new StateMachine();
+$worker = $orderMachine->transition($order->getState(), $order->getState(), ['status' => 'shipped']);
 $context = $worker->execute();
 
 // Approach B: Machine as service, state passed in (CHOSEN)
