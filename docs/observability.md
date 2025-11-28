@@ -217,7 +217,7 @@ class TransitionFailed extends Event
 - Manual lock release
 - Dead letter queue
 
----
+
 
 ## 2. Gate Events
 
@@ -267,7 +267,7 @@ class GateEvaluated extends Event
 - Permission violation alerts
 - Metrics (gate pass/fail rates)
 
----
+
 
 ## 3. Action Events
 
@@ -336,7 +336,7 @@ class ActionSkipped extends Event
 - Conditional logic tracking
 - Business metrics
 
----
+
 
 ## 4. Lock Events
 
@@ -443,7 +443,7 @@ class LockLost extends Event
 - Race condition monitoring
 - Debug lock expiration issues
 
----
+
 
 ## Implementation Examples
 
@@ -661,7 +661,7 @@ class DebugDispatcher implements EventDispatcher
 }
 ```
 
----
+
 
 ## Use Case: Complete Monitoring Setup
 
@@ -684,7 +684,7 @@ $machine = new StateMachine(
 // 4. Full audit trail for compliance
 ```
 
----
+
 
 ## Benefits
 

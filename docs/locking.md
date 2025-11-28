@@ -28,7 +28,7 @@ Process B: Wait for lock → Execute transition → Release lock
            (or fail/skip based on strategy)
 ```
 
----
+
 
 ## Lock Lifecycle
 
@@ -158,7 +158,7 @@ interface LockKeyProvider
 }
 ```
 
----
+
 
 ## Lock Strategies
 
@@ -196,7 +196,7 @@ enum LockStrategy
 | `WAIT` | Block until lock available | Background jobs where waiting is acceptable |
 | `SKIP` | Return immediately with skip flag | API requests where user shouldn't wait |
 
----
+
 
 ## Lock Configuration
 
@@ -265,7 +265,7 @@ try {
 }
 ```
 
----
+
 
 ## Lock Lifecycle
 
@@ -374,7 +374,7 @@ $finalContext = $worker->execute();
 - When receiving webhook notifications for long-running external processes
 - Before resuming a workflow that may have been paused for an extended period
 
----
+
 
 ## Lock State
 
@@ -415,7 +415,7 @@ if ($lockState->isLocked()) {
 }
 ```
 
----
+
 
 ## LockProvider Implementations
 
@@ -570,7 +570,7 @@ class InMemoryLockProvider implements LockProvider
 }
 ```
 
----
+
 
 ## LockKeyProvider Implementations
 
@@ -638,7 +638,7 @@ class SnapshotLockKeyProvider implements LockKeyProvider
 //         Different states can transition independently
 ```
 
----
+
 
 ## Exception Handling
 
@@ -719,7 +719,7 @@ try {
 }
 ```
 
----
+
 
 ## Best Practices
 
@@ -858,7 +858,7 @@ public function resume(string $contextId)
 }
 ```
 
----
+
 
 ## Testing with Locks
 

@@ -46,7 +46,7 @@ interface ActionFactory
 }
 ```
 
----
+
 
 ## Validation (Gates)
 
@@ -113,7 +113,7 @@ interface Guardable
 }
 ```
 
----
+
 
 ## Actions
 
@@ -171,7 +171,7 @@ class ActionContext
 }
 ```
 
----
+
 
 ## Configuration
 
@@ -207,7 +207,7 @@ class Configuration
 }
 ```
 
----
+
 
 ## Events & Observability
 
@@ -419,7 +419,7 @@ class LockLost extends Event
 }
 ```
 
----
+
 
 ## Locking
 
@@ -537,7 +537,7 @@ class LockState
 }
 ```
 
----
+
 
 ## Core Machine
 
@@ -644,7 +644,7 @@ class TransitionContext implements \Serializable
 }
 ```
 
----
+
 
 ## Exceptions
 
@@ -658,7 +658,7 @@ class LockLostException extends \RuntimeException {}
 class TransitionException extends \RuntimeException {}
 ```
 
----
+
 
 ## Helper Classes
 
