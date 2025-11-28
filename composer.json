@@ -35,6 +35,10 @@
         "test": "paratest --processes=4",
         "test:single": "phpunit",
         "test:coverage": "phpunit --coverage-html coverage",
+        "test:coverage:ci": [
+            "phpunit --coverage-clover clover.xml",
+            "coverage-check clover.xml 100"
+        ],
         "quality": [
             "phpmd src text phpmd.xml.dist",
             "phpstan analyse"
