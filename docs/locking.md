@@ -9,12 +9,12 @@ StateFlow includes built-in mutex locking to prevent race conditions when multip
 ```
 Time →
 
-Process A: transitionTo(['status' => 'published'])
+Process A: transition(state, ['status' => 'published'])
            ├─ Check: status=draft ✓
            ├─ Set publishedAt
            └─ Update: status=published
 
-Process B: transitionTo(['status' => 'published'])
+Process B: transition(state, ['status' => 'published'])
            ├─ Check: status=draft ✓  ← RACE! Both see draft
            ├─ Set publishedAt
            └─ Update: status=published ← Duplicate work, possible corruption

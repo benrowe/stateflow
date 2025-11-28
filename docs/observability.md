@@ -592,7 +592,6 @@ class DebugDispatcher implements EventDispatcher
 
 ```php
 $machine = new StateMachine(
-    initialState: $state,
     configProvider: $config,
     eventDispatcher: new MultiChannelDispatcher(
         logger: app(LoggerInterface::class),
