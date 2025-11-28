@@ -35,16 +35,16 @@ Process B: Wait for lock → Execute transition → Release lock
 ```mermaid
 sequenceDiagram
     participant User
-    participant Machine
+    participant StateFlow
     participant Worker as StateWorker
     participant LockProvider
     participant Context
     participant Database
 
-    User->>Machine: transition(state, delta)
-    activate Machine
-    Machine-->>User: StateWorker
-    deactivate Machine
+    User->>StateFlow: transition(state, delta)
+    activate StateFlow
+    StateFlow-->>User: StateWorker
+    deactivate StateFlow
 
     User->>Worker: execute()
     activate Worker
@@ -73,8 +73,8 @@ sequenceDiagram
 
             User->>Database: load context
             Database-->>User: serialized context
-            User->>Machine: fromContext(context)
-            Machine-->>User: new StateWorker
+            User->>StateFlow: fromContext(context)
+            StateFlow-->>User: new StateWorker
             User->>Worker: execute()
 
             Worker->>LockProvider: exists(lockKey)
@@ -214,18 +214,18 @@ class LockConfiguration
 
 ### Configuration Examples
 
-Lock behavior is configured once on the `StateMachine` constructor. Different use cases require different machine configurations:
+Lock behavior is configured once on the `StateFlow` constructor. Different use cases require different flow configurations:
 
 **API Request (fail fast):**
 ```php
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $config,
     lockProvider: new RedisLockProvider($redis),
     lockKeyProvider: new EntityLockKeyProvider(),
 );
 
 try {
-    $worker = $machine->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, ['status' => 'published']);
     $context = $worker->execute();
 } catch (LockAcquisitionException $e) {
     // Another request is processing this entity
@@ -238,26 +238,26 @@ try {
 // Configure lock provider with longer TTL for background jobs
 $lockProvider = new RedisLockProvider($redis, ttl: 60);
 
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $config,
     lockProvider: $lockProvider,
     lockKeyProvider: new EntityLockKeyProvider(),
 );
 
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 ```
 
 **Critical Operation (fail on contention):**
 ```php
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $config,
     lockProvider: new RedisLockProvider($redis),
     lockKeyProvider: new EntityLockKeyProvider(),
 );
 
 try {
-    $worker = $machine->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, ['status' => 'published']);
     $context = $worker->execute();
 } catch (LockAcquisitionException $e) {
     Log::alert('Lock contention detected', ['entity' => $entity->id]);
@@ -274,7 +274,7 @@ try {
 Lock is acquired when `execute()` is called on the `StateWorker`.
 
 ```php
-$worker = $machine->transition($state, $delta);
+$worker = $stateFlow->transition($state, $delta);
 $context = $worker->execute();
 // ↑ Lock acquired here (if lockProvider configured on machine)
 ```
@@ -291,7 +291,7 @@ class AsyncAction implements Action {
     }
 }
 
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 // Lock is held
 
@@ -303,7 +303,7 @@ if ($context->isPaused()) {
 // Hours later...
 $serializedContext = loadFromDatabase();
 $context = TransitionContext::unserialize($serializedContext, $stateFactory, $actionFactory);
-$worker = $machine->fromContext($context);
+$worker = $stateFlow->fromContext($context);
 $finalContext = $worker->execute(); // Verifies lock still exists
 ```
 
@@ -317,7 +317,7 @@ Lock is released when:
 
 ```php
 // Automatic release on completion
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 if ($context->isCompleted()) {
     // Lock automatically released
@@ -325,7 +325,7 @@ if ($context->isCompleted()) {
 
 // Manual release on error
 try {
-    $worker = $machine->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, ['status' => 'published']);
     $context = $worker->execute();
 } catch (\Exception $e) {
     $worker->releaseLock(); // Manual cleanup
@@ -339,7 +339,7 @@ For long-running paused workflows, you can manually extend the lock TTL using `L
 
 ```php
 // Initial transition that pauses
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 
 if ($context->isPaused()) {
@@ -365,7 +365,7 @@ if ($renewed) {
 
 // Resume the workflow
 $context = TransitionContext::unserialize($data['context'], $stateFactory, $actionFactory);
-$worker = $machine->fromContext($context);
+$worker = $stateFlow->fromContext($context);
 $finalContext = $worker->execute();
 ```
 
@@ -398,7 +398,7 @@ class LockState
 ### Accessing Lock State
 
 ```php
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 
 $lockState = $context->getLockState();
@@ -654,7 +654,7 @@ Thrown when lock can't be acquired (default behavior when `lockProvider` is conf
 
 ```php
 try {
-    $worker = $machine->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, ['status' => 'published']);
     $context = $worker->execute();
 } catch (LockAcquisitionException $e) {
     // Another process holds the lock
@@ -672,7 +672,7 @@ try {
 Thrown by `runNextAction()` when lock has expired during pause.
 
 ```php
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute(); // Lock acquired
 sleep(100); // Oops, lock TTL was 30 seconds
 
@@ -694,7 +694,7 @@ try {
 Thrown when resuming a paused transition if the lock no longer exists.
 
 ```php
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 saveToDatabase($context->serialize());
 
@@ -703,7 +703,7 @@ $serializedContext = loadFromDatabase();
 $context = TransitionContext::unserialize($serializedContext, $stateFactory, $actionFactory);
 
 try {
-    $worker = $machine->fromContext($context);
+    $worker = $stateFlow->fromContext($context);
     $finalContext = $worker->execute();
 } catch (LockLostException $e) {
     // Lock expired or manually released
@@ -737,7 +737,7 @@ $lockProvider = new RedisLockProvider($redis, ttl: 3600);
 // Very long-running workflow (24 hours)
 $lockProvider = new RedisLockProvider($redis, ttl: 86400);
 
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $config,
     lockProvider: $lockProvider,
     lockKeyProvider: new EntityLockKeyProvider(),
@@ -760,8 +760,8 @@ class ResumeWorkflowJob
         );
 
         try {
-            $machine = $this->buildMachine();
-            $worker = $machine->fromContext($context);
+            $stateFlow = $this->buildFlow();
+            $worker = $stateFlow->fromContext($context);
             $finalContext = $worker->execute();
         } catch (LockLostException $e) {
             // Check if already completed
@@ -808,7 +808,7 @@ class LockMonitoringDispatcher implements EventDispatcher
 
 ```php
 try {
-    $worker = $machine->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, ['status' => 'published']);
     $context = $worker->execute();
 } catch (\Throwable $e) {
     // Always release lock on fatal errors
@@ -842,8 +842,8 @@ public function resume(string $contextId)
     }
 
     try {
-        $machine = $this->buildMachine();
-        $worker = $machine->fromContext($context);
+        $stateFlow = $this->buildFlow();
+        $worker = $stateFlow->fromContext($context);
         $finalContext = $worker->execute();
     } catch (LockLostException $e) {
         // Double-check state again
@@ -871,13 +871,13 @@ class StateTransitionTest extends TestCase
     {
         $lockProvider = new InMemoryLockProvider();
 
-        $machine1 = new StateMachine(
+        $stateFlow1 = new StateFlow(
             configProvider: /* ... */,
             lockProvider: $lockProvider,
             lockKeyProvider: new EntityLockKeyProvider(),
         );
 
-        $machine2 = new StateMachine(
+        $stateFlow2 = new StateFlow(
             configProvider: /* ... */,
             lockProvider: $lockProvider, // Same lock provider
             lockKeyProvider: new EntityLockKeyProvider(),
@@ -885,14 +885,14 @@ class StateTransitionTest extends TestCase
 
         $state = new OrderState('ORD-123', 'draft', 99.99);
 
-        // Machine 1 acquires lock
-        $worker1 = $machine1->transition($state, ['status' => 'published']);
+        // StateFlow 1 acquires lock
+        $worker1 = $stateFlow1->transition($state, ['status' => 'published']);
         $context1 = $worker1->execute();
         $this->assertTrue($context1->getLockState()->isLocked());
 
-        // Machine 2 fails to acquire lock
+        // StateFlow 2 fails to acquire lock
         $this->expectException(LockAcquisitionException::class);
-        $worker2 = $machine2->transition($state, ['status' => 'published']);
+        $worker2 = $stateFlow2->transition($state, ['status' => 'published']);
         $worker2->execute();
     }
 }

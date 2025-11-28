@@ -95,7 +95,7 @@ The implementation will require the user to provide `StateFactory` and `ActionFa
 Currently, the delta is passed through gates and actions, but when does the actual merging happen?
 
 ```php
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 
 // Option A: Merge before gates?
@@ -145,12 +145,12 @@ If a workflow pauses for longer than the lock TTL, the lock expires:
 
 ```php
 $lockProvider = new RedisLockProvider($redis, ttl: 60);  // 60 seconds
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $config,
     lockProvider: $lockProvider,
 );
 
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 
 if ($context->isPaused()) {
@@ -159,7 +159,7 @@ if ($context->isPaused()) {
 
 // 5 minutes later...
 $restoredContext = TransitionContext::unserialize(loadFromDatabase(), $stateFactory, $actionFactory);
-$worker = $machine->fromContext($restoredContext);
+$worker = $stateFlow->fromContext($restoredContext);
 $finalContext = $worker->execute();  // Lock expired! Throws LockLostException
 ```
 
@@ -217,11 +217,11 @@ What if a transition is executed twice?
 
 ```php
 // Request 1
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 
 // Request 2 (duplicate/retry)
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 ```
 
@@ -241,7 +241,7 @@ While not built-in initially, the framework could provide **common, reusable Ide
 
 ### The Problem
 
-What if an action needs to trigger another state machine?
+What if an action needs to trigger another state flow?
 
 ```php
 class ProcessOrderAction implements Action
@@ -249,9 +249,9 @@ class ProcessOrderAction implements Action
     public function execute(ActionContext $context): ActionResult
     {
         // Start a payment workflow (separate state machine)
-        $paymentMachine = new StateMachine(/* ... */);
+        $paymentFlow = new StateFlow(/* ... */);
         $paymentState = new PaymentState('pending');
-        $worker = $paymentMachine->transition($paymentState, ['status' => 'charged']);
+        $worker = $paymentFlow->transition($paymentState, ['status' => 'charged']);
         $paymentContext = $worker->execute();
 
         if (!$paymentContext->isCompleted()) {
@@ -270,7 +270,7 @@ StateFlow will **not provide explicit, built-in support for nested workflows**.
 
 Adding this feature introduces significant complexity, including tracking the state of child workflows, handling nested pauses, and managing context serialization across parent and child machines.
 
-The current design is sufficient for users to implement this pattern themselves if needed. An `Action` can instantiate and run another `StateMachine`, then `pause` or `stop` the parent workflow based on the outcome of the child workflow. This approach keeps the core library simple while providing the necessary flexibility for advanced use cases.
+The current design is sufficient for users to implement this pattern themselves if needed. An `Action` can instantiate and run another `StateFlow`, then `pause` or `stop` the parent workflow based on the outcome of the child workflow. This approach keeps the core library simple while providing the necessary flexibility for advanced use cases.
 
 
 
@@ -307,7 +307,7 @@ Users who require compensation for failed actions should implement this logic wi
 What if actions only update specific fields, not related to the desired delta?
 
 ```php
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 
 // But Action adds a timestamp:
@@ -336,31 +336,31 @@ This decision aligns with the principle that `Actions` are responsible for deter
 
 ### The Problem
 
-The `StateMachine` holds state internally, but should it be tied to an entity?
+The `StateFlow` holds state internally, but should it be tied to an entity?
 
 ```php
 // Approach A: Machine per entity instance (REJECTED)
-$orderMachine = new StateMachine();
-$worker = $orderMachine->transition($order->getState(), $order->getState(), ['status' => 'shipped']);
+$stateFlow = new StateFlow();
+$worker = $stateFlow->transition($order->getState(), $order->getState(), ['status' => 'shipped']);
 $context = $worker->execute();
 
 // Approach B: Machine as service, state passed in (CHOSEN)
-$machineService = app(OrderStateMachine::class);
-$worker = $machineService->transition($order->getState(), ['status' => 'shipped']);
+$stateFlow = app(StateFlow::class);
+$worker = $stateFlow->transition($order->getState(), ['status' => 'shipped']);
 $context = $worker->execute();
 ```
 
 ### Decision
 
-The `StateMachine` will be refactored into a stateless service, and a new `StateWorker` class will be introduced to manage the execution of a single transition.
+The `StateFlow` will be refactored into a stateless service, and a new `StateWorker` class will be introduced to manage the execution of a single transition.
 
 This decision moves away from the "machine per entity" model (Approach A) and fully embraces the "machine as a service" model (Approach B), which offers better reusability and a clearer separation of concerns.
 
 The new workflow will be as follows:
 
-1.  **`StateMachine` as a Service:** The `StateMachine` will no longer hold an internal state. It will be a reusable service that you can inject where needed.
+1.  **`StateFlow` as a Service:** The `StateFlow` will no longer hold an internal state. It will be a reusable service that you can inject where needed.
 
-2.  **`transition()` Method:** The primary interaction method will be `$machine->transition($existingState, $delta)`. This method takes the current state of an entity and the desired changes.
+2.  **`transition()` Method:** The primary interaction method will be `$stateFlow->transition($existingState, $delta)`. This method takes the current state of an entity and the desired changes.
 
 3.  **`StateWorker` Object:** The `transition()` method will not execute the transition immediately. Instead, it will return a `StateWorker` object, which is responsible for the lifecycle of that specific transition.
 
@@ -370,7 +370,7 @@ The new workflow will be as follows:
     *   `runNextAction()`: Executes only the next action in the queue (for step-by-step execution).
     *   `execute()`: A helper method that runs the entire transition lifecycle (`runGates` then `runActions`).
 
-This new design provides a more flexible and powerful API, allowing users to choose between a simple, one-shot `execute()` call or a more controlled, step-by-step execution. It also makes the `StateMachine` itself truly stateless and easier to manage in dependency injection containers.
+This new design provides a more flexible and powerful API, allowing users to choose between a simple, one-shot `execute()` call or a more controlled, step-by-step execution. It also makes the `StateFlow` itself truly stateless and easier to manage in dependency injection containers.
 
 
 
