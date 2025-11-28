@@ -11,7 +11,7 @@ Visual representations of StateFlow's architecture and execution flow.
 5. [Pause and Resume Flow](#pause-and-resume-flow)
 6. [Race Condition Prevention](#race-condition-prevention)
 
----
+
 
 ## High-Level Execution Flow
 
@@ -57,7 +57,7 @@ graph TD
     style ActionResult fill:#ffe1e1
 ```
 
----
+
 
 ## Detailed Transition Lifecycle
 
@@ -65,14 +65,14 @@ graph TD
 stateDiagram-v2
     [*] --> Initializing: worker.execute()
 
-    Initializing --> LockAcquisition: Event: TransitionStarting
+    Initializing --> LockAcquisition: TransitionStarting event
 
     LockAcquisition --> ConfigurationLoading: Lock Acquired
     LockAcquisition --> Failed: Lock Failed
 
     ConfigurationLoading --> TransitionGateEvaluation: Config Loaded
 
-    TransitionGateEvaluation --> TransitionGateEvaluation: Evaluate Each Gate<br/>Event: GateEvaluating/GateEvaluated
+    TransitionGateEvaluation --> TransitionGateEvaluation: Evaluate Each Gate<br/>GateEvaluating/GateEvaluated events
     TransitionGateEvaluation --> ActionExecution: All Gates ALLOW
     TransitionGateEvaluation --> Stopped: Any Gate DENY
 
@@ -84,17 +84,17 @@ stateDiagram-v2
     ActionGateEvaluation --> ExecuteAction: Gate ALLOW
     ActionGateEvaluation --> ActionExecution: Gate DENY (skip action)
 
-    ExecuteAction --> ActionExecution: Result: CONTINUE
-    ExecuteAction --> Paused: Result: PAUSE
-    ExecuteAction --> Stopped: Result: STOP
+    ExecuteAction --> ActionExecution: Result CONTINUE
+    ExecuteAction --> Paused: Result PAUSE
+    ExecuteAction --> Stopped: Result STOP
     ExecuteAction --> Completed: No More Actions
 
-    Completed --> LockRelease: Event: TransitionCompleted
-    Stopped --> LockRelease: Event: TransitionStopped
-    Paused --> [*]: Lock Held<br/>Event: TransitionPaused
+    Completed --> LockRelease: TransitionCompleted event
+    Stopped --> LockRelease: TransitionStopped event
+    Paused --> [*]: Lock Held<br/>TransitionPaused event
 
     LockRelease --> [*]
-    Failed --> [*]: Event: TransitionFailed
+    Failed --> [*]: TransitionFailed event
 
     note right of Paused
         Lock persists!
@@ -103,17 +103,17 @@ stateDiagram-v2
     end note
 
     note right of LockRelease
-        Lock released on:
-        - Completed
-        - Stopped
-        - Failed
+        Lock released on
+        Completed
+        Stopped
+        Failed
     end note
 ```
 
 ## Gate Evaluation Flow
 
 ```mermaid
-flowchart TD
+graph TD
     Start([Gate Evaluation Starts])
     GateType{Gate Type?}
 
@@ -122,9 +122,9 @@ flowchart TD
 
     CreateContext[Create GateContext<br/>currentState + desiredDelta]
 
-    DispatchBefore[Dispatch: GateEvaluating]
-    Evaluate[Call gate.evaluate()]
-    DispatchAfter[Dispatch: GateEvaluated]
+    DispatchBefore[Dispatch GateEvaluating]
+    Evaluate[Call gate.evaluate]
+    DispatchAfter[Dispatch GateEvaluated]
 
     RecordTrace[Record in TransitionContext]
 
@@ -158,7 +158,7 @@ flowchart TD
     style DispatchAfter fill:#e1e8ff
 ```
 
----
+
 
 ## Action Execution Flow
 
@@ -172,9 +172,9 @@ flowchart TD
 
     CreateContext[Create ActionContext<br/>currentState + desiredDelta<br/>+ executionContext]
 
-    DispatchBefore[Dispatch: ActionExecuting]
+    DispatchBefore[Dispatch ActionExecuting]
     Execute[Call action.execute]
-    DispatchAfter[Dispatch: ActionExecuted]
+    DispatchAfter[Dispatch ActionExecuted]
 
     UpdateState{New State<br/>returned?}
     ApplyState[Update context.currentState]
@@ -187,7 +187,7 @@ flowchart TD
     Pause[Pause Execution<br/>Lock held]
     Stop[Stop Execution<br/>Release lock]
 
-    Skip[Skip Action<br/>Dispatch: ActionSkipped]
+    Skip[Skip Action<br/>Dispatch ActionSkipped]
 
     Start --> HasGate
     HasGate -->|Yes| EvalGate
@@ -221,7 +221,7 @@ flowchart TD
     style DispatchAfter fill:#e1e8ff
 ```
 
----
+
 
 ## Pause and Resume Flow
 
@@ -290,7 +290,7 @@ sequenceDiagram
     User->>Storage: delete context
 ```
 
----
+
 
 ## Race Condition Prevention
 
@@ -341,11 +341,11 @@ sequenceDiagram
     Note over Process A,Process B: Result: Only one process executes transition<br/>No duplicate state changes<br/>No race conditions
 ```
 
----
 
 
 
----
+
+
 
 ## Component Architecture
 
@@ -418,46 +418,7 @@ graph TB
     style ED fill:#ffe1e1
 ```
 
----
 
-## Complete Execution Timeline
-
-```mermaid
-gantt
-    title StateFlow Execution Timeline
-    dateFormat X
-    axisFormat %L ms
-
-    section Lock
-    Acquire Lock           :lock1, 0, 10
-    Lock Held             :active, lock2, 10, 190
-    Release Lock          :lock3, 190, 200
-
-    section Configuration
-    Load Config           :config, 10, 20
-
-    section Transition Gates
-    Gate 1 Evaluate       :gate1, 20, 30
-    Gate 2 Evaluate       :gate2, 30, 40
-
-    section Actions
-    Action 1 Execute      :action1, 40, 80
-    Action 2 Execute      :action2, 80, 120
-    Action 3 Execute      :action3, 120, 180
-
-    section Events
-    TransitionStarting    :milestone, event1, 0, 0
-    GateEvaluating x2     :milestone, event2, 25, 25
-    ActionExecuting x3    :milestone, event3, 60, 60
-    TransitionCompleted   :milestone, event4, 190, 190
-
-    section State
-    State: draft          :state1, 0, 80
-    State: processing     :active, state2, 80, 180
-    State: published      :crit, state3, 180, 200
-```
-
----
 
 ## State Machine Decision Tree
 

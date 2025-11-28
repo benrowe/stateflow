@@ -113,7 +113,7 @@ class ImmutableOrderState implements State
 }
 ```
 
----
+
 
 ## Gates
 
@@ -309,7 +309,7 @@ class NotAlreadyPublishedGate implements Gate
 }
 ```
 
----
+
 
 ## Actions
 
@@ -489,7 +489,7 @@ class AuditAction implements Action
 }
 ```
 
----
+
 
 ## Configuration
 
@@ -572,7 +572,7 @@ $worker = $machine->transition($someOrderState, ['status' => 'published']);
 $context = $worker->execute();
 ```
 
----
+
 
 ## StateMachine
 
@@ -638,7 +638,7 @@ if (!$gateResult->shouldStopTransition()) {
 }
 ```
 
----
+
 
 ## TransitionContext
 

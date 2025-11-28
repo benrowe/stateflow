@@ -86,7 +86,7 @@ While it introduces some boilerplate (requiring factories), this is a reasonable
 
 The implementation will require the user to provide `StateFactory` and `ActionFactory` instances when working with serializable contexts.
 
----
+
 
 ## 2. State Merge Location & Timing
 
@@ -135,7 +135,7 @@ Gates will only receive the `currentState` and the `desiredDelta`. They are for 
 
 There will be no "default merge action." The responsibility is explicitly on the user-provided actions. If no action updates the state, the state remains unchanged.
 
----
+
 
 ## 3. Lock Renewal for Long-Running Workflows
 
@@ -171,7 +171,7 @@ This allows users to manage long-running paused workflows by explicitly renewing
 
 **Automatic lock renewal will not be supported within StateFlow.** Implementing auto-renewal effectively creates a "never expiring" lock, which can hide underlying issues and create maintenance challenges. The responsibility for managing the lock's lifetime and explicit renewal lies with the user's application logic.
 
----
+
 
 ## 4. Action Dependencies & Ordering
 
@@ -207,7 +207,7 @@ If complex sequencing, conditional execution based on prior action outcomes, or 
 
 If an action returns an `ActionResult::stop()`, it explicitly halts the current transition, meaning any subsequent actions in the queue will not be executed. Users must design their actions with this sequential execution model in mind.
 
----
+
 
 ## 5. Idempotency & Duplicate Detection
 
@@ -235,7 +235,7 @@ For example, a `Gate` can check if the entity is already in the target state and
 
 While not built-in initially, the framework could provide **common, reusable Idempotency Gates** in the future to simplify common scenarios, without enforcing a specific idempotency strategy on the user.
 
----
+
 
 ## 6. Nested/Sub-Workflows
 
@@ -272,7 +272,7 @@ Adding this feature introduces significant complexity, including tracking the st
 
 The current design is sufficient for users to implement this pattern themselves if needed. An `Action` can instantiate and run another `StateMachine`, then `pause` or `stop` the parent workflow based on the outcome of the child workflow. This approach keeps the core library simple while providing the necessary flexibility for advanced use cases.
 
----
+
 
 ## 7. Rollback & Compensation
 
@@ -298,7 +298,7 @@ The responsibility for handling rollback and compensation logic will lie entirel
 
 Users who require compensation for failed actions should implement this logic within their own actions (e.g., by creating separate compensation actions or by handling it outside the state machine workflow).
 
----
+
 
 ## 8. Partial State Updates
 
@@ -330,7 +330,7 @@ Actions are free to update any part of the state they deem necessary, even if th
 
 This decision aligns with the principle that `Actions` are responsible for determining the `newState` based on the `currentState` and `desiredDelta`, and can incorporate any additional logic required.
 
----
+
 
 ## 9. Machine State vs Entity State
 
@@ -372,7 +372,7 @@ The new workflow will be as follows:
 
 This new design provides a more flexible and powerful API, allowing users to choose between a simple, one-shot `execute()` call or a more controlled, step-by-step execution. It also makes the `StateMachine` itself truly stateless and easier to manage in dependency injection containers.
 
----
+
 
 ## Summary of Decisions Needed
 
@@ -388,7 +388,7 @@ This new design provides a more flexible and powerful API, allowing users to cho
 | 8 | Partial updates | Low | Decided: Allowed |
 | 9 | Machine state | Low | Decided: Stateless machine, state passed in, `StateWorker` returned |
 
----
+
 
 ## Notes for Implementation
 
