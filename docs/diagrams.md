@@ -19,7 +19,7 @@ Visual representations of StateFlow's architecture and execution flow.
 
 ```mermaid
 graph TD
-    Start([User calls transitionTo])
+    Start([User calls worker.execute])
     AcquireLock{Acquire Lock?}
     LockSuccess{Lock Acquired?}
     LoadConfig[Load Configuration<br/>via ConfigurationProvider]
@@ -65,7 +65,7 @@ graph TD
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Initializing: transitionTo(delta)
+    [*] --> Initializing: worker.execute()
 
     Initializing --> LockAcquisition: Event: TransitionStarting
 
@@ -120,65 +120,73 @@ stateDiagram-v2
 sequenceDiagram
     participant User
     participant Machine
+    participant Worker as StateWorker
     participant LockProvider
     participant Context
     participant Database
 
-    User->>Machine: transitionTo(delta, lockConfig)
+    User->>Machine: transition(state, delta)
     activate Machine
+    Machine-->>User: StateWorker
+    deactivate Machine
 
-    Machine->>LockProvider: acquire(lockKey, ttl)
+    User->>Worker: execute()
+    activate Worker
+
+    Worker->>LockProvider: acquire(lockKey, ttl)
     activate LockProvider
 
     alt Lock Available
-        LockProvider-->>Machine: true (lock acquired)
-        Note over Machine: Lock held in memory
-        Machine->>Machine: Execute transition
+        LockProvider-->>Worker: true (lock acquired)
+        Note over Worker: Lock held in memory
+        Worker->>Worker: Execute transition
 
         alt Transition Completes
-            Machine->>Context: markCompleted()
-            Machine->>LockProvider: release(lockKey)
-            LockProvider-->>Machine: true
-            Machine-->>User: Context (completed)
+            Worker->>Context: markCompleted()
+            Worker->>LockProvider: release(lockKey)
+            LockProvider-->>Worker: true
+            Worker-->>User: Context (completed)
         else Transition Pauses
-            Machine->>Context: markPaused()
-            Note over Machine: Lock NOT released
-            Machine->>Context: setLockState(lockKey, ttl)
-            Machine-->>User: Context (paused, lock held)
+            Worker->>Context: markPaused()
+            Note over Worker: Lock NOT released
+            Worker->>Context: setLockState(lockKey, ttl)
+            Worker-->>User: Context (paused, lock held)
             User->>Database: save(context.serialize())
 
             Note over Database: Hours/days later...
 
             User->>Database: load context
             Database-->>User: serialized context
-            User->>Machine: resume(context)
+            User->>Machine: fromContext(context)
+            Machine-->>User: new StateWorker
+            User->>Worker: execute()
 
-            Machine->>LockProvider: exists(lockKey)
+            Worker->>LockProvider: exists(lockKey)
             alt Lock Still Exists
-                LockProvider-->>Machine: true
-                Machine->>Machine: Continue execution
-                Machine->>LockProvider: release(lockKey)
-                Machine-->>User: Context (completed)
+                LockProvider-->>Worker: true
+                Worker->>Worker: Continue execution
+                Worker->>LockProvider: release(lockKey)
+                Worker-->>User: Context (completed)
             else Lock Lost/Expired
-                LockProvider-->>Machine: false
-                Machine-->>User: LockLostException
+                LockProvider-->>Worker: false
+                Worker-->>User: LockLostException
             end
         end
     else Lock Held by Another Process
-        LockProvider-->>Machine: false
+        LockProvider-->>Worker: false
 
         alt Strategy: FAIL_FAST
-            Machine-->>User: LockAcquisitionException
+            Worker-->>User: LockAcquisitionException
         else Strategy: SKIP
-            Machine-->>User: Context (skipped)
+            Worker-->>User: Context (skipped)
         else Strategy: WAIT
-            Machine->>LockProvider: retry acquire()
-            Note over Machine,LockProvider: Retry until timeout
+            Worker->>LockProvider: retry acquire()
+            Note over Worker,LockProvider: Retry until timeout
         end
     end
 
     deactivate LockProvider
-    deactivate Machine
+    deactivate Worker
 ```
 
 ---
@@ -302,6 +310,7 @@ flowchart TD
 sequenceDiagram
     participant User
     participant Machine
+    participant Worker as StateWorker
     participant Action1
     participant Action2
     participant Action3
@@ -309,24 +318,26 @@ sequenceDiagram
 
     rect rgb(240, 248, 255)
         Note over User,Action3: Initial Transition
-        User->>Machine: transitionTo(['status' => 'published'])
-        activate Machine
+        User->>Machine: transition(state, ['status' => 'published'])
+        Machine-->>User: StateWorker
+        User->>Worker: execute()
+        activate Worker
 
-        Machine->>Action1: execute()
+        Worker->>Action1: execute()
         activate Action1
-        Action1-->>Machine: ActionResult::continue(newState)
+        Action1-->>Worker: ActionResult::continue(newState)
         deactivate Action1
-        Note over Machine: State updated
+        Note over Worker: State updated
 
-        Machine->>Action2: execute()
+        Worker->>Action2: execute()
         activate Action2
         Note over Action2: Async operation needed<br/>(e.g., video processing)
-        Action2-->>Machine: ActionResult::pause(metadata: {jobId: 123})
+        Action2-->>Worker: ActionResult::pause(metadata: {jobId: 123})
         deactivate Action2
 
-        Note over Machine: Context marked as PAUSED<br/>Lock STILL HELD
-        Machine-->>User: TransitionContext (paused=true)
-        deactivate Machine
+        Note over Worker: Context marked as PAUSED<br/>Lock STILL HELD
+        Worker-->>User: TransitionContext (paused=true)
+        deactivate Worker
 
         User->>Storage: save(context.serialize())
         Note over Storage: Stores:<br/>- Current state<br/>- Remaining actions<br/>- Lock state<br/>- Execution trace
@@ -339,20 +350,22 @@ sequenceDiagram
         User->>Storage: load context
         Storage-->>User: serialized context
 
-        User->>Machine: resume(context)
-        activate Machine
+        User->>Machine: fromContext(context)
+        Machine-->>User: new StateWorker
+        User->>Worker: execute()
+        activate Worker
 
-        Note over Machine: Verify lock still held
+        Note over Worker: Verify lock still held
 
-        Machine->>Action3: execute()
+        Worker->>Action3: execute()
         activate Action3
-        Action3-->>Machine: ActionResult::continue(finalState)
+        Action3-->>Worker: ActionResult::continue(finalState)
         deactivate Action3
 
-        Note over Machine: No more actions<br/>Mark as COMPLETED<br/>Release lock
+        Note over Worker: No more actions<br/>Mark as COMPLETED<br/>Release lock
 
-        Machine-->>User: TransitionContext (completed=true)
-        deactivate Machine
+        Worker-->>User: TransitionContext (completed=true)
+        deactivate Worker
     end
 
     User->>Storage: delete context
@@ -604,7 +617,7 @@ gantt
 
 ```mermaid
 graph TD
-    Start[transitionTo called]
+    Start[worker.execute called]
 
     Start --> Lock{Lock<br/>Required?}
     Lock -->|Yes| TryLock{Can<br/>Acquire?}

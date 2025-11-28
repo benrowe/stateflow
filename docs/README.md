@@ -43,7 +43,6 @@ class OrderState implements State {
 
 // 2. Configure machine
 $machine = new StateMachine(
-    initialState: new OrderState('draft'),
     configProvider: fn($state, $delta) => new Configuration(
         transitionGates: [new CanPublishGate()],
         actions: [new SetPublishDateAction(), new NotifyAction()],
@@ -54,7 +53,9 @@ $machine = new StateMachine(
 );
 
 // 3. Execute transition
-$context = $machine->transitionTo(['status' => 'published']);
+$state = new OrderState('draft');
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 // 4. Handle result
 if ($context->isCompleted()) {
