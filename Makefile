@@ -35,7 +35,7 @@ test-single: ## Run PHPUnit tests without parallelization
 test-coverage: ## Run PHPUnit tests with coverage report
 	$(DOCKER_RUN) composer test:coverage
 
-quality: ## Run PHPStan static analysis
+quality: ## Run PHPMD/PHPStan static analysis
 	$(DOCKER_RUN) composer quality
 
 lint: ## Check code style
