@@ -92,7 +92,7 @@ class ActionResultTest extends TestCase
                 return [];
             }
 
-            public function with(array $changes): State
+            public function with(array $changes): static
             {
                 return new static($changes);
             }
