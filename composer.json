@@ -36,7 +36,7 @@
         "test:single": "phpunit",
         "test:coverage": "phpunit --coverage-html coverage",
         "test:coverage:ci": [
-            "phpunit --coverage-clover clover.xml",
+            "phpunit --coverage-clover clover.xml --coverage-text",
             "coverage-check clover.xml 20"
         ],
         "quality": [
