@@ -34,7 +34,10 @@
         "test": "paratest --processes=4",
         "test:single": "phpunit",
         "test:coverage": "phpunit --coverage-html coverage",
-        "quality": "phpstan analyse",
+        "quality": [
+            "phpmd src text phpmd.xml.dist",
+            "phpstan analyse"
+        ],
         "lint": "php-cs-fixer fix --dry-run --diff",
         "lint:fix": "php-cs-fixer fix",
         "check": [
