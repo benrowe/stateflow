@@ -104,6 +104,12 @@ jobs:
       - name: Run tests with coverage
         run: composer test:coverage:ci
 
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: clover.xml
+
   docker:
     runs-on: ubuntu-latest
     name: Docker Build
