@@ -4,6 +4,81 @@
 
 StateFlow fires events at **every step** of the workflow execution, providing complete visibility into the orchestration process.
 
+## Event Flow
+
+```mermaid
+graph TD
+    subgraph "Transition Lifecycle Events"
+        E1[TransitionStarting]
+        E2[TransitionCompleted]
+        E3[TransitionPaused]
+        E4[TransitionStopped]
+        E5[TransitionFailed]
+    end
+
+    subgraph "Gate Events"
+        G1[GateEvaluating]
+        G2[GateEvaluated]
+    end
+
+    subgraph "Action Events"
+        A1[ActionExecuting]
+        A2[ActionExecuted]
+        A3[ActionSkipped]
+    end
+
+    subgraph "Lock Events"
+        L1[LockAcquiring]
+        L2[LockAcquired]
+        L3[LockReleased]
+        L4[LockFailed]
+        L5[LockRestored]
+        L6[LockLost]
+    end
+
+    subgraph "Event Dispatcher"
+        D[EventDispatcher.dispatch]
+    end
+
+    subgraph "Event Handlers"
+        H1[Logger]
+        H2[Metrics Collector]
+        H3[Audit Trail]
+        H4[External Event Bus]
+    end
+
+    E1 --> D
+    E2 --> D
+    E3 --> D
+    E4 --> D
+    E5 --> D
+
+    G1 --> D
+    G2 --> D
+
+    A1 --> D
+    A2 --> D
+    A3 --> D
+
+    L1 --> D
+    L2 --> D
+    L3 --> D
+    L4 --> D
+    L5 --> D
+    L6 --> D
+
+    D --> H1
+    D --> H2
+    D --> H3
+    D --> H4
+
+    style D fill:#e1e8ff
+    style H1 fill:#ffe1e1
+    style H2 fill:#fff4e1
+    style H3 fill:#e1ffe1
+    style H4 fill:#ffe1ff
+```
+
 ## Event System
 
 ### Interface Definition

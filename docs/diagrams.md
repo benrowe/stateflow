@@ -6,12 +6,10 @@ Visual representations of StateFlow's architecture and execution flow.
 
 1. [High-Level Execution Flow](#high-level-execution-flow)
 2. [Detailed Transition Lifecycle](#detailed-transition-lifecycle)
-3. [Lock Lifecycle](#lock-lifecycle)
-4. [Gate Evaluation Flow](#gate-evaluation-flow)
-5. [Action Execution Flow](#action-execution-flow)
-6. [Pause and Resume Flow](#pause-and-resume-flow)
-7. [Race Condition Prevention](#race-condition-prevention)
-8. [Event Flow](#event-flow)
+3. [Gate Evaluation Flow](#gate-evaluation-flow)
+4. [Action Execution Flow](#action-execution-flow)
+5. [Pause and Resume Flow](#pause-and-resume-flow)
+6. [Race Condition Prevention](#race-condition-prevention)
 
 ---
 
@@ -111,85 +109,6 @@ stateDiagram-v2
         - Failed
     end note
 ```
-
----
-
-## Lock Lifecycle
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Machine
-    participant Worker as StateWorker
-    participant LockProvider
-    participant Context
-    participant Database
-
-    User->>Machine: transition(state, delta)
-    activate Machine
-    Machine-->>User: StateWorker
-    deactivate Machine
-
-    User->>Worker: execute()
-    activate Worker
-
-    Worker->>LockProvider: acquire(lockKey, ttl)
-    activate LockProvider
-
-    alt Lock Available
-        LockProvider-->>Worker: true (lock acquired)
-        Note over Worker: Lock held in memory
-        Worker->>Worker: Execute transition
-
-        alt Transition Completes
-            Worker->>Context: markCompleted()
-            Worker->>LockProvider: release(lockKey)
-            LockProvider-->>Worker: true
-            Worker-->>User: Context (completed)
-        else Transition Pauses
-            Worker->>Context: markPaused()
-            Note over Worker: Lock NOT released
-            Worker->>Context: setLockState(lockKey, ttl)
-            Worker-->>User: Context (paused, lock held)
-            User->>Database: save(context.serialize())
-
-            Note over Database: Hours/days later...
-
-            User->>Database: load context
-            Database-->>User: serialized context
-            User->>Machine: fromContext(context)
-            Machine-->>User: new StateWorker
-            User->>Worker: execute()
-
-            Worker->>LockProvider: exists(lockKey)
-            alt Lock Still Exists
-                LockProvider-->>Worker: true
-                Worker->>Worker: Continue execution
-                Worker->>LockProvider: release(lockKey)
-                Worker-->>User: Context (completed)
-            else Lock Lost/Expired
-                LockProvider-->>Worker: false
-                Worker-->>User: LockLostException
-            end
-        end
-    else Lock Held by Another Process
-        LockProvider-->>Worker: false
-
-        alt Strategy: FAIL_FAST
-            Worker-->>User: LockAcquisitionException
-        else Strategy: SKIP
-            Worker-->>User: Context (skipped)
-        else Strategy: WAIT
-            Worker->>LockProvider: retry acquire()
-            Note over Worker,LockProvider: Retry until timeout
-        end
-    end
-
-    deactivate LockProvider
-    deactivate Worker
-```
-
----
 
 ## Gate Evaluation Flow
 
@@ -424,80 +343,7 @@ sequenceDiagram
 
 ---
 
-## Event Flow
 
-```mermaid
-graph TD
-    subgraph "Transition Lifecycle Events"
-        E1[TransitionStarting]
-        E2[TransitionCompleted]
-        E3[TransitionPaused]
-        E4[TransitionStopped]
-        E5[TransitionFailed]
-    end
-
-    subgraph "Gate Events"
-        G1[GateEvaluating]
-        G2[GateEvaluated]
-    end
-
-    subgraph "Action Events"
-        A1[ActionExecuting]
-        A2[ActionExecuted]
-        A3[ActionSkipped]
-    end
-
-    subgraph "Lock Events"
-        L1[LockAcquiring]
-        L2[LockAcquired]
-        L3[LockReleased]
-        L4[LockFailed]
-        L5[LockRestored]
-        L6[LockLost]
-    end
-
-    subgraph "Event Dispatcher"
-        D[EventDispatcher.dispatch]
-    end
-
-    subgraph "Event Handlers"
-        H1[Logger]
-        H2[Metrics Collector]
-        H3[Audit Trail]
-        H4[External Event Bus]
-    end
-
-    E1 --> D
-    E2 --> D
-    E3 --> D
-    E4 --> D
-    E5 --> D
-
-    G1 --> D
-    G2 --> D
-
-    A1 --> D
-    A2 --> D
-    A3 --> D
-
-    L1 --> D
-    L2 --> D
-    L3 --> D
-    L4 --> D
-    L5 --> D
-    L6 --> D
-
-    D --> H1
-    D --> H2
-    D --> H3
-    D --> H4
-
-    style D fill:#e1e8ff
-    style H1 fill:#ffe1e1
-    style H2 fill:#fff4e1
-    style H3 fill:#e1ffe1
-    style H4 fill:#ffe1ff
-```
 
 ---
 
@@ -666,13 +512,3 @@ graph TD
     style StopAction fill:#ffe1e1
     style Exception fill:#ffe1e1
 ```
-
----
-
-## Notes
-
-- All diagrams are in Mermaid format and can be rendered by GitHub, many Markdown editors, and documentation sites
-- Diagrams are also viewable at [mermaid.live](https://mermaid.live) for interactive exploration
-- The execution flow shows the complete lifecycle from user request to final context return
-- Lock lifecycle diagram emphasizes lock persistence during pause
-- Race condition diagram shows how concurrent requests are handled safely
