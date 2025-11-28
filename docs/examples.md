@@ -63,12 +63,13 @@ $config = function(State $state, array $delta): Configuration {
 
 // 3. Create machine
 $machine = new StateMachine(
-    initialState: new ArticleState('draft'),
     configProvider: $config,
 );
 
 // 4. Execute transition
-$context = $machine->transitionTo(['status' => 'published']);
+$state = new ArticleState('draft');
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 // 5. Check result
 if ($context->isCompleted()) {
@@ -274,11 +275,6 @@ class OrderConfigurationProvider implements ConfigurationProvider
 
 // Usage
 $machine = new StateMachine(
-    initialState: new OrderState(
-        id: 'ORD-12345',
-        status: 'pending',
-        total: 99.99,
-    ),
     configProvider: new OrderConfigurationProvider($payment, $inventory, $shipping),
     eventDispatcher: new OrderEventDispatcher(),
     lockProvider: new RedisLockProvider($redis),
@@ -291,13 +287,13 @@ $machine = new StateMachine(
 
 // Process order with lock
 try {
-    $context = $machine->transitionTo(
-        ['status' => 'processing'],
-        new LockConfiguration(
-            strategy: LockStrategy::FAIL_FAST,
-            ttl: 60,
-        )
+    $state = new OrderState(
+        id: 'ORD-12345',
+        status: 'pending',
+        total: 99.99,
     );
+    $worker = $machine->transition($state, ['status' => 'processing']);
+    $context = $worker->execute();
 
     if ($context->isCompleted()) {
         echo "Order processed successfully\n";
@@ -350,7 +346,6 @@ class ContentState implements State
 
 // Publishing workflow
 $machine = new StateMachine(
-    initialState: new ContentState('article-1', 'draft', 'Content here'),
     configProvider: function(State $state, array $delta): Configuration {
         if (isset($delta['status']) && $delta['status'] === 'published') {
             return new Configuration(
@@ -375,7 +370,9 @@ $machine = new StateMachine(
 );
 
 // Publish with automatic pause for thumbnails
-$context = $machine->transitionTo(['status' => 'published']);
+$state = new ContentState('article-1', 'draft', 'Content here');
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 if ($context->isPaused()) {
     // Thumbnails generating...
@@ -383,15 +380,17 @@ if ($context->isPaused()) {
     echo "Paused for thumbnail generation: Job {$metadata['jobId']}\n";
 
     // Store context
-    Cache::put("workflow:{$state->id}", $context->serialize(), 3600);
+    Cache::put("workflow:{$state->toArray()['id']}", $context->serialize(), 3600);
 }
 
 // Later, when thumbnail job completes:
 public function onThumbnailsComplete(string $contentId)
 {
-    $context = unserialize(Cache::get("workflow:{$contentId}"));
+    $serializedContext = Cache::get("workflow:{$contentId}");
+    $context = TransitionContext::unserialize($serializedContext, $stateFactory, $actionFactory);
 
-    $machine->resume($context);
+    $worker = $machine->fromContext($context);
+    $finalContext = $worker->execute();
     // Continues to cache invalidation and notifications
 }
 ```
@@ -424,7 +423,6 @@ class ProcessVideoAction implements Action
 
 // Main workflow
 $machine = new StateMachine(
-    initialState: new VideoState('pending'),
     configProvider: fn($s, $d) => new Configuration(
         actions: [
             new ProcessVideoAction($processor),
@@ -437,7 +435,9 @@ $machine = new StateMachine(
 );
 
 // Start workflow
-$context = $machine->transitionTo(['status' => 'processing']);
+$state = new VideoState('pending');
+$worker = $machine->transition($state, ['status' => 'processing']);
+$context = $worker->execute();
 
 if ($context->isPaused()) {
     $metadata = $context->getStatusMetadata();
@@ -464,11 +464,16 @@ class ProcessWorkflowResume
             ->where('entity_id', $videoId)
             ->first();
 
-        $context = unserialize($row->serialized_context);
+        $context = TransitionContext::unserialize(
+            $row->serialized_context,
+            $this->stateFactory,
+            $this->actionFactory
+        );
 
         try {
             $machine = $this->buildMachine();
-            $finalContext = $machine->resume($context);
+            $worker = $machine->fromContext($context);
+            $finalContext = $worker->execute();
 
             if ($finalContext->isCompleted()) {
                 DB::table('workflow_states')->where('entity_id', $videoId)->delete();
@@ -490,7 +495,6 @@ class ProcessWorkflowResume
 ```php
 // Execute actions one at a time
 $machine = new StateMachine(
-    initialState: $state,
     configProvider: fn($s, $d) => new Configuration(
         actions: [
             new Action1(),
@@ -500,16 +504,22 @@ $machine = new StateMachine(
     ),
 );
 
-// Start transition - executes Action1, then pauses
-$context = $machine->transitionTo(['status' => 'published']);
+$state = new ArticleState('draft');
+$worker = $machine->transition($state, ['status' => 'published']);
+
+// Run gates first
+$gateResult = $worker->runGates();
+
+// Execute Action1, then pause
+$context = $worker->runNextAction();
 echo "After first action: " . $context->getCurrentState()->toArray()['step'] . "\n";
 
 // Execute Action2, then pause
-$context = $machine->nextAction();
+$context = $worker->runNextAction();
 echo "After second action: " . $context->getCurrentState()->toArray()['step'] . "\n";
 
 // Execute Action3, completes
-$context = $machine->nextAction();
+$context = $worker->runNextAction();
 if ($context->isCompleted()) {
     echo "All actions completed!\n";
 }
@@ -527,7 +537,8 @@ foreach ($context->getActionExecutions() as $exec) {
 ### Gate Failures
 
 ```php
-$context = $machine->transitionTo(['status' => 'published']);
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
 
 if ($context->isStopped()) {
     // Check which gate failed
@@ -568,52 +579,43 @@ class SafeAction implements Action
 
 ```php
 try {
-    $context = $machine->transitionTo(
-        ['status' => 'published'],
-        new LockConfiguration(strategy: LockStrategy::FAIL_FAST)
-    );
+    $worker = $machine->transition($state, ['status' => 'published']);
+    $context = $worker->execute();
 
 } catch (LockAcquisitionException $e) {
     // Another process holds the lock
     Log::warning('Lock contention', ['entity' => $entity->id]);
 
     // Retry with exponential backoff
-    retry(3, function() use ($machine) {
-        return $machine->transitionTo(['status' => 'published']);
+    retry(3, function() use ($machine, $state) {
+        $worker = $machine->transition($state, ['status' => 'published']);
+        return $worker->execute();
     }, 1000);
 }
-
-// Or use WAIT strategy
-$context = $machine->transitionTo(
-    ['status' => 'published'],
-    new LockConfiguration(
-        strategy: LockStrategy::WAIT,
-        waitTimeout: 10,
-    )
-);
 ```
 
 ### Exception Handling
 
 ```php
 try {
-    $context = $machine->transitionTo(['status' => 'published']);
+    $worker = $machine->transition($state, ['status' => 'published']);
+    $context = $worker->execute();
 
 } catch (LockAcquisitionException $e) {
     return response()->json(['error' => 'Resource locked'], 409);
 
 } catch (LockLostException $e) {
     Log::error('Lock was lost during execution');
-    $machine->releaseLock();
+    $worker->releaseLock();
     return response()->json(['error' => 'Workflow interrupted'], 500);
 
 } catch (\Throwable $e) {
     // Always release lock on unexpected errors
-    $machine->releaseLock();
+    $worker->releaseLock();
 
     Log::error('Transition failed', [
         'exception' => $e->getMessage(),
-        'state' => $machine->getContext()->getCurrentState()->toArray(),
+        'state' => $worker->getContext()->getCurrentState()->toArray(),
     ]);
 
     throw $e;
@@ -634,7 +636,6 @@ class OrderWorkflowTest extends TestCase
     public function test_order_can_be_processed()
     {
         $machine = new StateMachine(
-            initialState: new OrderState('ORD-123', 'pending', 99.99),
             configProvider: new OrderConfigurationProvider(
                 payment: $this->mockPayment(),
                 inventory: $this->mockInventory(),
@@ -642,7 +643,9 @@ class OrderWorkflowTest extends TestCase
             ),
         );
 
-        $context = $machine->transitionTo(['status' => 'processing']);
+        $state = new OrderState('ORD-123', 'pending', 99.99);
+        $worker = $machine->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
 
         $this->assertTrue($context->isCompleted());
         $this->assertEquals('processing', $context->getCurrentState()->toArray()['status']);
@@ -656,13 +659,14 @@ class OrderWorkflowTest extends TestCase
 public function test_cannot_publish_without_content()
 {
     $machine = new StateMachine(
-        initialState: new ArticleState('draft', content: ''),
         configProvider: fn($s, $d) => new Configuration(
             transitionGates: [new HasContentGate()],
         ),
     );
 
-    $context = $machine->transitionTo(['status' => 'published']);
+    $state = new ArticleState('draft', content: '');
+    $worker = $machine->transition($state, ['status' => 'published']);
+    $context = $worker->execute();
 
     $this->assertTrue($context->isStopped());
 
@@ -702,13 +706,17 @@ public function test_concurrent_transitions_prevented()
     $machine1 = $this->buildMachine($lockProvider);
     $machine2 = $this->buildMachine($lockProvider);
 
-    // Machine 1 acquires lock
-    $context1 = $machine1->transitionTo(['status' => 'published']);
-    $this->assertTrue($machine1->isLocked());
+    $state = new OrderState('ORD-123', 'pending', 99.99);
 
-    // Machine 2 fails
+    // Machine 1 acquires lock
+    $worker1 = $machine1->transition($state, ['status' => 'published']);
+    $context1 = $worker1->execute();
+    $this->assertTrue($context1->getLockState()->isLocked());
+
+    // Machine 2 fails to acquire lock
     $this->expectException(LockAcquisitionException::class);
-    $machine2->transitionTo(['status' => 'published']);
+    $worker2 = $machine2->transition($state, ['status' => 'published']);
+    $worker2->execute();
 }
 ```
 
@@ -718,7 +726,6 @@ public function test_concurrent_transitions_prevented()
 public function test_workflow_can_pause_and_resume()
 {
     $machine = new StateMachine(
-        initialState: new VideoState('pending'),
         configProvider: fn($s, $d) => new Configuration(
             actions: [
                 new PausingAction(),
@@ -727,15 +734,22 @@ public function test_workflow_can_pause_and_resume()
         ),
     );
 
-    $context = $machine->transitionTo(['status' => 'processing']);
+    $state = new VideoState('pending');
+    $worker = $machine->transition($state, ['status' => 'processing']);
+    $context = $worker->execute();
     $this->assertTrue($context->isPaused());
 
     // Serialize
     $serialized = $context->serialize();
 
     // Deserialize and resume
-    $restoredContext = unserialize($serialized);
-    $finalContext = $machine->resume($restoredContext);
+    $restoredContext = TransitionContext::unserialize(
+        $serialized,
+        $this->stateFactory,
+        $this->actionFactory
+    );
+    $resumedWorker = $machine->fromContext($restoredContext);
+    $finalContext = $resumedWorker->execute();
 
     $this->assertTrue($finalContext->isCompleted());
 }
@@ -749,12 +763,13 @@ public function test_events_are_dispatched()
     $dispatcher = new TestEventDispatcher();
 
     $machine = new StateMachine(
-        initialState: new OrderState('pending'),
         configProvider: $config,
         eventDispatcher: $dispatcher,
     );
 
-    $machine->transitionTo(['status' => 'processing']);
+    $state = new OrderState('ORD-123', 'pending', 99.99);
+    $worker = $machine->transition($state, ['status' => 'processing']);
+    $worker->execute();
 
     $dispatcher->assertDispatched(TransitionStarting::class);
     $dispatcher->assertDispatched(GateEvaluated::class);
