@@ -565,23 +565,23 @@ $configProvider = function(State $currentState, array $desiredDelta): Configurat
     return new Configuration();
 };
 
-$machine = new StateMachine(configProvider: $configProvider);
+$stateFlow = new StateFlow(configProvider: $configProvider);
 
-// Now the machine can be used for any state object
-$worker = $machine->transition($someOrderState, ['status' => 'published']);
+// Now the flow can be used for any state object
+$worker = $stateFlow->transition($someOrderState, ['status' => 'published']);
 $context = $worker->execute();
 ```
 
 
 
-## StateMachine
+## StateFlow
 
-The `StateMachine` is a **stateless, reusable service**. Its main responsibility is to take a state object and a desired change, and create a `StateWorker` to handle the transition.
+The `StateFlow` is a **stateless, reusable service**. Its main responsibility is to take a state object and a desired change, and create a `StateWorker` to handle the transition.
 
 ### Key Methods
 
 ```php
-class StateMachine
+class StateFlow
 {
     public function __construct(
         callable|ConfigurationProvider $configProvider,
@@ -611,13 +611,13 @@ class StateMachine
 **Simple Execution:**
 ```php
 $lockProvider = new RedisLockProvider($redis);
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $configProvider,
     lockProvider: $lockProvider,
 );
 $initialState = new OrderState(/* ... */);
 
-$worker = $machine->transition($initialState, ['status' => 'published']);
+$worker = $stateFlow->transition($initialState, ['status' => 'published']);
 $context = $worker->execute();
 
 if ($context->isCompleted()) {
@@ -628,7 +628,7 @@ if ($context->isCompleted()) {
 
 **Step-by-Step Execution:**
 ```php
-$worker = $machine->transition($initialState, ['status' => 'published']);
+$worker = $stateFlow->transition($initialState, ['status' => 'published']);
 
 $gateResult = $worker->runGates();
 

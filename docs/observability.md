@@ -666,7 +666,7 @@ class DebugDispatcher implements EventDispatcher
 ## Use Case: Complete Monitoring Setup
 
 ```php
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $config,
     eventDispatcher: new MultiChannelDispatcher(
         logger: app(LoggerInterface::class),

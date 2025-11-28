@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow;
 
 /**
- * StateMachine - A flexible state machine implementation
+ * StateFlow - A flexible state machine implementation
  */
-class StateMachine
+class StateFlow
 {
     public function __construct()
     {
