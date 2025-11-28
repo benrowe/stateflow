@@ -258,6 +258,47 @@ try {
 }
 ```
 
+### Manual Lock Renewal
+
+For long-running paused workflows, you can manually extend the lock TTL using `LockProvider::renew()`:
+
+```php
+// Initial transition that pauses
+$worker = $machine->transition($state, ['status' => 'published']);
+$context = $worker->execute();
+
+if ($context->isPaused()) {
+    $lockState = $context->getLockState();
+    saveToDatabase([
+        'context' => $context->serialize(),
+        'lockKey' => $lockState->lockKey,
+    ]);
+}
+
+// Later, before lock expires, extend it
+$data = loadFromDatabase();
+$lockProvider = new RedisLockProvider($redis);
+
+// Renew the lock for another 60 seconds
+$renewed = $lockProvider->renew($data['lockKey'], ttl: 60);
+
+if ($renewed) {
+    Log::info('Lock renewed successfully');
+} else {
+    Log::error('Lock renewal failed - lock may have expired or been released');
+}
+
+// Resume the workflow
+$context = TransitionContext::unserialize($data['context'], $stateFactory, $actionFactory);
+$worker = $machine->fromContext($context);
+$finalContext = $worker->execute();
+```
+
+**Note:** StateFlow does not provide automatic background lock renewal. You must explicitly call `renew()` when needed, typically:
+- In a scheduled job that checks paused workflows
+- When receiving webhook notifications for long-running external processes
+- Before resuming a workflow that may have been paused for an extended period
+
 ---
 
 ## Lock State
