@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests;
+namespace BenRowe\StateFlow\Tests\Unit;
 
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFlow;
