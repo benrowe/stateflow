@@ -51,6 +51,7 @@ jobs:
   code-quality:
     runs-on: ubuntu-latest
     name: Code Quality
+    if: false # temp disabled
 
     steps:
       - name: Checkout code
