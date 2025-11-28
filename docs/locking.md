@@ -30,6 +30,81 @@ Process B: Wait for lock → Execute transition → Release lock
 
 ---
 
+## Lock Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Machine
+    participant Worker as StateWorker
+    participant LockProvider
+    participant Context
+    participant Database
+
+    User->>Machine: transition(state, delta)
+    activate Machine
+    Machine-->>User: StateWorker
+    deactivate Machine
+
+    User->>Worker: execute()
+    activate Worker
+
+    Worker->>LockProvider: acquire(lockKey, ttl)
+    activate LockProvider
+
+    alt Lock Available
+        LockProvider-->>Worker: true (lock acquired)
+        Note over Worker: Lock held in memory
+        Worker->>Worker: Execute transition
+
+        alt Transition Completes
+            Worker->>Context: markCompleted()
+            Worker->>LockProvider: release(lockKey)
+            LockProvider-->>Worker: true
+            Worker-->>User: Context (completed)
+        else Transition Pauses
+            Worker->>Context: markPaused()
+            Note over Worker: Lock NOT released
+            Worker->>Context: setLockState(lockKey, ttl)
+            Worker-->>User: Context (paused, lock held)
+            User->>Database: save(context.serialize())
+
+            Note over Database: Hours/days later...
+
+            User->>Database: load context
+            Database-->>User: serialized context
+            User->>Machine: fromContext(context)
+            Machine-->>User: new StateWorker
+            User->>Worker: execute()
+
+            Worker->>LockProvider: exists(lockKey)
+            alt Lock Still Exists
+                LockProvider-->>Worker: true
+                Worker->>Worker: Continue execution
+                Worker->>LockProvider: release(lockKey)
+                Worker-->>User: Context (completed)
+            else Lock Lost/Expired
+                LockProvider-->>Worker: false
+                Worker-->>User: LockLostException
+            end
+        end
+    else Lock Held by Another Process
+        LockProvider-->>Worker: false
+
+        alt Strategy: FAIL_FAST
+            Worker-->>User: LockAcquisitionException
+        else Strategy: SKIP
+            Worker-->>User: Context (skipped)
+        else Strategy: WAIT
+            Worker->>LockProvider: retry acquire()
+            Note over Worker,LockProvider: Retry until timeout
+        end
+    end
+
+    deactivate LockProvider
+    deactivate Worker
+```
+
 ## Core Interfaces
 
 ### LockProvider
