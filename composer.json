@@ -17,7 +17,8 @@
         "brianium/paratest": "^7.4",
         "friendsofphp/php-cs-fixer": "^3.0",
         "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^10.0",
+        "phpmd/phpmd": "^2.15"
     },
     "autoload": {
         "psr-4": {
