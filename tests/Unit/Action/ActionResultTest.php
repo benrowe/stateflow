@@ -7,22 +7,14 @@ namespace BenRowe\StateFlow\Tests\Unit\Action;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\State;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ActionResultTest extends TestCase
 {
-    public function testContinue(): void
+    #[DataProvider('provideContinueData')]
+    public function testContinue(?State $state): void
     {
-        $result = ActionResult::continue();
-        $this->assertInstanceOf(ActionResult::class, $result);
-        $this->assertSame(ExecutionState::CONTINUE, $result->executionState);
-        $this->assertNull($result->newState);
-        $this->assertNull($result->metadata);
-    }
-
-    public function testContinueWithNewState(): void
-    {
-        $state = $this->mockState();
         $result = ActionResult::continue($state);
         $this->assertInstanceOf(ActionResult::class, $result);
         $this->assertSame(ExecutionState::CONTINUE, $result->executionState);
@@ -30,76 +22,69 @@ class ActionResultTest extends TestCase
         $this->assertNull($result->metadata);
     }
 
-    public function testPause(): void
+    /**
+     * @param ?mixed[] $metadata
+     */
+    #[DataProvider('providePauseData')]
+    public function testPause(?State $state, ?array $metadata): void
     {
-        $result = ActionResult::pause();
-        $this->assertInstanceOf(ActionResult::class, $result);
-        $this->assertSame(ExecutionState::PAUSE, $result->executionState);
-        $this->assertNull($result->newState);
-        $this->assertNull($result->metadata);
-    }
-
-    public function testPauseWithNewState(): void
-    {
-        $state = $this->mockState();
-        $result = ActionResult::pause($state);
+        $result = ActionResult::pause($state, $metadata);
         $this->assertInstanceOf(ActionResult::class, $result);
         $this->assertSame(ExecutionState::PAUSE, $result->executionState);
         $this->assertSame($state, $result->newState);
-        $this->assertNull($result->metadata);
+        $this->assertSame($metadata, $result->metadata);
     }
 
-    public function testPauseWithMetaData(): void
+    /**
+     * @param ?mixed[] $metadata
+     */
+    #[DataProvider('provideStopData')]
+    public function testStop(?State $state, ?array $metadata): void
     {
-        $result = ActionResult::pause(null, ['foo' => 'bar']);
-        $this->assertInstanceOf(ActionResult::class, $result);
-        $this->assertSame(ExecutionState::PAUSE, $result->executionState);
-        $this->assertNull($result->newState);
-        $this->assertSame(['foo' => 'bar'], $result->metadata);
-    }
-
-    public function testPauseWithStateAndMetadata(): void
-    {
-        $state = $this->mockState();
-        $result = ActionResult::pause($state, ['foo' => 'bar']);
-        $this->assertInstanceOf(ActionResult::class, $result);
-        $this->assertSame(ExecutionState::PAUSE, $result->executionState);
-        $this->assertSame($state, $result->newState);
-        $this->assertSame(['foo' => 'bar'], $result->metadata);
-    }
-
-    public function testStopWithNewState(): void
-    {
-        $state = $this->mockState();
-        $result = ActionResult::stop($state);
+        $result = ActionResult::stop($state, $metadata);
         $this->assertInstanceOf(ActionResult::class, $result);
         $this->assertSame(ExecutionState::STOP, $result->executionState);
         $this->assertSame($state, $result->newState);
-        $this->assertNull($result->metadata);
+        $this->assertSame($metadata, $result->metadata);
     }
 
-    public function testStopWithMetaData(): void
+    /**
+     * @return array<string, mixed[]>
+     */
+    public static function provideContinueData(): array
     {
-        $result = ActionResult::stop(null, ['foo' => 'bar']);
-        $this->assertInstanceOf(ActionResult::class, $result);
-        $this->assertSame(ExecutionState::STOP, $result->executionState);
-        $this->assertNull($result->newState);
-        $this->assertSame(['foo' => 'bar'], $result->metadata);
+        return [
+            'no state' => [null],
+            'with state' => [self::mockState()],
+        ];
     }
 
-    public function testStopWithStateAndMetadata(): void
+    /**
+     * @return array<string, mixed[]>
+     */
+    public static function providePauseData(): array
     {
-        $state = $this->mockState();
-        $result = ActionResult::stop($state, ['foo' => 'bar']);
-        $this->assertInstanceOf(ActionResult::class, $result);
-        $this->assertSame(ExecutionState::STOP, $result->executionState);
-        $this->assertSame($state, $result->newState);
-        $this->assertSame(['foo' => 'bar'], $result->metadata);
+        return [
+            'no state or metadata' => [null, null],
+            'with state' => [self::mockState(), null],
+            'with metadata' => [null, ['foo' => 'bar']],
+            'with state and metadata' => [self::mockState(), ['foo' => 'bar']],
+        ];
     }
 
+    /**
+     * @return array<string, mixed[]>
+     */
+    public static function provideStopData(): array
+    {
+        return [
+            'with state' => [self::mockState(), null],
+            'with metadata' => [null, ['foo' => 'bar']],
+            'with state and metadata' => [self::mockState(), ['foo' => 'bar']],
+        ];
+    }
 
-
-    private function mockState(): State
+    private static function mockState(): State
     {
         return new class () implements State {
             public function toArray(): array
@@ -107,7 +92,7 @@ class ActionResultTest extends TestCase
                 return [];
             }
 
-            public function with(array $changes): static
+            public function with(array $changes): State
             {
                 return new static($changes);
             }
