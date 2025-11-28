@@ -213,16 +213,16 @@ $configProvider = function(State $currentState, array $desiredDelta): Configurat
 // Not: bool evaluate()
 // But: GateResult evaluate()
 enum GateResult {
-    case ALLOW;
-    case DENY;
-    case SKIP_IDEMPOTENT; // Added for idempotency checks
+    case ALLOW;            // Gate passes, continue normally
+    case DENY;             // Gate fails, stop transition
+    case SKIP_IDEMPOTENT;  // Already in desired state, skip actions but succeed
     // Future: DEFER, CONDITIONAL, etc.
 }
 
 enum ExecutionState {
-    case CONTINUE;
-    case PAUSE;
-    case STOP;
+    case CONTINUE;  // Continue to next action
+    case PAUSE;     // Pause execution (lock persists)
+    case STOP;      // Stop execution (lock released)
 }
 ```
 

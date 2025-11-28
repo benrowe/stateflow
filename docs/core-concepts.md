@@ -124,6 +124,7 @@ enum GateResult
 {
     case ALLOW;
     case DENY;
+    case SKIP_IDEMPOTENT;
     // Future: DEFER, CONDITIONAL, etc.
 }
 
@@ -139,6 +140,18 @@ interface Gate
      */
     public function message(): ?string;
 }
+
+/**
+ * GateResult Behavior:
+ *
+ * - ALLOW: Gate passes, transition continues normally
+ * - DENY: Gate fails, transition stops immediately (context.isStopped() = true)
+ * - SKIP_IDEMPOTENT: Gate indicates operation is unnecessary (already in desired state),
+ *   transition continues but actions are skipped (context.isCompleted() = true)
+ *
+ * SKIP_IDEMPOTENT is useful for idempotency checks where you want to succeed
+ * gracefully without re-executing actions when already in the target state.
+ */
 
 class GateContext
 {
@@ -279,7 +292,9 @@ class NotAlreadyPublishedGate implements Gate
         $current = $context->currentState->toArray();
         $desired = $context->desiredDelta;
 
-        // Assuming 'status' is a key in your state
+        // If already in the desired state, skip actions but succeed
+        // Use SKIP_IDEMPOTENT instead of DENY so the transition completes successfully
+        // without re-running actions that would be redundant
         if (isset($desired['status']) && $current['status'] === $desired['status']) {
             return GateResult::SKIP_IDEMPOTENT;
         }
@@ -289,7 +304,7 @@ class NotAlreadyPublishedGate implements Gate
 
     public function message(): ?string
     {
-        return 'Transition not allowed: already in the target state.';
+        return 'Already in target state - transition skipped';
     }
 }
 ```
