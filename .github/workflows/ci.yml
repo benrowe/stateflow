@@ -102,7 +102,7 @@ jobs:
         run: composer install --prefer-dist --no-interaction
 
       - name: Run tests with coverage
-        run: composer test:coverage
+        run: composer test:coverage:ci
 
   docker:
     runs-on: ubuntu-latest
