@@ -37,7 +37,7 @@
         "test:coverage": "phpunit --coverage-html coverage",
         "test:coverage:ci": [
             "phpunit --coverage-clover clover.xml --coverage-text",
-            "coverage-check clover.xml 85"
+            "coverage-check clover.xml 100"
         ],
         "quality": [
             "phpmd src text phpmd.xml.dist",
