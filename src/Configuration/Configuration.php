@@ -33,5 +33,4 @@ readonly class Configuration
     {
         return $this->actions;
     }
-
 }
