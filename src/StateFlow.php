@@ -33,11 +33,15 @@ class StateFlow
      */
     private function resolveConfig(State $currentState, array $delta): Configuration
     {
-        $provider = $this->configProvider;
-        if ($provider instanceof Closure) {
-            $provider = new CallableConfigurationProvider($provider);
-        }
+        return $this
+            ->resolveProvider()
+            ->provide($currentState, $delta);
+    }
 
-        return $provider->provide($currentState, $delta);
+    private function resolveProvider(): ConfigurationProvider
+    {
+        $provider = $this->configProvider;
+
+        return $provider instanceof Closure ? new CallableConfigurationProvider($provider) : $provider;
     }
 }
