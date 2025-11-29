@@ -12,6 +12,7 @@ use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\State;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase
@@ -157,6 +158,10 @@ class ConfigurationTest extends TestCase
         $this->assertContains($action3, $paymentConfig->getActions());
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @throws Exception
+     */
     private function createStubState(array $data): State
     {
         $state = $this->createStub(State::class);

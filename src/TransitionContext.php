@@ -8,6 +8,9 @@ use BenRowe\StateFlow\Action\ActionResult;
 
 class TransitionContext
 {
+    /**
+     * @var ActionResult[]
+     */
     private array $actions = [];
 
     public function __construct(private State $initialState)
