@@ -16,6 +16,9 @@ class StateFlowTest extends TestCase
         $stateFlow = new StateFlow();
 
         $this->assertInstanceOf(StateFlow::class, $stateFlow);
-        $this->assertInstanceOf(StateWorker::class, $stateFlow->transition(new class () implements State {}, []));
+        $this->assertInstanceOf(
+            StateWorker::class,
+            $stateFlow->transition($this->createMock(State::class), [])
+        );
     }
 }
