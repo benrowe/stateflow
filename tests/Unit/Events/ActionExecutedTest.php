@@ -20,7 +20,7 @@ class ActionExecutedTest extends TestCase
         $context = new ActionContext(
             $this->createMock(State::class),
             ['foo' => 'bar'],
-            new TransitionContext()
+            $this->createMock(TransitionContext::class)
         );
         $result = ActionResult::continue();
 

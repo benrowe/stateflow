@@ -228,7 +228,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     participant User
-    participant Machine
+    participant StateFlow
     participant Worker as StateWorker
     participant Action1
     participant Action2
@@ -237,8 +237,8 @@ sequenceDiagram
 
     rect rgb(240, 248, 255)
         Note over User,Action3: Initial Transition
-        User->>Machine: transition(state, ['status' => 'published'])
-        Machine-->>User: StateWorker
+        User->>StateFlow: transition(state, ['status' => 'published'])
+        StateFlow-->>User: StateWorker
         User->>Worker: execute()
         activate Worker
 
@@ -269,8 +269,8 @@ sequenceDiagram
         User->>Storage: load context
         Storage-->>User: serialized context
 
-        User->>Machine: fromContext(context)
-        Machine-->>User: new StateWorker
+        User->>StateFlow: fromContext(context)
+        StateFlow-->>User: new StateWorker
         User->>Worker: execute()
         activate Worker
 
@@ -352,7 +352,7 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "Core Machine"
-        SM[StateMachine]
+        SM[StateFlow]
         TC[TransitionContext]
     end
 
@@ -420,7 +420,7 @@ graph TB
 
 
 
-## State Machine Decision Tree
+## State Flow Decision Tree
 
 ```mermaid
 graph TD

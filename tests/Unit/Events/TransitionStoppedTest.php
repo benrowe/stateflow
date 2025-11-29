@@ -14,7 +14,7 @@ class TransitionStoppedTest extends TestCase
     public function testGetters(): void
     {
         $currentState = $this->createMock(State::class);
-        $context = new TransitionContext();
+        $context = $this->createMock(TransitionContext::class);
         $metadata = ['reason' => 'cancelled'];
 
         $event = new TransitionStopped($currentState, $context, $metadata);

@@ -541,10 +541,10 @@ class LockState
 
 ## Core Machine
 
-### StateMachine
+### StateFlow
 
 ```php
-class StateMachine
+class StateFlow
 {
     public function __construct(
         callable|ConfigurationProvider $configProvider,

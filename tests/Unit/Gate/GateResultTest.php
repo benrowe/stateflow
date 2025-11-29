@@ -10,13 +10,16 @@ use PHPUnit\Framework\TestCase;
 
 class GateResultTest extends TestCase
 {
-    #[DataProvider('shouldStopTransitionProvider')]
+    #[DataProvider('provideShouldStopTransitionProvider')]
     public function testShouldStopTransition(GateResult $result, bool $expected): void
     {
         $this->assertSame($expected, $result->shouldStopTransition());
     }
 
-    public static function shouldStopTransitionProvider(): array
+    /**
+     * @return array<string, mixed[]>
+     */
+    public static function provideShouldStopTransitionProvider(): array
     {
         return [
             'DENY should stop transition' => [GateResult::DENY, true],
@@ -25,13 +28,16 @@ class GateResultTest extends TestCase
         ];
     }
 
-    #[DataProvider('shouldSkipActionProvider')]
+    #[DataProvider('provideShouldSkipActionProvider')]
     public function testShouldSkipAction(GateResult $result, bool $expected): void
     {
         $this->assertSame($expected, $result->shouldSkipAction());
     }
 
-    public static function shouldSkipActionProvider(): array
+    /**
+     * @return array<string, mixed[]>
+     */
+    public static function provideShouldSkipActionProvider(): array
     {
         return [
             'DENY should skip action' => [GateResult::DENY, true],

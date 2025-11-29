@@ -6,11 +6,11 @@ StateFlow is a **workflow engine for PHP that orchestrates state transitions wit
 
 ## Core Design Goals
 
-### 1. Stateless and Reusable Machine
+### 1. Stateless and Reusable
 
-- `StateMachine` is a stateless service.
+- `StateFlow` is a stateless service.
 - State is passed in for each transition.
-- A single machine instance can be used for multiple entities.
+- A single instance can be used for multiple entities.
 
 ### 2. Delta-Based Transitions
 
@@ -18,11 +18,11 @@ Users specify only what should change, not the entire final state:
 
 ```php
 // Good: Delta approach
-$worker = $machine->transition($orderState, ['status' => 'published']);
+$worker = $stateFlow->transition($orderState, ['status' => 'published']);
 $context = $worker->execute();
 
 // Avoided: Full state (verbose and error-prone)
-$machine->transition($orderState, ['status' => 'published', 'author' => 'same', 'created' => 'same', ...]);
+$stateFlow->transition($orderState, ['status' => 'published', 'author' => 'same', 'created' => 'same', ...]);
 ```
 
 **Rationale:** With rich state objects, deltas are more ergonomic and show clear intent.
@@ -45,13 +45,13 @@ The `StateWorker` allows for fine-grained control over the execution flow.
 
 **One-Shot Execution:**
 ```php
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute(); // Runs gates and actions
 ```
 
 **Step-Through Execution:**
 ```php
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $gateResult = $worker->runGates();
 if ($gateResult->shouldStopTransition()) {
     // Handle failed transition
@@ -70,7 +70,7 @@ class GenerateThumbnailsAction implements Action {
 }
 
 // Serialize and wait
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 if ($context->isPaused()) {
     saveToDatabase($context->serialize());
@@ -83,7 +83,7 @@ $actionFactory = new MyActionFactory();
 $resumedContext = TransitionContext::unserialize($serializedContext, $stateFactory, $actionFactory);
 
 // Create a new worker from the resumed context
-$resumedWorker = $machine->fromContext($resumedContext);
+$resumedWorker = $stateFlow->fromContext($resumedContext);
 $finalContext = $resumedWorker->execute(); // Continues from where it left off
 ```
 
@@ -103,21 +103,21 @@ Every step emits events:
 
 ### 6. Race-Safe with Mutex Locking
 
-Locking is configured on the `StateMachine` itself, making it an integral part of the workflow orchestration.
+Locking is configured on the `StateFlow` itself, making it an integral part of the workflow orchestration.
 
 ```php
 $lockProvider = new RedisLockProvider($redis);
-$machine = new StateMachine(
+$stateFlow = new StateFlow(
     configProvider: $configProvider,
     lockProvider: $lockProvider,
 );
 
-// The worker will use the machine's lock provider
-$worker = $machine->transition($state, ['status' => 'published']);
+// The worker will use the flows's lock provider
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 ```
 - Request A acquires a lock when `execute()` is called.
-- Request B, using the same machine (and thus the same lock provider), will wait or fail based on the lock provider's behavior.
+- Request B, using the same `StateFlow` instance (and thus the same lock provider), will wait or fail based on the lock provider's behavior.
 - The lock persists through pauses, and can be manually extended via the `LockProvider::renew()` method.
 - **Manual lock renewal is supported** via `LockProvider::renew()` for long-running workflows.
 - **Automatic background lock renewal is not supported** by StateFlow; users must explicitly call `renew()` when needed.
@@ -129,7 +129,7 @@ The new architecture separates the setup of a transition from its execution.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ User: $machine->transition($state, $delta)         │
+│ User: $stateFlow->transition($state, $delta)         │
 └─────────────────────┬───────────────────────────────┘
                       │
                       ▼
@@ -143,7 +143,7 @@ The new architecture separates the setup of a transition from its execution.
                       │
                       ▼
          ┌────────────────────────┐
-         │  Acquire Lock          │ (using machine's provider)
+         │  Acquire Lock          │ (using flows's provider)
          └────────┬───────────────┘
                   │
                   ▼
@@ -176,9 +176,9 @@ The new architecture separates the setup of a transition from its execution.
 
 ## Key Architectural Decisions
 
-### StateMachine is a Stateless Service
+### StateFlow is a Stateless Service
 
-**Why:** Decouples the machine from any single entity, making it a reusable and easily injectable service. State is provided on a per-transition basis.
+**Why:** Decouples the flow from any single entity, making it a reusable and easily injectable service. State is provided on a per-transition basis.
 
 ### StateWorker Manages Transition Lifecycle
 
@@ -242,7 +242,7 @@ Users provide implementations for:
 
 ### Chose: Stateless Machine + StateWorker
 **Instead of:** Stateful machine per entity
-**Trade-off:** Slightly more verbose for a single transition (`$machine->transition()->execute()`), but provides a much more flexible and powerful API for complex scenarios and dependency injection.
+**Trade-off:** Slightly more verbose for a single transition (`$stateFlow->transition()->execute()`), but provides a much more flexible and powerful API for complex scenarios and dependency injection.
 
 ### Chose: Delta + Context Object
 **Instead of:** Full state transitions

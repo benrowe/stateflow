@@ -41,8 +41,8 @@ class OrderState implements State {
     public function with(array $changes): State { /* ... */ }
 }
 
-// 2. Configure machine
-$machine = new StateMachine(
+// 2. Configure flow
+$stateFlow = new StateFlow(
     configProvider: fn($state, $delta) => new Configuration(
         transitionGates: [new CanPublishGate()],
         actions: [new SetPublishDateAction(), new NotifyAction()],
@@ -54,7 +54,7 @@ $machine = new StateMachine(
 
 // 3. Execute transition
 $state = new OrderState('draft');
-$worker = $machine->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 
 // 4. Handle result

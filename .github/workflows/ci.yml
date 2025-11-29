@@ -47,7 +47,6 @@ jobs:
   code-quality:
     runs-on: ubuntu-latest
     name: Code Quality
-    if: false # temp disabled
 
     steps:
       - name: Checkout code
@@ -131,3 +130,13 @@ jobs:
 
       - name: Check platform requirements
         run: docker run --rm -v $(pwd):/app -w /app stateflow-php composer --version
+
+  markdown_lint:
+    name: Markdown Style Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint
+        uses: DavidAnson/markdownlint-cli2-action@v21
+        with:
+          globs: '**/*.md'

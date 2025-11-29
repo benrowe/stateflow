@@ -14,7 +14,7 @@ class TransitionCompletedTest extends TestCase
     public function testGetters(): void
     {
         $finalState = $this->createMock(State::class);
-        $context = new TransitionContext();
+        $context = $this->createMock(TransitionContext::class);
 
         $event = new TransitionCompleted($finalState, $context);
 
