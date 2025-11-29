@@ -8,6 +8,7 @@ use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\State;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\Generator\Generator as MockGenerator;
 use PHPUnit\Framework\TestCase;
 
 class ActionResultTest extends TestCase
@@ -86,16 +87,16 @@ class ActionResultTest extends TestCase
 
     private static function mockState(): State
     {
-        return new class () implements State {
-            public function toArray(): array
-            {
-                return [];
-            }
+        $mock = (new MockGenerator())->testDouble(
+            State::class,
+            true,
+            callOriginalConstructor: false,
+            callOriginalClone: false,
+            cloneArguments: false,
+            allowMockingUnknownTypes: false,
+        );
+        assert($mock instanceof State);
 
-            public function with(array $changes): static
-            {
-                return new static($changes);
-            }
-        };
+        return $mock;
     }
 }
