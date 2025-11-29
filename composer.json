@@ -48,7 +48,8 @@
         "check": [
             "@lint",
             "@quality",
-            "@test"
+            "@test",
+            "scripts/message.sh --level success \"All Checks Passed Successfully\""
         ]
     },
     "config": {
