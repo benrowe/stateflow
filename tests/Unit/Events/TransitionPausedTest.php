@@ -14,7 +14,7 @@ class TransitionPausedTest extends TestCase
     public function testGetters(): void
     {
         $currentState = $this->createMock(State::class);
-        $context = new TransitionContext();
+        $context = $this->createMock(TransitionContext::class);
         $metadata = ['reason' => 'user requested'];
 
         $event = new TransitionPaused($currentState, $context, $metadata);
