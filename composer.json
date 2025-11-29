@@ -32,9 +32,9 @@
         }
     },
     "scripts": {
-        "test": "paratest --processes=4",
-        "test:single": "phpunit",
-        "test:coverage": "phpunit --coverage-html coverage",
+        "test": "paratest --processes=4 --no-coverage",
+        "test:single": "phpunit --no-coverage",
+        "test:coverage": "phpunit --coverage-html coverage --coverage-text --only-summary-for-coverage-text",
         "test:coverage:ci": [
             "phpunit --coverage-clover clover.xml --coverage-text",
             "coverage-check clover.xml 100"
