@@ -55,5 +55,4 @@ class ConfigurationTest extends TestCase
         $this->assertSame($gates, $config->getTransitionGates());
         $this->assertSame($actions, $config->getActions());
     }
-
 }
