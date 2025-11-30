@@ -174,6 +174,64 @@ class StateFlowTest extends TestCase
     }
 
     /**
+     * Scenario 2.1: All gates allow transition
+     * Tests happy path - all gates pass and all actions execute
+     */
+    public function testAllGatesAllowTransition(): void
+    {
+        $initialState = $this->createTestState(['status' => 'draft', 'user_id' => 123]);
+
+        // Create gates - ALL return ALLOW
+        $gate1 = $this->createTestGate('Gate1', GateResult::ALLOW);
+        $gate2 = $this->createTestGate('Gate2', GateResult::ALLOW);
+        $gate3 = $this->createTestGate('Gate3', GateResult::ALLOW);
+
+        // Create actions that should execute
+        $action1 = $this->createTestAction('Action1');
+        $action2 = $this->createTestAction('Action2');
+
+        $stateFlow = new StateFlow(fn () => new Configuration(
+            [$gate1, $gate2, $gate3],
+            [$action1, $action2]
+        ));
+
+        $context = $stateFlow
+            ->transition($initialState, ['status' => 'published'])
+            ->execute();
+
+        // Verify all 3 gates were evaluated
+        $gateEvaluations = $context->getGateEvaluations();
+        $this->assertCount(3, $gateEvaluations, 'All 3 gates should be evaluated');
+        $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
+        $this->assertSame(GateResult::ALLOW, $gateEvaluations[1]->result);
+        $this->assertSame(GateResult::ALLOW, $gateEvaluations[2]->result);
+
+        // Verify all actions were executed
+        $this->assertCount(2, $context->getActionExecutions(), 'All 2 actions should execute');
+
+        // Verify no actions were skipped
+        $this->assertCount(0, $context->getActionSkips(), 'No actions should be skipped');
+
+        // Verify execution order: gates first, then actions
+        $this->assertContains('Gate:Gate1', $this->logger->log);
+        $this->assertContains('Gate:Gate2', $this->logger->log);
+        $this->assertContains('Gate:Gate3', $this->logger->log);
+        $this->assertContains('Action:Action1', $this->logger->log);
+        $this->assertContains('Action:Action2', $this->logger->log);
+
+        // Verify gates executed in order
+        $gate1Index = array_search('Gate:Gate1', $this->logger->log, true);
+        $gate2Index = array_search('Gate:Gate2', $this->logger->log, true);
+        $gate3Index = array_search('Gate:Gate3', $this->logger->log, true);
+        $this->assertLessThan($gate2Index, $gate1Index, 'Gate1 should execute before Gate2');
+        $this->assertLessThan($gate3Index, $gate2Index, 'Gate2 should execute before Gate3');
+
+        // Verify all gates executed before any actions
+        $action1Index = array_search('Action:Action1', $this->logger->log, true);
+        $this->assertLessThan($action1Index, $gate3Index, 'All gates should execute before actions');
+    }
+
+    /**
      * Scenario 2.2: First gate denies transition
      * Tests short-circuit evaluation - only first gate should be evaluated
      */
