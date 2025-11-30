@@ -19,11 +19,11 @@ class StateWorker
     public function execute(): TransitionContext
     {
         // Run transition gates first
-        $gatesAllowed = $this->evaluateGates();
+        $gateResult = $this->evaluateGates();
 
-        // Mark all actions as skipped if gates denied
-        if (!$gatesAllowed) {
-            $this->skipAllActions();
+        // Skip actions if gates denied or returned SKIP_IDEMPOTENT
+        if ($gateResult->shouldSkipAction()) {
+            $this->skipAllActions($gateResult);
 
             return $this->context;
         }
@@ -34,7 +34,7 @@ class StateWorker
         return $this->context;
     }
 
-    private function evaluateGates(): bool
+    private function evaluateGates(): GateResult
     {
         $gateContext = new GateContext(
             $this->context->getCurrentState(),
@@ -47,13 +47,13 @@ class StateWorker
             // Track the gate evaluation
             $this->context->addGateEvaluation($gate, $result, false);
 
-            // Short-circuit if gate denies
-            if ($result->shouldStopTransition()) {
-                return false;
+            // Short-circuit if gate denies or skips
+            if ($result->shouldSkipAction()) {
+                return $result;
             }
         }
 
-        return true;
+        return GateResult::ALLOW;
     }
 
     private function executeActions(): void
@@ -64,10 +64,10 @@ class StateWorker
         }
     }
 
-    private function skipAllActions(): void
+    private function skipAllActions(GateResult $reason): void
     {
         foreach ($this->configuration->getActions() as $action) {
-            $this->context->addActionSkip($action, GateResult::DENY);
+            $this->context->addActionSkip($action, $reason);
         }
     }
 }

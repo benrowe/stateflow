@@ -278,6 +278,50 @@ class StateFlowTest extends TestCase
     }
 
     /**
+     * Scenario 2.5: Gate with SKIP_IDEMPOTENT result
+     * Tests that actions are skipped but transition succeeds
+     */
+    public function testGateWithSkipIdempotentResult(): void
+    {
+        $initialState = $this->createTestState(['status' => 'published', 'user_id' => 123]);
+
+        // Create gate that returns SKIP_IDEMPOTENT (e.g., already in desired state)
+        $idempotencyGate = $this->createTestGate('IdempotencyCheck', GateResult::SKIP_IDEMPOTENT);
+
+        // Create actions that should be skipped
+        $action1 = $this->createTestAction('Action1');
+        $action2 = $this->createTestAction('Action2');
+
+        $stateFlow = new StateFlow(fn () => new Configuration(
+            [$idempotencyGate],
+            [$action1, $action2]
+        ));
+
+        $context = $stateFlow
+            ->transition($initialState, ['status' => 'published'])
+            ->execute();
+
+        // Verify the gate was evaluated
+        $gateEvaluations = $context->getGateEvaluations();
+        $this->assertCount(1, $gateEvaluations, 'Gate should be evaluated');
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $gateEvaluations[0]->result);
+
+        // Verify no actions were executed
+        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate returns SKIP_IDEMPOTENT');
+
+        // Verify both actions were skipped with SKIP_IDEMPOTENT reason
+        $actionSkips = $context->getActionSkips();
+        $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $actionSkips[0]->gateResult);
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $actionSkips[1]->gateResult);
+
+        // Verify execution log shows gate was evaluated but actions were not
+        $this->assertContains('Gate:IdempotencyCheck', $this->logger->log);
+        $this->assertNotContains('Action:Action1', $this->logger->log);
+        $this->assertNotContains('Action:Action2', $this->logger->log);
+    }
+
+    /**
      * Scenario 2.3: Middle gate denies transition
      * Tests short-circuit evaluation when denial happens in the middle
      */
