@@ -6,6 +6,7 @@ composer.lock
 /.phpunit.cache
 /coverage/
 .phpunit.result.cache
+clover.xml
 
 # PHPStan
 /.phpstan.cache
