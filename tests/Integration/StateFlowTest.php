@@ -277,6 +277,53 @@ class StateFlowTest extends TestCase
         $this->assertNotContains('Action:Action2', $this->logger->log);
     }
 
+    /**
+     * Scenario 2.3: Middle gate denies transition
+     * Tests short-circuit evaluation when denial happens in the middle
+     */
+    public function testMiddleGateDeniesTransitionWithShortCircuit(): void
+    {
+        $initialState = $this->createTestState(['status' => 'draft', 'user_id' => 123]);
+
+        // Create gates - SECOND gate will deny
+        $gate1 = $this->createTestGate('Gate1', GateResult::ALLOW);
+        $gate2 = $this->createTestGate('Gate2', GateResult::DENY);
+        $gate3 = $this->createTestGate('Gate3', GateResult::ALLOW);
+
+        // Create actions that should not execute
+        $action1 = $this->createTestAction('Action1');
+        $action2 = $this->createTestAction('Action2');
+
+        $stateFlow = new StateFlow(fn () => new Configuration(
+            [$gate1, $gate2, $gate3],
+            [$action1, $action2]
+        ));
+
+        $context = $stateFlow
+            ->transition($initialState, ['status' => 'published'])
+            ->execute();
+
+        // Verify gates 1 and 2 were evaluated, but NOT gate 3 (short-circuit)
+        $gateEvaluations = $context->getGateEvaluations();
+        $this->assertCount(2, $gateEvaluations, 'Gates 1 and 2 should be evaluated');
+        $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
+        $this->assertSame(GateResult::DENY, $gateEvaluations[1]->result);
+
+        // Verify no actions were executed
+        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate denies');
+
+        // Verify both actions were skipped
+        $actionSkips = $context->getActionSkips();
+        $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
+
+        // Verify execution log shows short-circuit behavior
+        $this->assertContains('Gate:Gate1', $this->logger->log);
+        $this->assertContains('Gate:Gate2', $this->logger->log);
+        $this->assertNotContains('Gate:Gate3', $this->logger->log, 'Gate3 should not be evaluated (short-circuit)');
+        $this->assertNotContains('Action:Action1', $this->logger->log);
+        $this->assertNotContains('Action:Action2', $this->logger->log);
+    }
+
     public function testGateDenialPreventsActionsFromExecuting(): void
     {
         $initialState = $this->createTestState(['status' => 'draft', 'user_id' => 456]);
