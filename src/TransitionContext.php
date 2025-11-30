@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow;
 
+use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\Gate\Gate;
+use BenRowe\StateFlow\Gate\GateResult;
 
 class TransitionContext
 {
@@ -12,6 +15,16 @@ class TransitionContext
      * @var ActionResult[]
      */
     private array $actions = [];
+
+    /**
+     * @var GateEvaluation[]
+     */
+    private array $gateEvaluations = [];
+
+    /**
+     * @var ActionSkip[]
+     */
+    private array $actionSkips = [];
 
     public function __construct(private State $initialState)
     {
@@ -33,5 +46,31 @@ class TransitionContext
     public function addActionResult(ActionResult $actionResult): void
     {
         $this->actions[] = $actionResult;
+    }
+
+    /**
+     * @return GateEvaluation[]
+     */
+    public function getGateEvaluations(): array
+    {
+        return $this->gateEvaluations;
+    }
+
+    public function addGateEvaluation(Gate $gate, GateResult $result, bool $isActionGate): void
+    {
+        $this->gateEvaluations[] = new GateEvaluation($gate, $result, $isActionGate);
+    }
+
+    /**
+     * @return ActionSkip[]
+     */
+    public function getActionSkips(): array
+    {
+        return $this->actionSkips;
+    }
+
+    public function addActionSkip(Action $action, GateResult $gateResult): void
+    {
+        $this->actionSkips[] = new ActionSkip($action, $gateResult);
     }
 }
