@@ -7,6 +7,8 @@ namespace BenRowe\StateFlow;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Events\EventDispatcher;
+use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
@@ -17,7 +19,7 @@ class StateWorker
 
     private readonly Configuration $configuration;
 
-    public function __construct(private TransitionContext $context)
+    public function __construct(private TransitionContext $context, private readonly EventDispatcher $eventDispatcher)
     {
         $this->configuration = $this->context->getConfiguration();
     }
@@ -75,6 +77,7 @@ class StateWorker
         // Mark as completed if we got through all actions
         if (!$this->context->isPaused() && !$this->context->isStopped()) {
             $this->context->markAsCompleted();
+            $this->eventDispatcher->dispatch(new TransitionCompleted($this->context->getCurrentState(), $this->context));
         }
 
         return $this->context;

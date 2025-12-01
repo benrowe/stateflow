@@ -36,7 +36,7 @@ class StateFlow
         $configuration = $this->resolveConfig($currentState, $delta);
         $context = new TransitionContext($currentState, $delta, $configuration);
 
-        return new StateWorker($context);
+        return new StateWorker($context, $this->eventDispatcher);
     }
 
     /**
@@ -48,7 +48,7 @@ class StateFlow
         $context->clearPauseStatus();
 
         // Create worker with existing context and set starting action index
-        $worker = new StateWorker($context);
+        $worker = new StateWorker($context, $this->eventDispatcher);
 
         // Resume from where we left off - count already executed actions
         $executedActionCount = count($context->getActionExecutions());
