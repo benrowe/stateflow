@@ -7,6 +7,9 @@ namespace BenRowe\StateFlow;
 use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Configuration\ConfigurationProvider;
+use BenRowe\StateFlow\Events\EventDispatcher;
+use BenRowe\StateFlow\Events\NullEventDispatcher;
+use BenRowe\StateFlow\Events\TransitionStarting;
 use Closure;
 
 /**
@@ -14,8 +17,13 @@ use Closure;
  */
 class StateFlow
 {
-    public function __construct(private Closure|ConfigurationProvider $configProvider)
-    {
+    private readonly EventDispatcher $eventDispatcher;
+
+    public function __construct(
+        private readonly Closure|ConfigurationProvider $configProvider,
+        ?EventDispatcher $eventDispatcher = null,
+    ) {
+        $this->eventDispatcher = $eventDispatcher ?? new NullEventDispatcher();
     }
 
     /**
@@ -23,6 +31,8 @@ class StateFlow
      */
     public function transition(State $currentState, array $delta): StateWorker
     {
+        $this->eventDispatcher->dispatch(new TransitionStarting($currentState, $delta));
+
         $configuration = $this->resolveConfig($currentState, $delta);
         $context = new TransitionContext($currentState, $delta, $configuration);
 
