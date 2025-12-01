@@ -29,13 +29,24 @@ class TransitionContext
 
     private ?ExecutionState $status = null;
 
-    public function __construct(private State $initialState)
+    /**
+     * @param array<string, mixed> $desiredDelta
+     */
+    public function __construct(private State $initialState, private array $desiredDelta = [])
     {
     }
 
     public function getCurrentState(): State
     {
         return $this->initialState;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getDesiredDelta(): array
+    {
+        return $this->desiredDelta;
     }
 
     /**

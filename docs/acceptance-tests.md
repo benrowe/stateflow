@@ -121,12 +121,14 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## 3. Action Execution
 
 ### Scenario 3.1: Action returns new state
-**Status:** 🔄 Partially Implemented
+**Status:** ✅ Implemented
 
 **Given** an action that returns a new state
 **When** the action executes
 **Then** the action result should contain the new state
 **And** the new state should be accessible via result.newState
+
+**Test:** `testCanExecuteWorkflowWithActionReturningNewState()`
 
 ### Scenario 3.2: Action returns CONTINUE
 **Status:** ✅ Implemented
@@ -741,8 +743,8 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~16 (was ~14)
-- **Partially Implemented:** ~4 (was ~6)
+- **Implemented:** ~17
+- **Partially Implemented:** ~3
 - **Not Implemented:** ~59
 - **Future Features:** ~6
 
