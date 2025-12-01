@@ -461,6 +461,91 @@ class StateFlowTest extends TestCase
     }
 
     /**
+     * Test that gates can access the delta
+     */
+    public function testGateCanAccessDelta(): void
+    {
+        $initialState = $this->createTestState(['status' => 'draft', 'priority' => 'low']);
+        $expectedDelta = ['status' => 'published', 'priority' => 'high'];
+
+        $deltaCapture = null;
+        $gate = new class ($deltaCapture, $this->logger) implements Gate {
+            /** @phpstan-ignore property.onlyWritten */
+            private mixed $deltaCapture;
+
+            public function __construct(
+                mixed &$deltaCapture,
+                private ExecutionLogger $logger
+            ) {
+                $this->deltaCapture = &$deltaCapture;
+            }
+
+            public function evaluate(GateContext $context): GateResult
+            {
+                $this->logger->log[] = 'Gate:DeltaCheck';
+                $this->deltaCapture = $context->desiredDelta;
+
+                return GateResult::ALLOW;
+            }
+
+            public function message(): ?string
+            {
+                return 'DeltaCheck';
+            }
+        };
+
+        $stateFlow = new StateFlow(fn () => new Configuration([$gate], []));
+
+        $context = $stateFlow
+            ->transition($initialState, $expectedDelta)
+            ->execute();
+
+        // Verify the gate received the delta
+        $this->assertSame($expectedDelta, $deltaCapture, 'Gate should receive the delta');
+        $this->assertSame($expectedDelta, $context->getDesiredDelta(), 'Context should store the delta');
+    }
+
+    /**
+     * Test that actions can access the delta
+     */
+    public function testActionCanAccessDelta(): void
+    {
+        $initialState = $this->createTestState(['status' => 'draft', 'version' => 1]);
+        $expectedDelta = ['status' => 'published', 'version' => 2];
+
+        $deltaCapture = null;
+        $action = new class ($deltaCapture, $this->logger) implements Action {
+            /** @phpstan-ignore property.onlyWritten */
+            private mixed $deltaCapture;
+
+            public function __construct(
+                mixed &$deltaCapture,
+                private ExecutionLogger $logger
+            ) {
+                $this->deltaCapture = &$deltaCapture;
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->logger->log[] = 'Action:DeltaCheck';
+                $this->deltaCapture = $context->desiredDelta;
+
+                return ActionResult::continue();
+            }
+        };
+
+        $stateFlow = new StateFlow(fn () => new Configuration([], [$action]));
+
+        $context = $stateFlow
+            ->transition($initialState, $expectedDelta)
+            ->execute();
+
+        // Verify the action received the delta
+        $this->assertSame($expectedDelta, $deltaCapture, 'Action should receive the delta');
+        $this->assertSame($expectedDelta, $context->getDesiredDelta(), 'Context should store the delta');
+    }
+
+    /**
      * @param array<string, mixed> $data
      * @throws Exception
      */

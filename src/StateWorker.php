@@ -44,7 +44,7 @@ class StateWorker
     {
         $gateContext = new GateContext(
             $this->context->getCurrentState(),
-            []  // TODO: Pass actual delta when implemented
+            $this->context->getDesiredDelta()
         );
 
         foreach ($this->configuration->getTransitionGates() as $gate) {
@@ -65,7 +65,11 @@ class StateWorker
     private function executeActions(): void
     {
         foreach ($this->configuration->getActions() as $action) {
-            $context = new ActionContext($this->context->getCurrentState(), [], $this->context);
+            $context = new ActionContext(
+                $this->context->getCurrentState(),
+                $this->context->getDesiredDelta(),
+                $this->context
+            );
             $result = $action->execute($context);
             $this->context->addActionResult($result);
 

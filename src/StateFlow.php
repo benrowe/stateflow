@@ -23,7 +23,7 @@ class StateFlow
      */
     public function transition(State $currentState, array $delta): StateWorker
     {
-        $context = new TransitionContext($currentState);
+        $context = new TransitionContext($currentState, $delta);
 
         return new StateWorker($context, $this->resolveConfig($currentState, $delta));
     }

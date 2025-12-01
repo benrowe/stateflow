@@ -19,7 +19,7 @@ This checklist is generated from the documentation to track the creation of all 
 - ✅ `src/TransitionContext.php`
   - ✅ `__construct(State $initialState)`
   - ✅ `getCurrentState(): State`
-  - ❌ `getDesiredDelta(): array`
+  - ✅ `getDesiredDelta(): array`
   - ✅ `isCompleted(): bool`
   - ✅ `isPaused(): bool`
   - ✅ `isStopped(): bool`

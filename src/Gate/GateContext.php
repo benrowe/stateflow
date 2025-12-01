@@ -9,9 +9,9 @@ use BenRowe\StateFlow\State;
 readonly class GateContext
 {
     /**
-     * @param array<string, mixed> $desiredState
+     * @param array<string, mixed> $desiredDelta
      */
-    public function __construct(public State $currentState, public array $desiredState)
+    public function __construct(public State $currentState, public array $desiredDelta)
     {
     }
 }
