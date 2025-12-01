@@ -181,7 +181,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Test:** `testActionsUpdateStateProgressively()`
 
 ### Scenario 3.6: Action throws exception
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a workflow with 3 actions
 **And** the second action throws an exception
@@ -191,6 +191,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** action 3 should NOT execute
 **And** a TransitionFailed event should be dispatched
 **And** the exception should be captured in the context
+
+**Test:** `testActionExceptionStopsWorkflow()` (workflow behavior), `testDispatchesTransitionFailedEvent()` (event dispatching)
+**Location:** StateWorker.php:197-203
 
 ---
 
@@ -701,14 +704,17 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## 12. Error Handling
 
 ### Scenario 12.1: Invalid configuration
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a Configuration with invalid gates (not implementing Gate interface)
 **When** I try to execute a transition
 **Then** a clear error should be thrown
 
+**Test:** `testInvalidGateThrowsException()`, `testInvalidActionThrowsException()`, `testMultipleInvalidGatesReportsFirstInvalid()`, `testMultipleInvalidActionsReportsFirstInvalid()`
+**Location:** Configuration.php:19-53
+
 ### Scenario 12.2: Action throws exception with no event dispatcher
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** no EventDispatcher configured
 **And** an action that throws an exception
@@ -716,12 +722,18 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** the exception should propagate normally
 **And** the workflow should stop
 
+**Test:** `testActionExceptionPropagatesWithoutEventDispatcher()`, `testActionExceptionStopsWorkflow()`
+**Location:** StateWorker.php:197-203
+
 ### Scenario 12.3: Gate returns invalid result
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a gate that returns null or invalid value
 **When** the gate is evaluated
 **Then** an appropriate exception should be thrown
+
+**Test:** `testGateReturningInvalidResultThrowsException()`
+**Location:** StateWorker.php:238-267
 
 ---
 
@@ -810,9 +822,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~43 (all 10 event scenarios complete!)
+- **Implemented:** ~47 (core functionality complete!)
 - **Partially Implemented:** 0
-- **Not Implemented:** ~36
+- **Not Implemented:** ~32
 - **Future Features:** ~6
 
 ### Recent Progress
@@ -820,7 +832,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Completed all Gate Evaluation scenarios (2.1-2.5)
 - ✅ Implemented SKIP_IDEMPOTENT gate result handling
 - ✅ Verified short-circuit evaluation for gate denials
-- ✅ Implemented action execution control (PAUSE and STOP - scenarios 3.3, 3.4)
+- ✅ Implemented action execution control (PAUSE, STOP, and exception handling - scenarios 3.3, 3.4, 3.6)
 - ✅ Added workflow status tracking (isPaused, isCompleted, isStopped - scenarios 6.1-6.3)
 - ✅ Implemented delta storage and passing to gates/actions (scenario 6.5)
 - ✅ Implemented progressive state updates (Scenario 3.5 & 8.2) - actions receive state from previous action
@@ -830,19 +842,20 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Completed all Step-by-Step Execution scenarios (7.1-7.4) - runGates(), runActions(), runNextAction(), getContext()
 - ✅ Completed Scenario 6.4: Resume paused workflow - StateFlow::fromContext() with pause/resume support
 - ✅ **Completed ALL Event Dispatching scenarios (10.1-10.10)** - Full observability across entire workflow lifecycle!
+- ✅ **Completed ALL Error Handling scenarios (12.1-12.3)** - Configuration validation, exception handling, and gate result validation!
 
 ## Priority Recommendations
 
 ### High Priority (Core Functionality) - ✅ **ALL COMPLETE!**
 1. ✅ Gate evaluation (Scenarios 2.1-2.5) - **DONE**
-2. ✅ Action execution control (Scenarios 3.3-3.5) - **DONE**
+2. ✅ Action execution control (Scenarios 3.3-3.6) - **DONE** (PAUSE, STOP, exception handling)
 3. ✅ Workflow control (Scenarios 6.1-6.4) - **DONE** (includes pause/resume!)
 4. ✅ Context tracking (getGateEvaluations, getActionSkips) - **DONE**
 
-### Medium Priority (Observability & Control)
+### Medium Priority (Observability & Control) - ✅ **ALL COMPLETE!**
 1. ✅ Event dispatching (Scenarios 10.1-10.10) - **COMPLETE!** All 10 scenarios fully implemented and tested
 2. ✅ Step-by-step execution (Scenarios 7.1-7.4) - **DONE**
-3. Error handling (Scenarios 12.1-12.3)
+3. ✅ Error handling (Scenarios 12.1-12.3) - **DONE** (configuration validation, exception propagation, gate result validation)
 4. ✅ Action gates (Scenarios 4.1-4.3) - **DONE**
 
 ### Lower Priority (Advanced Features)

@@ -83,3 +83,17 @@ This checklist is generated from the documentation to track the creation of all 
   - ❌ `isLocked(): bool`
   - ❌ `toArray(): array`
   - ❌ `fromArray(array $data): self`
+
+## `src/Exceptions`
+- ✅ `src/Exceptions/TransitionException.php` (base exception)
+- ✅ `src/Exceptions/InvalidConfigurationException.php` (for invalid gates/actions)
+- ✅ `src/Exceptions/InvalidGateResultException.php` (for invalid gate results)
+- ✅ `src/Exceptions/LockAcquisitionException.php` (future feature)
+- ✅ `src/Exceptions/LockExpiredException.php` (future feature)
+- ✅ `src/Exceptions/LockLostException.php` (future feature)
+
+### Error Handling Implementation
+- ✅ Configuration validation (gates and actions must implement correct interfaces)
+- ✅ Exception propagation from actions (with and without EventDispatcher)
+- ✅ Gate result validation (ensures GateResult enum is returned)
+- ✅ TransitionFailed event dispatching on exceptions
