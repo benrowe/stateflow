@@ -169,7 +169,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Test:** `testActionReturnsStopHaltsExecution()`
 
 ### Scenario 3.5: Action updates state progressively
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** 3 actions where each returns a new state
 **When** the workflow executes
@@ -177,6 +177,8 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** action 2 should execute with state from action 1
 **And** action 3 should execute with state from action 2
 **And** getCurrentState() should return the final state
+
+**Test:** `testActionsUpdateStateProgressively()`
 
 ### Scenario 3.6: Action throws exception
 **Status:** ❌ Not Implemented
@@ -743,9 +745,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~17
+- **Implemented:** ~18
 - **Partially Implemented:** ~3
-- **Not Implemented:** ~59
+- **Not Implemented:** ~58
 - **Future Features:** ~6
 
 ### Recent Progress
@@ -755,6 +757,8 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Verified short-circuit evaluation for gate denials
 - ✅ Implemented action execution control (PAUSE and STOP - scenarios 3.3, 3.4)
 - ✅ Added workflow status tracking (isPaused, isCompleted, isStopped)
+- ✅ Implemented delta storage and passing to gates/actions
+- ✅ Implemented progressive state updates (Scenario 3.5) - actions receive state from previous action
 
 ## Priority Recommendations
 
