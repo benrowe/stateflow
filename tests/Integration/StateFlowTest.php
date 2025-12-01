@@ -29,6 +29,10 @@ class StateFlowTest extends TestCase
         $this->logger = new ExecutionLogger();
     }
 
+    /**
+     * Scenario 1.2: Execute transition with single action
+     * Tests basic workflow execution with one action
+     */
     public function testCanExecuteSimpleConfiguration(): void
     {
         $stateFlow = new StateFlow(function (State $state, array $delta): Configuration {
@@ -50,6 +54,10 @@ class StateFlowTest extends TestCase
         $this->assertSame(ExecutionState::CONTINUE, $action->executionState);
     }
 
+    /**
+     * Scenario 1.3: Execute transition with multiple actions
+     * Tests workflow with multiple gates and actions executing in order
+     */
     public function testCanExecuteWorkflowWithMultipleGatesAndActions(): void
     {
         // Create test state
@@ -129,6 +137,10 @@ class StateFlowTest extends TestCase
         $this->assertLessThan($actionIndex3, $actionIndex2);
     }
 
+    /**
+     * Scenario 3.1: Action returns new state
+     * Tests that an action can return a new state and it's accessible via result.newState
+     */
     public function testCanExecuteWorkflowWithActionReturningNewState(): void
     {
         $initialState = $this->createTestState(['status' => 'draft', 'version' => 1]);
@@ -419,6 +431,11 @@ class StateFlowTest extends TestCase
         $this->assertNotContains('Action:Action2', $this->logger->log);
     }
 
+    /**
+     * General test: Gate denial prevents action execution
+     * Verifies that when any gate denies, all actions are skipped
+     * Related to Scenarios 2.2, 2.3 (gate denial with short-circuit)
+     */
     public function testGateDenialPreventsActionsFromExecuting(): void
     {
         $initialState = $this->createTestState(['status' => 'draft', 'user_id' => 456]);
@@ -461,7 +478,8 @@ class StateFlowTest extends TestCase
     }
 
     /**
-     * Test that gates can access the delta
+     * Delta Access: Gates can access the desired delta
+     * Verifies that gates receive the delta via GateContext::$desiredDelta
      */
     public function testGateCanAccessDelta(): void
     {
@@ -506,7 +524,9 @@ class StateFlowTest extends TestCase
     }
 
     /**
-     * Test that actions can access the delta
+     * Delta Access: Actions can access the desired delta
+     * Verifies that actions receive the delta via ActionContext::$desiredDelta
+     * Enables actions to call $state->with($context->desiredDelta) for merging changes
      */
     public function testActionCanAccessDelta(): void
     {
