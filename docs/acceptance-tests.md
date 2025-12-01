@@ -740,7 +740,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## 13. Complex Workflows
 
 ### Scenario 13.1: Conditional branching based on state
-**Status:** 🔄 Partially Implemented
+**Status:** ✅ Implemented
 
 **Given** a ConfigurationProvider that returns different actions based on state
 **And** state "draft" triggers approval workflow
@@ -748,8 +748,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **When** I transition from "draft" to "published"
 **Then** the approval workflow actions should execute
 
+**Test:** `testConditionalBranchingBasedOnState()`
+
 ### Scenario 13.2: Multi-step approval workflow
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a 3-step approval workflow
 **And** step 1: check permissions (gate)
@@ -759,6 +761,8 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** the workflow should pause at step 3
 **And** I can resume later with approval data
 **And** step 4 (send notification) should execute on resume
+
+**Test:** `testMultiStepApprovalWorkflow()`
 
 ### Scenario 13.3: Rollback on failure
 **Status:** ❌ Not Implemented
@@ -771,7 +775,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 *Note: This may require a compensation/saga pattern*
 
 ### Scenario 13.4: Idempotent transitions
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a gate that checks if transition already occurred
 **And** the transition was already completed
@@ -779,6 +783,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** the gate should return SKIP_IDEMPOTENT
 **And** no actions should execute
 **And** the workflow should complete successfully
+
+**Test:** `testIdempotentTransitions()`
+**Location:** StateWorker.php:84-87 (SKIP_IDEMPOTENT completion logic)
 
 ### Scenario 13.5: Parallel action execution
 **Status:** 🔮 Future Feature
@@ -822,9 +829,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~47 (core functionality complete!)
+- **Implemented:** ~50 (core functionality complete!)
 - **Partially Implemented:** 0
-- **Not Implemented:** ~32
+- **Not Implemented:** ~29
 - **Future Features:** ~6
 
 ### Recent Progress
@@ -843,6 +850,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Completed Scenario 6.4: Resume paused workflow - StateFlow::fromContext() with pause/resume support
 - ✅ **Completed ALL Event Dispatching scenarios (10.1-10.10)** - Full observability across entire workflow lifecycle!
 - ✅ **Completed ALL Error Handling scenarios (12.1-12.3)** - Configuration validation, exception handling, and gate result validation!
+- ✅ **Completed Complex Workflows (13.1, 13.2, 13.4)** - Conditional branching, multi-step approval with pause/resume, and idempotent transitions!
 
 ## Priority Recommendations
 

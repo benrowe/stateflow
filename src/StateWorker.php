@@ -80,6 +80,12 @@ class StateWorker
         if ($gateResult->shouldSkipAction()) {
             $this->skipAllActions($gateResult);
 
+            // SKIP_IDEMPOTENT should complete successfully (idempotent transitions are considered complete)
+            if ($gateResult === GateResult::SKIP_IDEMPOTENT) {
+                $this->context->markAsCompleted();
+                $this->eventDispatcher->dispatch(new TransitionCompleted($this->context->getCurrentState(), $this->context));
+            }
+
             return $this->context;
         }
 
