@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow;
 
 use BenRowe\StateFlow\Action\ActionContext;
+use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -30,6 +31,11 @@ class StateWorker
 
         // Only run actions if all gates allowed
         $this->executeActions();
+
+        // Mark as completed if we got through all actions
+        if (!$this->context->isPaused() && !$this->context->isStopped()) {
+            $this->context->markAsCompleted();
+        }
 
         return $this->context;
     }
@@ -60,7 +66,19 @@ class StateWorker
     {
         foreach ($this->configuration->getActions() as $action) {
             $context = new ActionContext($this->context->getCurrentState(), [], $this->context);
-            $this->context->addActionResult($action->execute($context));
+            $result = $action->execute($context);
+            $this->context->addActionResult($result);
+
+            // Stop execution if action paused or stopped
+            if ($result->executionState === ExecutionState::PAUSE) {
+                $this->context->markAsPaused();
+                break;
+            }
+
+            if ($result->executionState === ExecutionState::STOP) {
+                $this->context->markAsStopped();
+                break;
+            }
         }
     }
 

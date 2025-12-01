@@ -6,6 +6,7 @@ namespace BenRowe\StateFlow;
 
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 
@@ -25,6 +26,8 @@ class TransitionContext
      * @var ActionSkip[]
      */
     private array $actionSkips = [];
+
+    private ?ExecutionState $status = null;
 
     public function __construct(private State $initialState)
     {
@@ -72,5 +75,35 @@ class TransitionContext
     public function addActionSkip(Action $action, GateResult $gateResult): void
     {
         $this->actionSkips[] = new ActionSkip($action, $gateResult);
+    }
+
+    public function markAsCompleted(): void
+    {
+        $this->status = ExecutionState::CONTINUE;
+    }
+
+    public function markAsPaused(): void
+    {
+        $this->status = ExecutionState::PAUSE;
+    }
+
+    public function markAsStopped(): void
+    {
+        $this->status = ExecutionState::STOP;
+    }
+
+    public function isPaused(): bool
+    {
+        return $this->status === ExecutionState::PAUSE;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === ExecutionState::CONTINUE;
+    }
+
+    public function isStopped(): bool
+    {
+        return $this->status === ExecutionState::STOP;
     }
 }
