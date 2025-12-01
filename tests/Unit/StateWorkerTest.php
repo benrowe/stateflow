@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Tests\Unit;
 
 use BenRowe\StateFlow\Action\Action;
+use BenRowe\StateFlow\Action\ActionContext;
+use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\TransitionCompleted;
@@ -215,9 +217,9 @@ class StateWorkerTest extends TestCase
             {
             }
 
-            public function execute(\BenRowe\StateFlow\Action\ActionContext $context): \BenRowe\StateFlow\Action\ActionResult
+            public function execute(ActionContext $context): ActionResult
             {
-                return \BenRowe\StateFlow\Action\ActionResult::continue();
+                return ActionResult::continue();
             }
         };
     }

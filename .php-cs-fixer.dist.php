@@ -35,6 +35,9 @@ return $config
         'declare_parentheses' => true,
         'declare_strict_types' => true,
         'function_typehint_space' => true,
+        'fully_qualified_strict_types' => [
+            'import_symbols' => true,
+        ],
         'method_argument_space' => true,
         'method_chaining_indentation' => true,
         'no_alias_functions' => true,
@@ -89,6 +92,7 @@ return $config
         'phpdoc_var_without_name' => true,
         'return_assignment' => true,
         'simplified_if_return' => true,
+        'single_line_after_imports' => true,
         'single_quote' => true,
         'space_after_semicolon' => true,
         'strict_param' => true,
