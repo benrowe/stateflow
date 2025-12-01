@@ -353,7 +353,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## 7. Step-by-Step Execution
 
 ### Scenario 7.1: Run gates only
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a StateFlow with gates and actions
 **When** I call worker.runGates()
@@ -361,8 +361,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** no actions should execute
 **And** the method should return the final GateResult
 
+**Test:** `testRunGatesOnly()`, `testRunGatesOnlyWithDenial()`
+
 ### Scenario 7.2: Run gates then actions separately
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a StateWorker
 **When** I call worker.runGates()
@@ -371,8 +373,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** all actions should execute
 **And** getActionExecutions() should contain all results
 
+**Test:** `testRunGatesThenActionsSeparately()`
+
 ### Scenario 7.3: Run next action incrementally
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a workflow with 3 actions
 **When** I call worker.runNextAction() three times
@@ -381,8 +385,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** action 3 should execute on third call
 **And** each call should return updated context
 
+**Test:** `testRunNextActionIncrementally()`, `testRunNextActionWithActionGates()`
+
 ### Scenario 7.4: Execute is shorthand for gates + actions
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a StateWorker
 **When** I call worker.execute()
@@ -390,6 +396,8 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
   1. worker.runGates()
   2. worker.runActions() (if gates allow)
 **And** the context should be fully populated
+
+**Test:** `testExecuteIsShorthandForGatesAndActions()`, `testExecuteStopsAtGateDenial()`
 
 ---
 
@@ -770,9 +778,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~28
+- **Implemented:** ~32
 - **Partially Implemented:** 0
-- **Not Implemented:** ~51
+- **Not Implemented:** ~47
 - **Future Features:** ~6
 
 ### Recent Progress
@@ -787,20 +795,21 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Completed all Action Gates scenarios (4.1-4.3) - Guardable interface with per-action gates
 - ✅ Completed all Configuration scenarios (5.1-5.4) - Dynamic configuration based on state and delta
 - ✅ Completed State Management scenarios (8.1-8.2) - getCurrentState() and state progression tracking
+- ✅ Completed all Step-by-Step Execution scenarios (7.1-7.4) - runGates(), runActions(), runNextAction(), getContext()
 
 ## Priority Recommendations
 
 ### High Priority (Core Functionality)
-1. Gate evaluation (Scenarios 2.1-2.5)
-2. Action execution control (Scenarios 3.3-3.5)
-3. Workflow control (Scenarios 6.1-6.4)
-4. Context tracking (getGateEvaluations, getActionSkips)
+1. ✅ Gate evaluation (Scenarios 2.1-2.5) - **DONE**
+2. ✅ Action execution control (Scenarios 3.3-3.5) - **DONE**
+3. 🔄 Workflow control (Scenarios 6.1-6.4) - **3 of 4 done** (6.4 Resume paused workflow remaining)
+4. ✅ Context tracking (getGateEvaluations, getActionSkips) - **DONE**
 
 ### Medium Priority (Observability & Control)
 1. Event dispatching (Scenarios 10.1-10.10)
-2. Step-by-step execution (Scenarios 7.1-7.4)
+2. ✅ Step-by-step execution (Scenarios 7.1-7.4) - **DONE**
 3. Error handling (Scenarios 12.1-12.3)
-4. Action gates (Scenarios 4.1-4.3)
+4. ✅ Action gates (Scenarios 4.1-4.3) - **DONE**
 
 ### Lower Priority (Advanced Features)
 1. Locking (Scenarios 9.1-9.11)

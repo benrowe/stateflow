@@ -10,12 +10,12 @@ This checklist is generated from the documentation to track the creation of all 
   - ✅ `transition(State $currentState, array $desiredDelta): StateWorker`
   - ❌ `fromContext(TransitionContext $context): StateWorker`
 - ✅ `src/StateWorker.php`
-  - ❌ `runGates(): GateResult`
-  - ❌ `runActions(): TransitionContext`
-  - ❌ `runNextAction(): TransitionContext`
+  - ✅ `runGates(): GateResult`
+  - ✅ `runActions(): TransitionContext`
+  - ✅ `runNextAction(): TransitionContext`
   - ✅ `execute(): TransitionContext`
   - ❌ `releaseLock(): bool`
-  - ❌ `getContext(): TransitionContext`
+  - ✅ `getContext(): TransitionContext`
 - ✅ `src/TransitionContext.php`
   - ✅ `__construct(State $initialState, array $desiredDelta = [])`
   - ✅ `getCurrentState(): State`

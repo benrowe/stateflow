@@ -13,9 +13,41 @@ use BenRowe\StateFlow\Gate\Guardable;
 
 class StateWorker
 {
+    private int $nextActionIndex = 0;
+
     public function __construct(private TransitionContext $context, private Configuration $configuration)
     {
 
+    }
+
+    public function getContext(): TransitionContext
+    {
+        return $this->context;
+    }
+
+    public function runGates(): GateResult
+    {
+        return $this->evaluateGates();
+    }
+
+    public function runActions(): TransitionContext
+    {
+        $this->executeActions();
+
+        // Mark as completed if we got through all actions
+        if (!$this->context->isPaused() && !$this->context->isStopped()) {
+            $this->context->markAsCompleted();
+        }
+
+        return $this->context;
+    }
+
+    public function runNextAction(): TransitionContext
+    {
+        // Execute the next action if there is one
+        $this->executeNextAction();
+
+        return $this->context;
     }
 
     public function execute(): TransitionContext
@@ -65,50 +97,79 @@ class StateWorker
 
     private function executeActions(): void
     {
-        foreach ($this->configuration->getActions() as $action) {
-            // Check if action has a gate (implements Guardable)
-            if ($action instanceof Guardable) {
-                $gate = $action->gate();
-                $gateContext = new GateContext(
-                    $this->context->getCurrentState(),
-                    $this->context->getDesiredDelta()
-                );
-                $gateResult = $gate->evaluate($gateContext);
+        $actions = $this->configuration->getActions();
+        $actionCount = count($actions);
 
-                // Track the gate evaluation with isActionGate=true
-                $this->context->addGateEvaluation($gate, $gateResult, true);
+        // Execute remaining actions using runNextAction logic
+        while ($this->nextActionIndex < $actionCount) {
+            // Execute the next action
+            $this->executeNextAction();
 
-                // Skip action if gate denies or returns SKIP_IDEMPOTENT
-                if ($gateResult->shouldSkipAction()) {
-                    $this->context->addActionSkip($action, $gateResult);
-                    continue;
-                }
+            // Stop if workflow is paused or stopped
+            if ($this->context->isPaused() || $this->context->isStopped()) {
+                break;
             }
+        }
+    }
 
-            // Execute the action
-            $context = new ActionContext(
+    private function executeNextAction(): void
+    {
+        // Don't execute if workflow is stopped (PAUSE can be resumed)
+        if ($this->context->isStopped()) {
+            return;
+        }
+
+        $actions = $this->configuration->getActions();
+
+        // If we've already run all actions, do nothing
+        if ($this->nextActionIndex >= count($actions)) {
+            return;
+        }
+
+        $action = $actions[$this->nextActionIndex];
+        $this->nextActionIndex++;
+
+        // Check if action has a gate (implements Guardable)
+        if ($action instanceof Guardable) {
+            $gate = $action->gate();
+            $gateContext = new GateContext(
                 $this->context->getCurrentState(),
-                $this->context->getDesiredDelta(),
-                $this->context
+                $this->context->getDesiredDelta()
             );
-            $result = $action->execute($context);
-            $this->context->addActionResult($result);
+            $gateResult = $gate->evaluate($gateContext);
 
-            // Update current state if action returned a new state
-            if ($result->newState !== null) {
-                $this->context->updateCurrentState($result->newState);
-            }
+            // Track the gate evaluation with isActionGate=true
+            $this->context->addGateEvaluation($gate, $gateResult, true);
 
-            // Stop execution if action paused or stopped
-            if ($result->executionState === ExecutionState::PAUSE) {
-                $this->context->markAsPaused();
-                break;
-            }
+            // Skip action if gate denies or returns SKIP_IDEMPOTENT
+            if ($gateResult->shouldSkipAction()) {
+                $this->context->addActionSkip($action, $gateResult);
 
-            if ($result->executionState === ExecutionState::STOP) {
-                $this->context->markAsStopped();
-                break;
+                return;
             }
+        }
+
+        // Execute the action
+        $context = new ActionContext(
+            $this->context->getCurrentState(),
+            $this->context->getDesiredDelta(),
+            $this->context
+        );
+        $result = $action->execute($context);
+        $this->context->addActionResult($result);
+
+        // Update current state if action returned a new state
+        if ($result->newState !== null) {
+            $this->context->updateCurrentState($result->newState);
+        }
+
+        // Update status if action paused or stopped
+        if ($result->executionState === ExecutionState::PAUSE) {
+            $this->context->markAsPaused();
+        }
+
+        if ($result->executionState === ExecutionState::STOP) {
+            $this->context->markAsStopped();
         }
     }
 
