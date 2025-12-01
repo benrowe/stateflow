@@ -148,11 +148,15 @@ class StateFlowTest extends TestCase
         $this->assertContains('Action:PublishAction', $this->logger->log);
     }
 
-    public function testCanExecuteWorkflowWithActionsPausingExecution(): void
+    /**
+     * Scenario 3.3: Action returns PAUSE
+     * Tests that workflow pauses and subsequent actions don't execute
+     */
+    public function testActionReturnsPauseStopsExecution(): void
     {
         $initialState = $this->createTestState(['status' => 'pending']);
 
-        // First action continues, second action pauses
+        // First action continues, second action pauses, third should NOT execute
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestActionWithResult('Action2', ActionResult::pause(null, ['reason' => 'awaiting approval']));
         $action3 = $this->createTestAction('Action3');
@@ -163,14 +167,23 @@ class StateFlowTest extends TestCase
             ->transition($initialState, ['status' => 'approved'])
             ->execute();
 
-        // All actions should execute (pausing doesn't stop execution in this implementation)
-        $this->assertCount(3, $context->getActionExecutions());
+        // Only actions 1 and 2 should execute, action 3 should NOT
+        $this->assertCount(2, $context->getActionExecutions(), 'Only 2 actions should execute (action 3 skipped due to pause)');
         $this->assertSame(ExecutionState::CONTINUE, $context->getActionExecutions()[0]->executionState);
         $this->assertSame(ExecutionState::PAUSE, $context->getActionExecutions()[1]->executionState);
-        $this->assertSame(ExecutionState::CONTINUE, $context->getActionExecutions()[2]->executionState);
 
-        // Verify metadata on paused action
+        // Verify the context is marked as paused
+        $this->assertTrue($context->isPaused(), 'Context should be marked as paused');
+        $this->assertFalse($context->isCompleted(), 'Context should not be completed');
+        $this->assertFalse($context->isStopped(), 'Context should not be stopped');
+
+        // Verify pause metadata is stored
         $this->assertSame(['reason' => 'awaiting approval'], $context->getActionExecutions()[1]->metadata);
+
+        // Verify execution log shows action 3 did NOT execute
+        $this->assertContains('Action:Action1', $this->logger->log);
+        $this->assertContains('Action:Action2', $this->logger->log);
+        $this->assertNotContains('Action:Action3', $this->logger->log, 'Action3 should not execute after pause');
     }
 
     /**
