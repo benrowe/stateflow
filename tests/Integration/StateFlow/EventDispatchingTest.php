@@ -8,12 +8,14 @@ use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\TransitionCompleted;
+use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStarting;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use BenRowe\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 class EventDispatchingTest extends TestCase
@@ -95,11 +97,13 @@ class EventDispatchingTest extends TestCase
         $initialState = $this->createTestState(['status' => 'draft']);
         $delta = ['status' => 'paused'];
 
-        // Expect ONLY the starting event. If completed event fires, it will fail.
         $mockDispatcher
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('dispatch')
-            ->with($this->isInstanceOf(TransitionStarting::class));
+            ->willReturnOnConsecutiveCalls(
+                $this->isInstanceOf(TransitionStarting::class),
+                $this->isInstanceOf(TransitionPaused::class)
+            );
 
         $action = $this->createTestActionWithResult('PauseAction', ActionResult::pause());
         $config = new Configuration([], [$action]);
@@ -129,6 +133,36 @@ class EventDispatchingTest extends TestCase
 
         $this->assertTrue($stoppedContext->isStopped());
         $this->assertFalse($stoppedContext->isCompleted());
+    }
+
+    public function testDispatchesTransitionPausedEvent(): void
+    {
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $initialState = $this->createTestState(['status' => 'draft']);
+        $delta = ['status' => 'review'];
+        $metadata = ['reason' => 'waiting for dependency'];
+
+        $mockDispatcher
+            ->expects($this->exactly(2))
+            ->method('dispatch')
+            ->willReturnOnConsecutiveCalls(
+                $this->isInstanceOf(TransitionStarting::class),
+                $this->callback(function (TransitionPaused $event) use ($initialState, $metadata) {
+                    $this->assertInstanceOf(TransitionPaused::class, $event);
+                    $this->assertSame($initialState, $event->currentState);
+                    $this->assertInstanceOf(TransitionContext::class, $event->context);
+                    $this->assertSame($metadata, $event->metadata);
+
+                    return true;
+                })
+            );
+
+        $action = $this->createTestActionWithResult('PauseAction', ActionResult::pause(null, $metadata));
+        $config = new Configuration([], [$action]);
+        $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
+        $pausedContext = $stateFlow->transition($initialState, $delta)->execute();
+
+        $this->assertTrue($pausedContext->isPaused());
     }
 
     protected function getLogger(): ExecutionLogger

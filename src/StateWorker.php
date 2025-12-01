@@ -9,6 +9,7 @@ use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\TransitionCompleted;
+use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
@@ -19,8 +20,10 @@ class StateWorker
 
     private readonly Configuration $configuration;
 
-    public function __construct(private TransitionContext $context, private readonly EventDispatcher $eventDispatcher)
-    {
+    public function __construct(
+        private readonly TransitionContext $context,
+        private readonly EventDispatcher $eventDispatcher
+    ) {
         $this->configuration = $this->context->getConfiguration();
     }
 
@@ -176,6 +179,7 @@ class StateWorker
         // Update status if action paused or stopped
         if ($result->executionState === ExecutionState::PAUSE) {
             $this->context->markAsPaused();
+            $this->eventDispatcher->dispatch(new TransitionPaused($this->context->getCurrentState(), $this->context, $result->metadata));
         }
 
         if ($result->executionState === ExecutionState::STOP) {
