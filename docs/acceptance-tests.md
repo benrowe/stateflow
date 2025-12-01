@@ -550,23 +550,29 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## 10. Events & Observability
 
 ### Scenario 10.1: Dispatch TransitionStarting event
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** an EventDispatcher configured
 **When** a transition begins
 **Then** a TransitionStarting event should be dispatched
 **And** it should contain the current state and desired delta
 
+**Test:** `testDispatchesTransitionStartingEvent()`
+**Location:** StateFlow.php:34
+
 ### Scenario 10.2: Dispatch TransitionCompleted event
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** an EventDispatcher configured
 **When** a transition completes successfully
 **Then** a TransitionCompleted event should be dispatched
 **And** it should contain the final state and context
 
+**Test:** `testDispatchesTransitionCompletedEvent()`, `testTransitionCompletedEventDoesNotFireOnPause()`, `testTransitionCompletedEventDoesNotFireOnStop()`
+**Location:** StateWorker.php:83
+
 ### Scenario 10.3: Dispatch TransitionPaused event
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** an EventDispatcher configured
 **And** an action returns PAUSE
@@ -574,8 +580,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** a TransitionPaused event should be dispatched
 **And** it should contain the current state, context, and metadata
 
+**Test:** `testDispatchesTransitionPausedEvent()`
+**Location:** StateWorker.php:182
+
 ### Scenario 10.4: Dispatch TransitionStopped event
-**Status:** ❌ Not Implemented
+**Status:** 🔄 Partially Implemented
 
 **Given** an EventDispatcher configured
 **And** an action returns STOP
@@ -583,8 +592,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** a TransitionStopped event should be dispatched
 **And** it should contain the current state, context, and metadata
 
+**Note:** Event class exists but is NOT dispatched in StateWorker.php:185-187
+
 ### Scenario 10.5: Dispatch TransitionFailed event
-**Status:** ❌ Not Implemented
+**Status:** 🔄 Partially Implemented
 
 **Given** an EventDispatcher configured
 **And** an action throws an exception
@@ -592,46 +603,58 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** a TransitionFailed event should be dispatched
 **And** it should contain the exception and context
 
+**Note:** Event class exists but no exception handling/dispatching implemented yet
+
 ### Scenario 10.6: Dispatch GateEvaluating event
-**Status:** ❌ Not Implemented
+**Status:** 🔄 Partially Implemented
 
 **Given** an EventDispatcher configured
 **When** a gate is about to be evaluated
 **Then** a GateEvaluating event should be dispatched
 **And** it should indicate if it's a transition gate or action gate
 
+**Note:** Event class exists but is NOT dispatched in StateWorker.php:89-109, 145-163
+
 ### Scenario 10.7: Dispatch GateEvaluated event
-**Status:** ❌ Not Implemented
+**Status:** 🔄 Partially Implemented
 
 **Given** an EventDispatcher configured
 **When** a gate completes evaluation
 **Then** a GateEvaluated event should be dispatched
 **And** it should contain the GateResult
 
+**Note:** Event class exists but is NOT dispatched in StateWorker.php:89-109, 145-163
+
 ### Scenario 10.8: Dispatch ActionExecuting event
-**Status:** ❌ Not Implemented
+**Status:** 🔄 Partially Implemented
 
 **Given** an EventDispatcher configured
 **When** an action is about to execute
 **Then** an ActionExecuting event should be dispatched
 **And** it should contain the action and context
 
+**Note:** Event class exists but is NOT dispatched in StateWorker.php:166-177
+
 ### Scenario 10.9: Dispatch ActionExecuted event
-**Status:** ❌ Not Implemented
+**Status:** 🔄 Partially Implemented
 
 **Given** an EventDispatcher configured
 **When** an action completes
 **Then** an ActionExecuted event should be dispatched
 **And** it should contain the ActionResult
 
+**Note:** Event class exists but is NOT dispatched in StateWorker.php:166-177
+
 ### Scenario 10.10: Dispatch ActionSkipped event
-**Status:** ❌ Not Implemented
+**Status:** 🔄 Partially Implemented
 
 **Given** an EventDispatcher configured
 **And** a gate denies an action
 **When** the action is skipped
 **Then** an ActionSkipped event should be dispatched
 **And** it should contain the GateResult reason
+
+**Note:** Event class exists but is NOT dispatched in StateWorker.php:159, 190-195
 
 ---
 
@@ -780,9 +803,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~33
-- **Partially Implemented:** 0
-- **Not Implemented:** ~46
+- **Implemented:** ~36 (3 event scenarios added)
+- **Partially Implemented:** ~7 (event classes exist, dispatching not implemented)
+- **Not Implemented:** ~36
 - **Future Features:** ~6
 
 ### Recent Progress
@@ -799,6 +822,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Completed State Management scenarios (8.1-8.2) - getCurrentState() and state progression tracking
 - ✅ Completed all Step-by-Step Execution scenarios (7.1-7.4) - runGates(), runActions(), runNextAction(), getContext()
 - ✅ Completed Scenario 6.4: Resume paused workflow - StateFlow::fromContext() with pause/resume support
+- 🔄 Partially completed Event Dispatching (Scenarios 10.1-10.3) - TransitionStarting, TransitionCompleted, TransitionPaused
 
 ## Priority Recommendations
 
@@ -809,7 +833,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 4. ✅ Context tracking (getGateEvaluations, getActionSkips) - **DONE**
 
 ### Medium Priority (Observability & Control)
-1. Event dispatching (Scenarios 10.1-10.10)
+1. 🔄 Event dispatching (Scenarios 10.1-10.10) - **PARTIALLY DONE** (3/10 scenarios complete, 7 event classes defined)
 2. ✅ Step-by-step execution (Scenarios 7.1-7.4) - **DONE**
 3. Error handling (Scenarios 12.1-12.3)
 4. ✅ Action gates (Scenarios 4.1-4.3) - **DONE**
