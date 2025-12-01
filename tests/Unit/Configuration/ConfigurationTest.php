@@ -6,8 +6,10 @@ namespace BenRowe\StateFlow\Tests\Unit\Configuration;
 
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Exceptions\InvalidConfigurationException;
 use BenRowe\StateFlow\Gate\Gate;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class ConfigurationTest extends TestCase
 {
@@ -54,5 +56,21 @@ class ConfigurationTest extends TestCase
 
         $this->assertSame($gates, $config->getTransitionGates());
         $this->assertSame($actions, $config->getActions());
+    }
+
+    public function testGateConfigIsValidated(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(sprintf('Gate at index 0 must implement %s, %s given', Gate::class, stdClass::class));
+
+        new Configuration([new stdClass()], []);
+    }
+
+    public function testActionsConfigIsValidated(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(sprintf('Action at index %d must implement %s, %s given', 0, Action::class, stdClass::class));
+
+        new Configuration([], [new stdClass()]);
     }
 }
