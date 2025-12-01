@@ -197,7 +197,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## 4. Action Gates (Guardable Interface)
 
 ### Scenario 4.1: Action with gate that allows
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** an action that implements Guardable
 **And** its gate() returns a gate that evaluates to ALLOW
@@ -207,8 +207,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** the action should execute
 **And** getGateEvaluations() should include this gate with isActionGate=true
 
+**Test:** `testActionWithGateThatAllows()`
+
 ### Scenario 4.2: Action with gate that denies
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** an action that implements Guardable
 **And** its gate() returns a gate that evaluates to DENY
@@ -219,8 +221,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** getActionSkips() should contain this action
 **And** an ActionSkipped event should be dispatched
 
+**Test:** `testActionWithGateThatDenies()`
+**Note:** Event dispatching not yet implemented
+
 ### Scenario 4.3: Multiple actions with individual gates
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** 3 actions where each implements Guardable
 **And** action 1's gate returns ALLOW
@@ -233,6 +238,8 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** action 2 should NOT execute
 **And** action 3's gate should evaluate to ALLOW
 **And** action 3 should execute
+
+**Test:** `testMultipleActionsWithIndividualGates()`
 
 ---
 
@@ -745,9 +752,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~18
+- **Implemented:** ~21
 - **Partially Implemented:** ~3
-- **Not Implemented:** ~58
+- **Not Implemented:** ~55
 - **Future Features:** ~6
 
 ### Recent Progress
@@ -759,6 +766,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Added workflow status tracking (isPaused, isCompleted, isStopped)
 - ✅ Implemented delta storage and passing to gates/actions
 - ✅ Implemented progressive state updates (Scenario 3.5) - actions receive state from previous action
+- ✅ Completed all Action Gates scenarios (4.1-4.3) - Guardable interface with per-action gates
 
 ## Priority Recommendations
 

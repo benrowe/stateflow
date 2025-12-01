@@ -9,6 +9,7 @@ use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
+use BenRowe\StateFlow\Gate\Guardable;
 
 class StateWorker
 {
@@ -65,6 +66,26 @@ class StateWorker
     private function executeActions(): void
     {
         foreach ($this->configuration->getActions() as $action) {
+            // Check if action has a gate (implements Guardable)
+            if ($action instanceof Guardable) {
+                $gate = $action->gate();
+                $gateContext = new GateContext(
+                    $this->context->getCurrentState(),
+                    $this->context->getDesiredDelta()
+                );
+                $gateResult = $gate->evaluate($gateContext);
+
+                // Track the gate evaluation with isActionGate=true
+                $this->context->addGateEvaluation($gate, $gateResult, true);
+
+                // Skip action if gate denies or returns SKIP_IDEMPOTENT
+                if ($gateResult->shouldSkipAction()) {
+                    $this->context->addActionSkip($action, $gateResult);
+                    continue;
+                }
+            }
+
+            // Execute the action
             $context = new ActionContext(
                 $this->context->getCurrentState(),
                 $this->context->getDesiredDelta(),
