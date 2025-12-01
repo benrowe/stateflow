@@ -8,7 +8,7 @@ This checklist is generated from the documentation to track the creation of all 
 - ✅ `src/StateFlow.php`
   - ✅ `__construct(...)`
   - ✅ `transition(State $currentState, array $desiredDelta): StateWorker`
-  - ❌ `fromContext(TransitionContext $context): StateWorker`
+  - ✅ `fromContext(TransitionContext $context): StateWorker`
 - ✅ `src/StateWorker.php`
   - ✅ `runGates(): GateResult`
   - ✅ `runActions(): TransitionContext`
@@ -16,6 +16,7 @@ This checklist is generated from the documentation to track the creation of all 
   - ✅ `execute(): TransitionContext`
   - ❌ `releaseLock(): bool`
   - ✅ `getContext(): TransitionContext`
+  - ✅ `setNextActionIndex(int $index): void`
 - ✅ `src/TransitionContext.php`
   - ✅ `__construct(State $initialState, array $desiredDelta = [])`
   - ✅ `getCurrentState(): State`
@@ -27,6 +28,7 @@ This checklist is generated from the documentation to track the creation of all 
   - ✅ `getGateEvaluations(): array`
   - ✅ `getActionExecutions(): array`
   - ✅ `getActionSkips(): array`
+  - ✅ `clearPauseStatus(): void`
   - ❌ `getLockState(): LockState`
   - ❌ `getStatusMetadata(): mixed`
   - ❌ `serialize(): string`

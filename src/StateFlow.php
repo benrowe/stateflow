@@ -23,9 +23,28 @@ class StateFlow
      */
     public function transition(State $currentState, array $delta): StateWorker
     {
-        $context = new TransitionContext($currentState, $delta);
+        $configuration = $this->resolveConfig($currentState, $delta);
+        $context = new TransitionContext($currentState, $delta, $configuration);
 
-        return new StateWorker($context, $this->resolveConfig($currentState, $delta));
+        return new StateWorker($context);
+    }
+
+    /**
+     * Resume a paused workflow from an existing context
+     */
+    public function fromContext(TransitionContext $context): StateWorker
+    {
+        // Clear pause status to allow resumption (STOP cannot be resumed)
+        $context->clearPauseStatus();
+
+        // Create worker with existing context and set starting action index
+        $worker = new StateWorker($context);
+
+        // Resume from where we left off - count already executed actions
+        $executedActionCount = count($context->getActionExecutions());
+        $worker->setNextActionIndex($executedActionCount);
+
+        return $worker;
     }
 
     /**

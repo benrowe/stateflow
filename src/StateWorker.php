@@ -15,14 +15,21 @@ class StateWorker
 {
     private int $nextActionIndex = 0;
 
-    public function __construct(private TransitionContext $context, private Configuration $configuration)
-    {
+    private readonly Configuration $configuration;
 
+    public function __construct(private TransitionContext $context)
+    {
+        $this->configuration = $this->context->getConfiguration();
     }
 
     public function getContext(): TransitionContext
     {
         return $this->context;
+    }
+
+    public function setNextActionIndex(int $index): void
+    {
+        $this->nextActionIndex = $index;
     }
 
     public function runGates(): GateResult

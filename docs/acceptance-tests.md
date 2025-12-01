@@ -328,7 +328,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Note:** getStatusMetadata() not yet implemented - metadata accessed via action result
 
 ### Scenario 6.4: Resume paused workflow
-**Status:** ❌ Not Implemented
+**Status:** ✅ Implemented
 
 **Given** a previously paused TransitionContext
 **And** actions 1 and 2 have already executed
@@ -338,6 +338,8 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** actions 1 and 2 should NOT execute again
 **And** action 3 should execute
 **And** the workflow should complete
+
+**Test:** `testResumePausedWorkflow()`, `testResumePausedWorkflowWithStateChanges()`, `testResumeCompletedWorkflowDoesNothing()`, `testResumeStoppedWorkflowDoesNothing()`
 
 ### Scenario 6.5: Get desired delta from context
 **Status:** ✅ Implemented
@@ -778,9 +780,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~32
+- **Implemented:** ~33
 - **Partially Implemented:** 0
-- **Not Implemented:** ~47
+- **Not Implemented:** ~46
 - **Future Features:** ~6
 
 ### Recent Progress
@@ -796,13 +798,14 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ Completed all Configuration scenarios (5.1-5.4) - Dynamic configuration based on state and delta
 - ✅ Completed State Management scenarios (8.1-8.2) - getCurrentState() and state progression tracking
 - ✅ Completed all Step-by-Step Execution scenarios (7.1-7.4) - runGates(), runActions(), runNextAction(), getContext()
+- ✅ Completed Scenario 6.4: Resume paused workflow - StateFlow::fromContext() with pause/resume support
 
 ## Priority Recommendations
 
-### High Priority (Core Functionality)
+### High Priority (Core Functionality) - ✅ **ALL COMPLETE!**
 1. ✅ Gate evaluation (Scenarios 2.1-2.5) - **DONE**
 2. ✅ Action execution control (Scenarios 3.3-3.5) - **DONE**
-3. 🔄 Workflow control (Scenarios 6.1-6.4) - **3 of 4 done** (6.4 Resume paused workflow remaining)
+3. ✅ Workflow control (Scenarios 6.1-6.4) - **DONE** (includes pause/resume!)
 4. ✅ Context tracking (getGateEvaluations, getActionSkips) - **DONE**
 
 ### Medium Priority (Observability & Control)
