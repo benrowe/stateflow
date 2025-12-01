@@ -546,6 +546,157 @@ class StateFlowTest extends TestCase
     }
 
     /**
+     * Scenario 3.5: Action updates state progressively
+     * Tests that each action receives the state from the previous action,
+     * and demonstrates using state.with(delta) to merge changes
+     */
+    public function testActionsUpdateStateProgressively(): void
+    {
+        $initialState = $this->createTestState(['status' => 'draft', 'version' => 1, 'approved' => false]);
+        $delta = ['status' => 'published', 'approved' => true];
+
+        $stateCaptures = [];
+
+        // Action 1: Uses state.with(delta) to merge changes
+        $action1 = new class ($stateCaptures, $this->logger) implements Action {
+            /** @var array<string, mixed> */
+            private array $stateCaptures;
+
+            /**
+             * @param array<string, mixed> $stateCaptures
+             */
+            public function __construct(
+                array &$stateCaptures,
+                private ExecutionLogger $logger
+            ) {
+                $this->stateCaptures = &$stateCaptures;
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->logger->log[] = 'Action:MergeChanges';
+                $this->stateCaptures['action1_received'] = $context->currentState->toArray();
+
+                // Use state.with(delta) to merge the delta into current state
+                $newState = $context->currentState->with($context->desiredDelta);
+                $this->stateCaptures['action1_returned'] = $newState->toArray();
+
+                return ActionResult::continue($newState);
+            }
+        };
+
+        // Action 2: Increments version (should receive state from action 1)
+        $action2 = new class ($stateCaptures, $this->logger) implements Action {
+            /** @var array<string, mixed> */
+            private array $stateCaptures;
+
+            /**
+             * @param array<string, mixed> $stateCaptures
+             */
+            public function __construct(
+                array &$stateCaptures,
+                private ExecutionLogger $logger
+            ) {
+                $this->stateCaptures = &$stateCaptures;
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->logger->log[] = 'Action:IncrementVersion';
+                $this->stateCaptures['action2_received'] = $context->currentState->toArray();
+
+                $currentData = $context->currentState->toArray();
+                $newState = $context->currentState->with(['version' => $currentData['version'] + 1]);
+                $this->stateCaptures['action2_returned'] = $newState->toArray();
+
+                return ActionResult::continue($newState);
+            }
+        };
+
+        // Action 3: Adds timestamp (should receive state from action 2)
+        $action3 = new class ($stateCaptures, $this->logger) implements Action {
+            /** @var array<string, mixed> */
+            private array $stateCaptures;
+
+            /**
+             * @param array<string, mixed> $stateCaptures
+             */
+            public function __construct(
+                array &$stateCaptures,
+                private ExecutionLogger $logger
+            ) {
+                $this->stateCaptures = &$stateCaptures;
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->logger->log[] = 'Action:AddTimestamp';
+                $this->stateCaptures['action3_received'] = $context->currentState->toArray();
+
+                $newState = $context->currentState->with(['published_at' => '2024-01-01']);
+                $this->stateCaptures['action3_returned'] = $newState->toArray();
+
+                return ActionResult::continue($newState);
+            }
+        };
+
+        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+
+        $context = $stateFlow
+            ->transition($initialState, $delta)
+            ->execute();
+
+        // Verify action 1 received initial state
+        $this->assertSame(
+            ['status' => 'draft', 'version' => 1, 'approved' => false],
+            $stateCaptures['action1_received'],
+            'Action 1 should receive initial state'
+        );
+
+        // Verify action 1 merged the delta
+        $this->assertSame(
+            ['status' => 'published', 'version' => 1, 'approved' => true],
+            $stateCaptures['action1_returned'],
+            'Action 1 should merge delta into state'
+        );
+
+        // Verify action 2 received state from action 1
+        $this->assertSame(
+            ['status' => 'published', 'version' => 1, 'approved' => true],
+            $stateCaptures['action2_received'],
+            'Action 2 should receive state from Action 1'
+        );
+
+        // Verify action 2 incremented version
+        $this->assertSame(
+            ['status' => 'published', 'version' => 2, 'approved' => true],
+            $stateCaptures['action2_returned'],
+            'Action 2 should increment version'
+        );
+
+        // Verify action 3 received state from action 2
+        $this->assertSame(
+            ['status' => 'published', 'version' => 2, 'approved' => true],
+            $stateCaptures['action3_received'],
+            'Action 3 should receive state from Action 2'
+        );
+
+        // Verify action 3 added timestamp
+        $this->assertSame(
+            ['status' => 'published', 'version' => 2, 'approved' => true, 'published_at' => '2024-01-01'],
+            $stateCaptures['action3_returned'],
+            'Action 3 should add timestamp'
+        );
+
+        // Verify getCurrentState() returns the final state
+        $this->assertSame(
+            ['status' => 'published', 'version' => 2, 'approved' => true, 'published_at' => '2024-01-01'],
+            $context->getCurrentState()->toArray(),
+            'getCurrentState() should return the final state after all actions'
+        );
+    }
+
+    /**
      * @param array<string, mixed> $data
      * @throws Exception
      */

@@ -73,6 +73,11 @@ class StateWorker
             $result = $action->execute($context);
             $this->context->addActionResult($result);
 
+            // Update current state if action returned a new state
+            if ($result->newState !== null) {
+                $this->context->updateCurrentState($result->newState);
+            }
+
             // Stop execution if action paused or stopped
             if ($result->executionState === ExecutionState::PAUSE) {
                 $this->context->markAsPaused();

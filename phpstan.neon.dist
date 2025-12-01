@@ -5,3 +5,7 @@ parameters:
         - tests
     parallel:
         maximumNumberOfProcesses: 4
+    ignoreErrors:
+        # Test fixtures use write-only properties to capture data via reference
+        - message: '#Property class@anonymous.*/tests/.*::\$\w+Capture(s)? is never read, only written\.#'
+          path: tests/
