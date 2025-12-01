@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
+use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 
@@ -34,9 +35,17 @@ class TransitionContext
     /**
      * @param array<string, mixed> $desiredDelta
      */
-    public function __construct(private State $initialState, private array $desiredDelta = [])
-    {
+    public function __construct(
+        private readonly State $initialState,
+        private readonly array $desiredDelta,
+        private readonly Configuration $configuration,
+    ) {
         $this->currentState = $initialState;
+    }
+
+    public function getConfiguration(): Configuration
+    {
+        return $this->configuration;
     }
 
     public function getCurrentState(): State
@@ -114,6 +123,13 @@ class TransitionContext
     public function markAsStopped(): void
     {
         $this->status = ExecutionState::STOP;
+    }
+
+    public function clearPauseStatus(): void
+    {
+        if ($this->status === ExecutionState::PAUSE) {
+            $this->status = null;
+        }
     }
 
     public function isPaused(): bool

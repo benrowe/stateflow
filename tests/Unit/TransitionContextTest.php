@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Unit;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\ActionSkip;
+use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\GateEvaluation;
@@ -18,25 +19,29 @@ class TransitionContextTest extends TestCase
 {
     private State $mockState;
 
+    private Configuration $mockConfiguration;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->mockState = $this->createStub(State::class);
+        $this->mockConfiguration = new Configuration([], []);
     }
 
     public function testConstructWithoutDelta(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $this->assertSame($this->mockState, $context->getCurrentState());
         $this->assertSame($this->mockState, $context->getInitialState());
         $this->assertSame([], $context->getDesiredDelta());
+        $this->assertSame($this->mockConfiguration, $context->getConfiguration());
     }
 
     public function testConstructWithDelta(): void
     {
         $delta = ['status' => 'published', 'priority' => 'high'];
-        $context = new TransitionContext($this->mockState, $delta);
+        $context = new TransitionContext($this->mockState, $delta, $this->mockConfiguration);
 
         $this->assertSame($this->mockState, $context->getCurrentState());
         $this->assertSame($this->mockState, $context->getInitialState());
@@ -45,7 +50,7 @@ class TransitionContextTest extends TestCase
 
     public function testUpdateCurrentState(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
         $newState = $this->createStub(State::class);
 
         $context->updateCurrentState($newState);
@@ -57,21 +62,21 @@ class TransitionContextTest extends TestCase
     public function testGetDesiredDelta(): void
     {
         $delta = ['foo' => 'bar', 'baz' => 123];
-        $context = new TransitionContext($this->mockState, $delta);
+        $context = new TransitionContext($this->mockState, $delta, $this->mockConfiguration);
 
         $this->assertSame($delta, $context->getDesiredDelta());
     }
 
     public function testActionExecutionsEmptyByDefault(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $this->assertSame([], $context->getActionExecutions());
     }
 
     public function testAddActionResult(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
         $result1 = ActionResult::continue();
         $result2 = ActionResult::pause();
 
@@ -86,14 +91,14 @@ class TransitionContextTest extends TestCase
 
     public function testGateEvaluationsEmptyByDefault(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $this->assertSame([], $context->getGateEvaluations());
     }
 
     public function testAddGateEvaluation(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
         $gate1 = $this->createStub(Gate::class);
         $gate2 = $this->createStub(Gate::class);
 
@@ -116,14 +121,14 @@ class TransitionContextTest extends TestCase
 
     public function testActionSkipsEmptyByDefault(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $this->assertSame([], $context->getActionSkips());
     }
 
     public function testAddActionSkip(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
         $action1 = $this->createStub(Action::class);
         $action2 = $this->createStub(Action::class);
 
@@ -144,7 +149,7 @@ class TransitionContextTest extends TestCase
 
     public function testStatusDefaultsToNull(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $this->assertFalse($context->isCompleted());
         $this->assertFalse($context->isPaused());
@@ -153,7 +158,7 @@ class TransitionContextTest extends TestCase
 
     public function testMarkAsCompleted(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $context->markAsCompleted();
 
@@ -164,7 +169,7 @@ class TransitionContextTest extends TestCase
 
     public function testMarkAsPaused(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $context->markAsPaused();
 
@@ -175,7 +180,7 @@ class TransitionContextTest extends TestCase
 
     public function testMarkAsStopped(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         $context->markAsStopped();
 
@@ -186,7 +191,7 @@ class TransitionContextTest extends TestCase
 
     public function testStatusCanBeChangedMultipleTimes(): void
     {
-        $context = new TransitionContext($this->mockState);
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
 
         // Initially null
         $this->assertFalse($context->isCompleted());
@@ -210,7 +215,7 @@ class TransitionContextTest extends TestCase
 
     public function testCompleteWorkflow(): void
     {
-        $context = new TransitionContext($this->mockState, ['status' => 'published']);
+        $context = new TransitionContext($this->mockState, ['status' => 'published'], $this->mockConfiguration);
 
         // Add gate evaluations
         $gate = $this->createStub(Gate::class);
