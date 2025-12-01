@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     zip \
+    vim \
     && rm -rf /var/lib/apt/lists/* \
     && pecl install pcov \
     && docker-php-ext-enable pcov
