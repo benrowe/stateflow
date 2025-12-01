@@ -187,6 +187,44 @@ class StateFlowTest extends TestCase
     }
 
     /**
+     * Scenario 3.4: Action returns STOP
+     * Tests that workflow stops and subsequent actions don't execute
+     */
+    public function testActionReturnsStopHaltsExecution(): void
+    {
+        $initialState = $this->createTestState(['status' => 'processing']);
+
+        // First action continues, second action stops, third should NOT execute
+        $action1 = $this->createTestAction('Action1');
+        $action2 = $this->createTestActionWithResult('Action2', ActionResult::stop(null, ['reason' => 'validation failed']));
+        $action3 = $this->createTestAction('Action3');
+
+        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+
+        $context = $stateFlow
+            ->transition($initialState, ['status' => 'failed'])
+            ->execute();
+
+        // Only actions 1 and 2 should execute, action 3 should NOT
+        $this->assertCount(2, $context->getActionExecutions(), 'Only 2 actions should execute (action 3 skipped due to stop)');
+        $this->assertSame(ExecutionState::CONTINUE, $context->getActionExecutions()[0]->executionState);
+        $this->assertSame(ExecutionState::STOP, $context->getActionExecutions()[1]->executionState);
+
+        // Verify the context is marked as stopped
+        $this->assertTrue($context->isStopped(), 'Context should be marked as stopped');
+        $this->assertFalse($context->isCompleted(), 'Context should not be completed');
+        $this->assertFalse($context->isPaused(), 'Context should not be paused');
+
+        // Verify stop metadata is stored
+        $this->assertSame(['reason' => 'validation failed'], $context->getActionExecutions()[1]->metadata);
+
+        // Verify execution log shows action 3 did NOT execute
+        $this->assertContains('Action:Action1', $this->logger->log);
+        $this->assertContains('Action:Action2', $this->logger->log);
+        $this->assertNotContains('Action:Action3', $this->logger->log, 'Action3 should not execute after stop');
+    }
+
+    /**
      * Scenario 2.1: All gates allow transition
      * Tests happy path - all gates pass and all actions execute
      */
