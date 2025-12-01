@@ -34,6 +34,35 @@ This checklist is generated from the documentation to track the creation of all 
   - ❌ `serialize(): string`
   - ❌ `unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self`
 
+## `src/Events`
+- ✅ `src/Events/EventDispatcher.php` (interface)
+- ✅ `src/Events/NullEventDispatcher.php`
+- ✅ `src/Events/Event.php` (base class)
+
+### Transition Events
+- ✅ `src/Events/TransitionStarting.php` (class defined, ✅ dispatched)
+- ✅ `src/Events/TransitionCompleted.php` (class defined, ✅ dispatched)
+- ✅ `src/Events/TransitionPaused.php` (class defined, ✅ dispatched)
+- 🔄 `src/Events/TransitionStopped.php` (class defined, ❌ not dispatched)
+- 🔄 `src/Events/TransitionFailed.php` (class defined, ❌ not dispatched)
+
+### Gate Events
+- 🔄 `src/Events/GateEvaluating.php` (class defined, ❌ not dispatched)
+- 🔄 `src/Events/GateEvaluated.php` (class defined, ❌ not dispatched)
+
+### Action Events
+- 🔄 `src/Events/ActionExecuting.php` (class defined, ❌ not dispatched)
+- 🔄 `src/Events/ActionExecuted.php` (class defined, ❌ not dispatched)
+- 🔄 `src/Events/ActionSkipped.php` (class defined, ❌ not dispatched)
+
+### Lock Events (Future Feature)
+- ✅ `src/Events/LockAcquiring.php` (class defined)
+- ✅ `src/Events/LockAcquired.php` (class defined)
+- ✅ `src/Events/LockFailed.php` (class defined)
+- ✅ `src/Events/LockReleased.php` (class defined)
+- ✅ `src/Events/LockLost.php` (class defined)
+- ✅ `src/Events/LockRestored.php` (class defined)
+
 ## `src/Locking`
 - ❌ `src/Locking/LockProvider.php`
   - ❌ `acquire(string $key, int $ttl = 30): bool`

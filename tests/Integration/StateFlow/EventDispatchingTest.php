@@ -31,6 +31,11 @@ class EventDispatchingTest extends TestCase
         $this->logger = new ExecutionLogger();
     }
 
+    /**
+     * Scenario 10.1: Dispatch TransitionStarting event
+     * Tests that TransitionStarting event is dispatched when a transition begins
+     * and contains the current state and desired delta
+     */
     public function testDispatchesTransitionStartingEvent(): void
     {
         $mockDispatcher = $this->createMock(EventDispatcher::class);
@@ -53,6 +58,11 @@ class EventDispatchingTest extends TestCase
         $stateFlow->transition($initialState, $delta);
     }
 
+    /**
+     * Scenario 10.2: Dispatch TransitionCompleted event
+     * Tests that TransitionCompleted event is dispatched when a transition completes successfully
+     * and contains the final state and context
+     */
     public function testDispatchesTransitionCompletedEvent(): void
     {
         $mockDispatcher = $this->createMock(EventDispatcher::class);
@@ -91,6 +101,11 @@ class EventDispatchingTest extends TestCase
         $this->assertEquals($finalState, $completedContext->getCurrentState());
     }
 
+    /**
+     * Scenario 10.2 (edge case): Verify TransitionCompleted does not fire on pause
+     * Tests that TransitionCompleted is NOT dispatched when workflow is paused,
+     * only TransitionStarting and TransitionPaused should fire
+     */
     public function testTransitionCompletedEventDoesNotFireOnPause(): void
     {
         $mockDispatcher = $this->createMock(EventDispatcher::class);
@@ -114,6 +129,12 @@ class EventDispatchingTest extends TestCase
         $this->assertFalse($pausedContext->isCompleted());
     }
 
+    /**
+     * Scenario 10.2 (edge case): Verify TransitionCompleted does not fire on stop
+     * Tests that TransitionCompleted is NOT dispatched when workflow is stopped,
+     * only TransitionStarting should fire
+     * NOTE: TransitionStopped event is not yet implemented (Scenario 10.4)
+     */
     public function testTransitionCompletedEventDoesNotFireOnStop(): void
     {
         $mockDispatcher = $this->createMock(EventDispatcher::class);
@@ -135,6 +156,11 @@ class EventDispatchingTest extends TestCase
         $this->assertFalse($stoppedContext->isCompleted());
     }
 
+    /**
+     * Scenario 10.3: Dispatch TransitionPaused event
+     * Tests that TransitionPaused event is dispatched when execution pauses
+     * and contains the current state, context, and metadata
+     */
     public function testDispatchesTransitionPausedEvent(): void
     {
         $mockDispatcher = $this->createMock(EventDispatcher::class);
