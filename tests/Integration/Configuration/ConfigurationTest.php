@@ -12,14 +12,16 @@ use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\State;
-use PHPUnit\Framework\MockObject\Exception;
+use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase
 {
+    use CreatesTestStates;
+
     public function testConfigurationProviderSupportsConditionalGatesBasedOnTransition(): void
     {
-        $state = $this->createStubState(['status' => 'pending', 'user_id' => 123]);
+        $state = $this->createTestState(['status' => 'pending', 'user_id' => 123]);
 
         $permissionGate = $this->createStubGate('PermissionGate', GateResult::ALLOW);
         $validationGate = $this->createStubGate('ValidationGate', GateResult::ALLOW);
@@ -58,8 +60,8 @@ class ConfigurationTest extends TestCase
 
     public function testConfigurationProviderSupportsConditionalActionsBasedOnState(): void
     {
-        $draftState = $this->createStubState(['status' => 'draft', 'version' => 1]);
-        $publishedState = $this->createStubState(['status' => 'published', 'version' => 2]);
+        $draftState = $this->createTestState(['status' => 'draft', 'version' => 1]);
+        $publishedState = $this->createTestState(['status' => 'published', 'version' => 2]);
 
         $sendNotificationAction = $this->createStubAction('SendNotification');
         $incrementVersionAction = $this->createStubAction('IncrementVersion');
@@ -138,7 +140,7 @@ class ConfigurationTest extends TestCase
         );
 
         // Test approval workflow
-        $pendingState = $this->createStubState(['status' => 'pending', 'amount' => 1000]);
+        $pendingState = $this->createTestState(['status' => 'pending', 'amount' => 1000]);
         $approvalConfig = $provider->provide($pendingState, ['status' => 'approved']);
 
         $this->assertCount(1, $approvalConfig->getTransitionGates());
@@ -148,7 +150,7 @@ class ConfigurationTest extends TestCase
         $this->assertContains($action2, $approvalConfig->getActions());
 
         // Test payment workflow
-        $approvedState = $this->createStubState(['status' => 'approved', 'amount' => 1000]);
+        $approvedState = $this->createTestState(['status' => 'approved', 'amount' => 1000]);
         $paymentConfig = $provider->provide($approvedState, ['status' => 'paid']);
 
         $this->assertCount(1, $paymentConfig->getTransitionGates());
@@ -156,21 +158,6 @@ class ConfigurationTest extends TestCase
         $this->assertCount(2, $paymentConfig->getActions());
         $this->assertContains($action1, $paymentConfig->getActions());
         $this->assertContains($action3, $paymentConfig->getActions());
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     * @throws Exception
-     */
-    private function createStubState(array $data): State
-    {
-        $state = $this->createStub(State::class);
-        $state->method('toArray')->willReturn($data);
-        $state->method('with')->willReturnCallback(function (array $changes) use ($data) {
-            return $this->createStubState(array_merge($data, $changes));
-        });
-
-        return $state;
     }
 
     private function createStubGate(string $name, GateResult $result): Gate
