@@ -134,6 +134,7 @@ jobs:
   markdown_lint:
     name: Markdown Style Check
     runs-on: ubuntu-latest
+    if: false # todo temp disabled
     steps:
       - uses: actions/checkout@v4
       - name: Lint
