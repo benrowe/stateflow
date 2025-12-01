@@ -17,6 +17,8 @@ use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStopped;
+use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
+use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
@@ -104,7 +106,7 @@ class StateWorker
             // Dispatch GateEvaluating event
             $this->eventDispatcher->dispatch(new GateEvaluating($gate, $gateContext, false));
 
-            $result = $gate->evaluate($gateContext);
+            $result = $this->evaluateGate($gate, $gateContext);
 
             // Dispatch GateEvaluated event
             $this->eventDispatcher->dispatch(new GateEvaluated($gate, $gateContext, $result, false));
@@ -166,7 +168,7 @@ class StateWorker
             // Dispatch GateEvaluating event (isActionGate=true)
             $this->eventDispatcher->dispatch(new GateEvaluating($gate, $gateContext, true));
 
-            $gateResult = $gate->evaluate($gateContext);
+            $gateResult = $this->evaluateGate($gate, $gateContext);
 
             // Dispatch GateEvaluated event (isActionGate=true)
             $this->eventDispatcher->dispatch(new GateEvaluated($gate, $gateContext, $gateResult, true));
@@ -231,5 +233,36 @@ class StateWorker
             // Dispatch ActionSkipped event
             $this->eventDispatcher->dispatch(new ActionSkipped($action, $reason));
         }
+    }
+
+    private function evaluateGate(Gate $gate, GateContext $context): GateResult
+    {
+        try {
+            $result = $gate->evaluate($context);
+        } catch (\TypeError $exception) {
+            throw new InvalidGateResultException(
+                sprintf(
+                    'Gate %s must return a %s, invalid return type encountered',
+                    get_debug_type($gate),
+                    GateResult::class
+                ),
+                0,
+                $exception
+            );
+        }
+
+        // Additional runtime validation (although type hints should prevent this)
+        if (!$result instanceof GateResult) {
+            throw new InvalidGateResultException(
+                sprintf(
+                    'Gate %s returned %s instead of %s',
+                    get_debug_type($gate),
+                    get_debug_type($result),
+                    GateResult::class
+                )
+            );
+        }
+
+        return $result;
     }
 }
