@@ -7,9 +7,16 @@ namespace BenRowe\StateFlow;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Events\ActionExecuted;
+use BenRowe\StateFlow\Events\ActionExecuting;
+use BenRowe\StateFlow\Events\ActionSkipped;
 use BenRowe\StateFlow\Events\EventDispatcher;
+use BenRowe\StateFlow\Events\GateEvaluated;
+use BenRowe\StateFlow\Events\GateEvaluating;
 use BenRowe\StateFlow\Events\TransitionCompleted;
+use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
+use BenRowe\StateFlow\Events\TransitionStopped;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
@@ -94,7 +101,13 @@ class StateWorker
         );
 
         foreach ($this->configuration->getTransitionGates() as $gate) {
+            // Dispatch GateEvaluating event
+            $this->eventDispatcher->dispatch(new GateEvaluating($gate, $gateContext, false));
+
             $result = $gate->evaluate($gateContext);
+
+            // Dispatch GateEvaluated event
+            $this->eventDispatcher->dispatch(new GateEvaluated($gate, $gateContext, $result, false));
 
             // Track the gate evaluation
             $this->context->addGateEvaluation($gate, $result, false);
@@ -149,7 +162,14 @@ class StateWorker
                 $this->context->getCurrentState(),
                 $this->context->getDesiredDelta()
             );
+
+            // Dispatch GateEvaluating event (isActionGate=true)
+            $this->eventDispatcher->dispatch(new GateEvaluating($gate, $gateContext, true));
+
             $gateResult = $gate->evaluate($gateContext);
+
+            // Dispatch GateEvaluated event (isActionGate=true)
+            $this->eventDispatcher->dispatch(new GateEvaluated($gate, $gateContext, $gateResult, true));
 
             // Track the gate evaluation with isActionGate=true
             $this->context->addGateEvaluation($gate, $gateResult, true);
@@ -157,6 +177,8 @@ class StateWorker
             // Skip action if gate denies or returns SKIP_IDEMPOTENT
             if ($gateResult->shouldSkipAction()) {
                 $this->context->addActionSkip($action, $gateResult);
+                // Dispatch ActionSkipped event
+                $this->eventDispatcher->dispatch(new ActionSkipped($action, $gateResult));
 
                 return;
             }
@@ -168,7 +190,21 @@ class StateWorker
             $this->context->getDesiredDelta(),
             $this->context
         );
-        $result = $action->execute($context);
+
+        // Dispatch ActionExecuting event
+        $this->eventDispatcher->dispatch(new ActionExecuting($action, $context));
+
+        try {
+            $result = $action->execute($context);
+        } catch (\Throwable $exception) {
+            // Dispatch TransitionFailed event
+            $this->eventDispatcher->dispatch(new TransitionFailed($this->context->getCurrentState(), $exception, $this->context));
+            throw $exception;
+        }
+
+        // Dispatch ActionExecuted event
+        $this->eventDispatcher->dispatch(new ActionExecuted($action, $context, $result));
+
         $this->context->addActionResult($result);
 
         // Update current state if action returned a new state
@@ -184,6 +220,7 @@ class StateWorker
 
         if ($result->executionState === ExecutionState::STOP) {
             $this->context->markAsStopped();
+            $this->eventDispatcher->dispatch(new TransitionStopped($this->context->getCurrentState(), $this->context, $result->metadata));
         }
     }
 
@@ -191,6 +228,8 @@ class StateWorker
     {
         foreach ($this->configuration->getActions() as $action) {
             $this->context->addActionSkip($action, $reason);
+            // Dispatch ActionSkipped event
+            $this->eventDispatcher->dispatch(new ActionSkipped($action, $reason));
         }
     }
 }

@@ -43,17 +43,17 @@ This checklist is generated from the documentation to track the creation of all 
 - ✅ `src/Events/TransitionStarting.php` (class defined, ✅ dispatched)
 - ✅ `src/Events/TransitionCompleted.php` (class defined, ✅ dispatched)
 - ✅ `src/Events/TransitionPaused.php` (class defined, ✅ dispatched)
-- 🔄 `src/Events/TransitionStopped.php` (class defined, ❌ not dispatched)
-- 🔄 `src/Events/TransitionFailed.php` (class defined, ❌ not dispatched)
+- ✅ `src/Events/TransitionStopped.php` (class defined, ✅ dispatched)
+- ✅ `src/Events/TransitionFailed.php` (class defined, ✅ dispatched)
 
 ### Gate Events
-- 🔄 `src/Events/GateEvaluating.php` (class defined, ❌ not dispatched)
-- 🔄 `src/Events/GateEvaluated.php` (class defined, ❌ not dispatched)
+- ✅ `src/Events/GateEvaluating.php` (class defined, ✅ dispatched)
+- ✅ `src/Events/GateEvaluated.php` (class defined, ✅ dispatched)
 
 ### Action Events
-- 🔄 `src/Events/ActionExecuting.php` (class defined, ❌ not dispatched)
-- 🔄 `src/Events/ActionExecuted.php` (class defined, ❌ not dispatched)
-- 🔄 `src/Events/ActionSkipped.php` (class defined, ❌ not dispatched)
+- ✅ `src/Events/ActionExecuting.php` (class defined, ✅ dispatched)
+- ✅ `src/Events/ActionExecuted.php` (class defined, ✅ dispatched)
+- ✅ `src/Events/ActionSkipped.php` (class defined, ✅ dispatched)
 
 ### Lock Events (Future Feature)
 - ✅ `src/Events/LockAcquiring.php` (class defined)
