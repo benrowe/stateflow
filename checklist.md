@@ -17,7 +17,7 @@ This checklist is generated from the documentation to track the creation of all 
   - ❌ `releaseLock(): bool`
   - ❌ `getContext(): TransitionContext`
 - ✅ `src/TransitionContext.php`
-  - ✅ `__construct(State $initialState)`
+  - ✅ `__construct(State $initialState, array $desiredDelta = [])`
   - ✅ `getCurrentState(): State`
   - ✅ `getDesiredDelta(): array`
   - ✅ `isCompleted(): bool`
