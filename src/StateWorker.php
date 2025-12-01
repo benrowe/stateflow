@@ -22,6 +22,8 @@ use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
+use Throwable;
+use TypeError;
 
 class StateWorker
 {
@@ -204,7 +206,7 @@ class StateWorker
 
         try {
             $result = $action->execute($context);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             // Dispatch TransitionFailed event
             $this->eventDispatcher->dispatch(new TransitionFailed($this->context->getCurrentState(), $exception, $this->context));
             throw $exception;
@@ -245,7 +247,7 @@ class StateWorker
     {
         try {
             $result = $gate->evaluate($context);
-        } catch (\TypeError $exception) {
+        } catch (TypeError $exception) {
             throw new InvalidGateResultException(
                 sprintf(
                     'Gate %s must return a %s, invalid return type encountered',
@@ -254,18 +256,6 @@ class StateWorker
                 ),
                 0,
                 $exception
-            );
-        }
-
-        // Additional runtime validation (although type hints should prevent this)
-        if (!$result instanceof GateResult) {
-            throw new InvalidGateResultException(
-                sprintf(
-                    'Gate %s returned %s instead of %s',
-                    get_debug_type($gate),
-                    get_debug_type($result),
-                    GateResult::class
-                )
             );
         }
 
