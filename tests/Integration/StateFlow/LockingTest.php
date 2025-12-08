@@ -67,7 +67,7 @@ class LockingTest extends TestCase
         $config = new Configuration([], []);
 
         $stateFlow = new StateFlow(
-            fn() => $config,
+            fn () => $config,
             $mockDispatcher,
             $lockProvider,
             $lockKeyProvider,
@@ -80,7 +80,7 @@ class LockingTest extends TestCase
         $context = $worker->execute();
 
         // Verify LockAcquired event was dispatched
-        $lockAcquiredEvents = array_filter($dispatchedEvents, fn($e) => $e instanceof LockAcquired);
+        $lockAcquiredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockAcquired);
         $this->assertCount(1, $lockAcquiredEvents, 'LockAcquired event should be dispatched');
 
         // Verify lock state
