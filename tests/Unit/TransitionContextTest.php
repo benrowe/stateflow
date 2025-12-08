@@ -337,6 +337,22 @@ class TransitionContextTest extends TestCase
         $this->assertSame('order:123', $retrieved->lockKey);
     }
 
+    public function testWasSkippedDueToLockDefaultsToFalse(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $this->assertFalse($context->wasSkippedDueToLock());
+    }
+
+    public function testMarkAsSkippedDueToLockSetsFlag(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $context->markAsSkippedDueToLock();
+
+        $this->assertTrue($context->wasSkippedDueToLock());
+    }
+
     protected function getLogger(): ExecutionLogger
     {
         return $this->logger;

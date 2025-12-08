@@ -35,6 +35,8 @@ class TransitionContext
 
     private LockState $lockState;
 
+    private bool $skippedDueToLock = false;
+
     /**
      * @param array<string, mixed> $desiredDelta
      */
@@ -178,5 +180,15 @@ class TransitionContext
     public function setLockState(LockState $lockState): void
     {
         $this->lockState = $lockState;
+    }
+
+    public function markAsSkippedDueToLock(): void
+    {
+        $this->skippedDueToLock = true;
+    }
+
+    public function wasSkippedDueToLock(): bool
+    {
+        return $this->skippedDueToLock;
     }
 }
