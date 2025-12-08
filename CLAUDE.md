@@ -216,3 +216,4 @@ Comprehensive docs in `docs/` directory:
 - `examples.md` - Real-world patterns
 
 Always consult `docs/architecture.md` before making architectural decisions.
+- when writing or updating code, make sure there's an associated unit test
