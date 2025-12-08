@@ -14,11 +14,13 @@ use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\GateEvaluated;
 use BenRowe\StateFlow\Events\GateEvaluating;
 use BenRowe\StateFlow\Events\LockAcquired;
+use BenRowe\StateFlow\Events\LockFailed;
 use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStopped;
 use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
+use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
 use BenRowe\StateFlow\Exceptions\TransitionException;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -29,6 +31,7 @@ use BenRowe\StateFlow\Locking\LockKeyProvider;
 use BenRowe\StateFlow\Locking\LockProvider;
 use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\Locking\LockStrategy;
+use RuntimeException;
 use Throwable;
 use TypeError;
 
@@ -307,9 +310,33 @@ class StateWorker
 
             // Dispatch LockAcquired event
             $this->eventDispatcher->dispatch(new LockAcquired($lockKey, $lockState));
+
+            return;
         }
 
-        // TODO: Handle lock acquisition failure based on strategy (FAIL_FAST, WAIT, SKIP)
-        // This will be implemented in subsequent scenarios
+        // Handle lock acquisition failure based on strategy
+        match ($this->lockConfiguration->strategy) {
+            LockStrategy::FAIL_FAST => $this->handleFailFast($lockKey),
+            LockStrategy::SKIP => throw new RuntimeException('SKIP strategy not yet implemented'), // TODO: Scenario 9.3
+            LockStrategy::WAIT => throw new RuntimeException('WAIT strategy not yet implemented'), // TODO: Scenario 9.4
+            LockStrategy::NONE => null, // @phpstan-ignore-line This case is unreachable but needed for match exhaustiveness
+        };
+    }
+
+    private function handleFailFast(string $lockKey): void
+    {
+        // Dispatch LockFailed event
+        $this->eventDispatcher->dispatch(
+            new LockFailed(
+                $lockKey,
+                $this->context->getCurrentState(),
+                'Lock is already held by another process'
+            )
+        );
+
+        // Throw exception to stop execution
+        throw new LockAcquisitionException(
+            sprintf('Failed to acquire lock for key: %s', $lockKey)
+        );
     }
 }
