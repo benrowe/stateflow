@@ -31,7 +31,6 @@ use BenRowe\StateFlow\Locking\LockKeyProvider;
 use BenRowe\StateFlow\Locking\LockProvider;
 use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\Locking\LockStrategy;
-use RuntimeException;
 use Throwable;
 use TypeError;
 
@@ -323,7 +322,7 @@ class StateWorker
         match ($this->lockConfiguration->strategy) {
             LockStrategy::FAIL_FAST => $this->handleFailFast($lockKey),
             LockStrategy::SKIP => $this->handleSkip($lockKey),
-            LockStrategy::WAIT => throw new RuntimeException('WAIT strategy not yet implemented'), // TODO: Scenario 9.4
+            LockStrategy::WAIT => $this->handleWait($lockKey),
             LockStrategy::NONE => null, // @phpstan-ignore-line This case is unreachable but needed for match exhaustiveness
         };
     }
@@ -358,5 +357,52 @@ class StateWorker
 
         // Mark context as skipped due to lock
         $this->context->markAsSkippedDueToLock();
+    }
+
+    private function handleWait(string $lockKey): void
+    {
+        assert($this->lockProvider !== null);
+        assert($this->lockConfiguration !== null);
+
+        $startTime = microtime(true);
+        $timeoutSeconds = $this->lockConfiguration->waitTimeout;
+        $retryIntervalMs = $this->lockConfiguration->retryInterval;
+
+        // Keep retrying until timeout
+        while (true) {
+            // Check if timeout has been reached
+            $elapsed = microtime(true) - $startTime;
+            if ($elapsed >= $timeoutSeconds) {
+                // Dispatch LockFailed event
+                $this->eventDispatcher->dispatch(
+                    new LockFailed(
+                        $lockKey,
+                        $this->context->getCurrentState(),
+                        sprintf('Failed to acquire lock after %.2f seconds', $elapsed)
+                    )
+                );
+
+                throw new LockAcquisitionException(
+                    sprintf('Failed to acquire lock for key: %s after %.2f seconds', $lockKey, $elapsed)
+                );
+            }
+
+            // Sleep before retrying
+            usleep($retryIntervalMs * 1000); // Convert milliseconds to microseconds
+
+            // Try to acquire lock again
+            $acquired = $this->lockProvider->acquire($lockKey, $this->lockConfiguration->ttl);
+
+            if ($acquired) {
+                // Store lock state in context
+                $lockState = new LockState($lockKey, microtime(true), $this->lockConfiguration->ttl);
+                $this->context->setLockState($lockState);
+
+                // Dispatch LockAcquired event
+                $this->eventDispatcher->dispatch(new LockAcquired($lockKey, $lockState));
+
+                return;
+            }
+        }
     }
 }
