@@ -11,6 +11,7 @@ use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\GateEvaluation;
+use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
@@ -311,6 +312,29 @@ class TransitionContextTest extends TestCase
         // Should remain completed
         $this->assertTrue($context->isCompleted());
         $this->assertFalse($context->isPaused());
+    }
+
+    public function testGetLockStateReturnsDefaultEmptyState(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $lockState = $context->getLockState();
+
+        $this->assertInstanceOf(LockState::class, $lockState);
+        $this->assertFalse($lockState->isLocked());
+    }
+
+    public function testSetLockStateUpdatesState(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $lockState = new LockState('order:123', 1234567890.0, 30);
+        $context->setLockState($lockState);
+
+        $retrieved = $context->getLockState();
+        $this->assertSame($lockState, $retrieved);
+        $this->assertTrue($retrieved->isLocked());
+        $this->assertSame('order:123', $retrieved->lockKey);
     }
 
     protected function getLogger(): ExecutionLogger
