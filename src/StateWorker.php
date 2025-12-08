@@ -13,6 +13,7 @@ use BenRowe\StateFlow\Events\ActionSkipped;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\GateEvaluated;
 use BenRowe\StateFlow\Events\GateEvaluating;
+use BenRowe\StateFlow\Events\LockAcquired;
 use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
@@ -23,6 +24,11 @@ use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
+use BenRowe\StateFlow\Locking\LockConfiguration;
+use BenRowe\StateFlow\Locking\LockKeyProvider;
+use BenRowe\StateFlow\Locking\LockProvider;
+use BenRowe\StateFlow\Locking\LockState;
+use BenRowe\StateFlow\Locking\LockStrategy;
 use Throwable;
 use TypeError;
 
@@ -34,7 +40,10 @@ class StateWorker
 
     public function __construct(
         private readonly TransitionContext $context,
-        private readonly EventDispatcher $eventDispatcher
+        private readonly EventDispatcher $eventDispatcher,
+        private readonly ?LockProvider $lockProvider = null,
+        private readonly ?LockKeyProvider $lockKeyProvider = null,
+        private readonly ?LockConfiguration $lockConfiguration = null,
     ) {
         $this->configuration = $this->context->getConfiguration();
     }
@@ -80,6 +89,9 @@ class StateWorker
 
     public function execute(): TransitionContext
     {
+        // Acquire lock if locking is configured
+        $this->acquireLock();
+
         // Run transition gates first
         $gateResult = $this->evaluateGates();
 
@@ -265,5 +277,39 @@ class StateWorker
         }
 
         return $result;
+    }
+
+    private function acquireLock(): void
+    {
+        // Skip if no locking configured or strategy is NONE
+        if (
+            $this->lockProvider === null
+            || $this->lockKeyProvider === null
+            || $this->lockConfiguration === null
+            || $this->lockConfiguration->strategy === LockStrategy::NONE
+        ) {
+            return;
+        }
+
+        // Generate lock key
+        $lockKey = $this->lockKeyProvider->getLockKey(
+            $this->context->getCurrentState(),
+            $this->context->getDesiredDelta()
+        );
+
+        // Attempt to acquire lock
+        $acquired = $this->lockProvider->acquire($lockKey, $this->lockConfiguration->ttl);
+
+        if ($acquired) {
+            // Store lock state in context
+            $lockState = new LockState($lockKey, microtime(true), $this->lockConfiguration->ttl);
+            $this->context->setLockState($lockState);
+
+            // Dispatch LockAcquired event
+            $this->eventDispatcher->dispatch(new LockAcquired($lockKey, $lockState));
+        }
+
+        // TODO: Handle lock acquisition failure based on strategy (FAIL_FAST, WAIT, SKIP)
+        // This will be implemented in subsequent scenarios
     }
 }

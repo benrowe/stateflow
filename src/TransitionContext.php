@@ -10,6 +10,7 @@ use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
+use BenRowe\StateFlow\Locking\LockState;
 
 class TransitionContext
 {
@@ -32,6 +33,8 @@ class TransitionContext
 
     private State $currentState;
 
+    private LockState $lockState;
+
     /**
      * @param array<string, mixed> $desiredDelta
      */
@@ -41,6 +44,7 @@ class TransitionContext
         private readonly Configuration $configuration,
     ) {
         $this->currentState = $initialState;
+        $this->lockState = new LockState();
     }
 
     public function getConfiguration(): Configuration
@@ -164,5 +168,15 @@ class TransitionContext
     public function isStopped(): bool
     {
         return $this->status === ExecutionState::STOP;
+    }
+
+    public function getLockState(): LockState
+    {
+        return $this->lockState;
+    }
+
+    public function setLockState(LockState $lockState): void
+    {
+        $this->lockState = $lockState;
     }
 }
