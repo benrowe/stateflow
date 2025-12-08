@@ -201,4 +201,111 @@ class LockingTest extends TestCase
             $this->assertFalse($actionExecuted, 'Action should not execute when lock fails');
         }
     }
+
+    /**
+     * Scenario 9.3: Lock already held - SKIP strategy
+     *
+     * Given a StateFlow with SKIP lock strategy
+     * And the lock is already held
+     * When I attempt a transition
+     * Then no exception should be thrown
+     * And the transition should be skipped
+     * And wasSkippedDueToLock() should return true
+     * And no gates or actions should execute
+     */
+    public function testLockAlreadyHeldSkipStrategy(): void
+    {
+        // Create a mock lock provider that returns false (lock already held)
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(false); // Lock already held
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create gate and action to verify they don't execute
+        $gateExecuted = false;
+        $gate = new class ($gateExecuted) implements Gate {
+            /** @phpstan-ignore-next-line */
+            public function __construct(private bool &$executed)
+            {
+            }
+
+            public function evaluate(GateContext $context): GateResult
+            {
+                $this->executed = true;
+
+                return GateResult::ALLOW;
+            }
+
+            public function message(): string
+            {
+                return 'test gate';
+            }
+        };
+
+        $actionExecuted = false;
+        $action = new class ($actionExecuted) implements Action {
+            /** @phpstan-ignore-next-line */
+            public function __construct(private bool &$executed)
+            {
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->executed = true;
+
+                return ActionResult::continue();
+            }
+        };
+
+        // Create StateFlow with locking and SKIP strategy
+        $lockConfig = new LockConfiguration(LockStrategy::SKIP, 30);
+        $config = new Configuration([$gate], [$action]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        // Execute - should NOT throw exception
+        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
+
+        // Verify LockFailed event was dispatched
+        $lockFailedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockFailed);
+        $this->assertCount(1, $lockFailedEvents, 'LockFailed event should be dispatched');
+
+        // Verify the transition was skipped due to lock
+        $this->assertTrue($context->wasSkippedDueToLock(), 'Transition should be marked as skipped due to lock');
+
+        // Verify gate and action were NOT executed
+        $this->assertFalse($gateExecuted, 'Gate should not execute when lock cannot be acquired with SKIP strategy');
+        $this->assertFalse($actionExecuted, 'Action should not execute when lock cannot be acquired with SKIP strategy');
+
+        // Verify the context is not completed (it was skipped)
+        $this->assertFalse($context->isCompleted(), 'Skipped transition should not be marked as completed');
+    }
 }

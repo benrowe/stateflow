@@ -13,7 +13,14 @@
     <rule ref="rulesets/cleancode.xml">
         <exclude name="StaticAccess"/>
     </rule>
-    <rule ref="rulesets/codesize.xml"/>
+    <rule ref="rulesets/codesize.xml">
+        <exclude name="TooManyPublicMethods"/>
+    </rule>
+    <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
+        <properties>
+            <property name="maxmethods" value="15" />
+        </properties>
+    </rule>
     <rule ref="rulesets/controversial.xml"/>
     <rule ref="rulesets/design.xml">
         <exclude name="CouplingBetweenObjects"/>

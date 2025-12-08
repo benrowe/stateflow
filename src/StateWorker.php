@@ -95,6 +95,11 @@ class StateWorker
         // Acquire lock if locking is configured
         $this->acquireLock();
 
+        // If transition was skipped due to lock, return early
+        if ($this->context->wasSkippedDueToLock()) {
+            return $this->context;
+        }
+
         // Run transition gates first
         $gateResult = $this->evaluateGates();
 
@@ -317,7 +322,7 @@ class StateWorker
         // Handle lock acquisition failure based on strategy
         match ($this->lockConfiguration->strategy) {
             LockStrategy::FAIL_FAST => $this->handleFailFast($lockKey),
-            LockStrategy::SKIP => throw new RuntimeException('SKIP strategy not yet implemented'), // TODO: Scenario 9.3
+            LockStrategy::SKIP => $this->handleSkip($lockKey),
             LockStrategy::WAIT => throw new RuntimeException('WAIT strategy not yet implemented'), // TODO: Scenario 9.4
             LockStrategy::NONE => null, // @phpstan-ignore-line This case is unreachable but needed for match exhaustiveness
         };
@@ -338,5 +343,20 @@ class StateWorker
         throw new LockAcquisitionException(
             sprintf('Failed to acquire lock for key: %s', $lockKey)
         );
+    }
+
+    private function handleSkip(string $lockKey): void
+    {
+        // Dispatch LockFailed event
+        $this->eventDispatcher->dispatch(
+            new LockFailed(
+                $lockKey,
+                $this->context->getCurrentState(),
+                'Lock is already held by another process'
+            )
+        );
+
+        // Mark context as skipped due to lock
+        $this->context->markAsSkippedDueToLock();
     }
 }
