@@ -12,20 +12,27 @@ use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\GateEvaluation;
 use BenRowe\StateFlow\State;
+use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
+use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
 use BenRowe\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 class TransitionContextTest extends TestCase
 {
+    use CreatesTestGates;
+
     private State $mockState;
 
     private Configuration $mockConfiguration;
+
+    private ExecutionLogger $logger;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->mockState = $this->createStub(State::class);
         $this->mockConfiguration = new Configuration([], []);
+        $this->logger = new ExecutionLogger();
     }
 
     public function testConstructWithoutDelta(): void
@@ -234,5 +241,80 @@ class TransitionContextTest extends TestCase
         $this->assertCount(0, $context->getActionSkips());
         $this->assertTrue($context->isCompleted());
         $this->assertSame(['status' => 'published'], $context->getDesiredDelta());
+    }
+
+    public function testDidGatePassEmpty(): void
+    {
+        $config = new Configuration([], []);
+        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $this->assertTrue($context->didGatesPass());
+    }
+
+    public function testDidGatePassAllPass(): void
+    {
+        $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
+        $gate2 = $this->createTestGate('gate 2', GateResult::ALLOW);
+        $config = new Configuration([$gate1, $gate2], []);
+        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $context->addGateEvaluation($gate1, GateResult::ALLOW, false);
+        $context->addGateEvaluation($gate2, GateResult::ALLOW, false);
+
+        $this->assertTrue($context->didGatesPass());
+    }
+
+    public function testDidGatePassASomePass(): void
+    {
+        $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
+        $gate2 = $this->createTestGate('gate 2', GateResult::DENY);
+        $config = new Configuration([$gate1, $gate2], []);
+        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $context->addGateEvaluation($gate1, GateResult::ALLOW, false);
+        $context->addGateEvaluation($gate2, GateResult::DENY, false);
+
+        $this->assertFalse($context->didGatesPass());
+    }
+
+    public function testDidGatePassFail(): void
+    {
+        $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
+        $gate2 = $this->createTestGate('gate 2', GateResult::DENY);
+        $config = new Configuration([$gate1, $gate2], []);
+        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $context->addGateEvaluation($gate1, GateResult::DENY, false);
+
+        $this->assertFalse($context->didGatesPass());
+    }
+
+    public function testClearPauseStatusWhenPaused(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $context->markAsPaused();
+        $this->assertTrue($context->isPaused());
+
+        $context->clearPauseStatus();
+
+        $this->assertFalse($context->isPaused());
+        $this->assertFalse($context->isCompleted());
+        $this->assertFalse($context->isStopped());
+    }
+
+    public function testClearPauseStatusWhenNotPausedDoesNothing(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $context->markAsCompleted();
+        $this->assertTrue($context->isCompleted());
+
+        $context->clearPauseStatus();
+
+        // Should remain completed
+        $this->assertTrue($context->isCompleted());
+        $this->assertFalse($context->isPaused());
+    }
+
+    protected function getLogger(): ExecutionLogger
+    {
+        return $this->logger;
     }
 }

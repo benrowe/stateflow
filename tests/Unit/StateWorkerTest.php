@@ -8,12 +8,23 @@ use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Events\ActionExecuted;
+use BenRowe\StateFlow\Events\ActionExecuting;
 use BenRowe\StateFlow\Events\EventDispatcher;
+use BenRowe\StateFlow\Events\GateEvaluated;
+use BenRowe\StateFlow\Events\GateEvaluating;
+use BenRowe\StateFlow\Events\NullEventDispatcher;
 use BenRowe\StateFlow\Events\TransitionCompleted;
+use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
+use BenRowe\StateFlow\Exceptions\TransitionException;
 use BenRowe\StateFlow\Gate\Gate;
+use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\State;
+use BenRowe\StateFlow\Gate\Guardable;
+use BenRowe\StateFlow\GateEvaluation;
 use BenRowe\StateFlow\StateWorker;
+use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
+use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use BenRowe\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +35,15 @@ use PHPUnit\Framework\TestCase;
 class StateWorkerTest extends TestCase
 {
     use CreatesTestStates;
+    use CreatesTestGates;
+
+    private ExecutionLogger $logger;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->logger = new ExecutionLogger();
+    }
 
     /**
      * Test that when a gate returns SKIP_IDEMPOTENT:
@@ -205,6 +225,293 @@ class StateWorkerTest extends TestCase
 
         // Verify TransitionCompleted event was dispatched
         $this->assertTrue($completedEventDispatched, 'TransitionCompleted event should be dispatched');
+    }
+
+    public function testCanRunGatesSeparately(): void
+    {
+        $state = $this->createTestState(['status' => 'draft']);
+        $gateAllow = $this->createTestGate('first gate', GateResult::ALLOW);
+        $gateDeny = $this->createTestGate('second gate', GateResult::DENY);
+
+        $config = new Configuration([$gateAllow, $gateDeny], []);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        // ensure we expect the gate events
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->exactly(4)) // GateEvaluating, GateEvaluated, ActionSkipped, TransitionCompleted
+            ->method('dispatch')
+            ->willReturnOnConsecutiveCalls()
+            ->willReturnCallback(function ($event) {
+                if ($event instanceof GateEvaluated) {
+                    return ($event->gate->message() === 'first gate' && $event->result === GateResult::ALLOW) ||
+                        ($event->gate->message() === 'second gate' && $event->result === GateResult::DENY);
+                }
+                if ($event instanceof GateEvaluating) {
+                    return in_array($event->gate->message(), ['first gate', 'second gate'], true);
+                }
+                $this->fail('Unexpected event ' . $event::class);
+            });
+        $worker = new StateWorker($context, $mockDispatcher);
+        $worker->runGates();
+
+        $this->assertCount(2, $context->getGateEvaluations());
+        $this->assertSame(['first gate', 'second gate'], array_map(fn (GateEvaluation $eval) => $eval->gate->message(), $context->getGateEvaluations()));
+
+    }
+
+    public function testCanRunActionsSeparately(): void
+    {
+        $action = $this->createStubAction('TestAction');
+
+        $config = new Configuration([], [$action]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->exactly(2)) // ActionExecuting, ActionExecuted
+            ->method('dispatch')
+            ->willReturnOnConsecutiveCalls()
+            ->willReturnCallback(function (object $event) {
+                if ($event instanceof ActionExecuting) {
+                    return true;
+                }
+                if ($event instanceof ActionExecuted) {
+                    return true;
+                }
+                $this->fail('Unexpected event ' . $event::class);
+            });
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $worker->runActions();
+    }
+
+    public function testCanNotRunActionsWithoutGateBeingExecuted(): void
+    {
+        $action = $this->createStubAction('TestAction');
+        $gate = $this->createTestGate('first gate', GateResult::ALLOW);
+
+        $config = new Configuration([$gate], [$action]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+
+        $worker = new StateWorker($context, new NullEventDispatcher());
+        $this->expectException(TransitionException::class);
+        $this->expectExceptionMessage('Gates not evaluated');
+        $worker->runActions();
+    }
+
+    public function testRunNextActionExecutesSingleAction(): void
+    {
+        $action = $this->createStubAction('TestAction');
+
+        $config = new Configuration([], [$action]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->exactly(2)) // ActionExecuting, ActionExecuted
+            ->method('dispatch')
+            ->willReturnCallback(function (object $event) {
+                $this->assertTrue(
+                    $event instanceof ActionExecuting || $event instanceof ActionExecuted,
+                    'Expected ActionExecuting or ActionExecuted event'
+                );
+            });
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $resultContext = $worker->runNextAction();
+
+        // Verify action was executed
+        $this->assertCount(1, $resultContext->getActionExecutions());
+        $this->assertCount(0, $resultContext->getActionSkips());
+    }
+
+    public function testRunNextActionReturnsContextImmediatelyWhenNoMoreActions(): void
+    {
+        $config = new Configuration([], []); // No actions
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $resultContext = $worker->runNextAction();
+
+        // Should return context without executing anything
+        $this->assertCount(0, $resultContext->getActionExecutions());
+        $this->assertSame($context, $resultContext);
+    }
+
+    public function testExecuteNextActionDoesNotExecuteWhenWorkflowIsStopped(): void
+    {
+        $action = $this->createStubAction('TestAction');
+
+        $config = new Configuration([], [$action]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context->markAsStopped(); // Mark as stopped
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $resultContext = $worker->runNextAction();
+
+        // Action should not execute because workflow is stopped
+        $this->assertCount(0, $resultContext->getActionExecutions());
+        $this->assertTrue($resultContext->isStopped());
+    }
+
+    public function testExecuteActionsStopsWhenActionReturnsPause(): void
+    {
+        $pauseAction = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::pause(null, ['reason' => 'need approval']);
+            }
+        };
+        $secondAction = $this->createStubAction('SecondAction');
+
+        $config = new Configuration([], [$pauseAction, $secondAction]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $worker->runActions();
+
+        // Only first action should execute, second should not
+        $this->assertCount(1, $context->getActionExecutions());
+        $this->assertTrue($context->isPaused());
+    }
+
+    public function testExecuteActionsStopsWhenActionReturnsStop(): void
+    {
+        $stopAction = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::stop(null, ['reason' => 'fatal error']);
+            }
+        };
+        $secondAction = $this->createStubAction('SecondAction');
+
+        $config = new Configuration([], [$stopAction, $secondAction]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $worker->runActions();
+
+        // Only first action should execute, second should not
+        $this->assertCount(1, $context->getActionExecutions());
+        $this->assertTrue($context->isStopped());
+    }
+
+    public function testEvaluateGateThrowsInvalidGateResultExceptionOnTypeError(): void
+    {
+        // Create a gate that returns invalid type (not GateResult)
+        $invalidGate = new class () implements Gate {
+            public function evaluate(GateContext $context): GateResult
+            {
+                // @phpstan-ignore return.type
+                return 'invalid'; // Returns string instead of GateResult
+            }
+
+            public function message(): string
+            {
+                return 'Invalid gate';
+            }
+        };
+
+        $config = new Configuration([$invalidGate], []);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $worker = new StateWorker($context, new NullEventDispatcher());
+
+        $this->expectException(InvalidGateResultException::class);
+        $this->expectExceptionMessage('must return a');
+        $worker->runGates();
+    }
+
+    public function testActionWithGuardThatDeniesSkipsAction(): void
+    {
+        $denyGate = $this->createTestGate('deny gate', GateResult::DENY);
+
+        $guardedAction = new class ($denyGate) implements Action, Guardable {
+            public function __construct(private Gate $gate)
+            {
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::continue();
+            }
+
+            public function gate(): Gate
+            {
+                return $this->gate;
+            }
+        };
+
+        $config = new Configuration([], [$guardedAction]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $worker->runActions();
+
+        // Action should be skipped because guard denied
+        $this->assertCount(0, $context->getActionExecutions());
+        $this->assertCount(1, $context->getActionSkips());
+        $this->assertSame(GateResult::DENY, $context->getActionSkips()[0]->gateResult);
+    }
+
+    public function testActionWithGuardThatReturnsSkipIdempotentSkipsAction(): void
+    {
+        $skipGate = $this->createTestGate('skip gate', GateResult::SKIP_IDEMPOTENT);
+
+        $guardedAction = new class ($skipGate) implements Action, Guardable {
+            public function __construct(private Gate $gate)
+            {
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::continue();
+            }
+
+            public function gate(): Gate
+            {
+                return $this->gate;
+            }
+        };
+
+        $config = new Configuration([], [$guardedAction]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $worker->runActions();
+
+        // Action should be skipped because guard returned SKIP_IDEMPOTENT
+        $this->assertCount(0, $context->getActionExecutions());
+        $this->assertCount(1, $context->getActionSkips());
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $context->getActionSkips()[0]->gateResult);
+    }
+
+    protected function getLogger(): ExecutionLogger
+    {
+        return $this->logger;
     }
 
     private function createStubAction(string $name): Action
