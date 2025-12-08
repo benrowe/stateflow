@@ -308,4 +308,113 @@ class LockingTest extends TestCase
         // Verify the context is not completed (it was skipped)
         $this->assertFalse($context->isCompleted(), 'Skipped transition should not be marked as completed');
     }
+
+    /**
+     * Scenario 9.4: Lock already held - WAIT strategy
+     *
+     * Given a StateFlow with WAIT lock strategy
+     * And wait timeout of 5 seconds
+     * And the lock is held but released after 2 seconds
+     * When I attempt a transition
+     * Then it should retry acquiring the lock
+     * And it should succeed within 5 seconds
+     * And the transition should proceed normally
+     */
+    public function testLockAlreadyHeldWaitStrategySucceeds(): void
+    {
+        $attemptCount = 0;
+        $lockReleaseTime = microtime(true) + 0.2; // Release lock after 200ms
+
+        // Create a mock lock provider that fails initially, then succeeds
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->atLeastOnce())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturnCallback(function () use (&$attemptCount, $lockReleaseTime) {
+                $attemptCount++;
+
+                // Lock is held for first few attempts, then released
+                return microtime(true) >= $lockReleaseTime;
+            });
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create a simple action to verify execution
+        $actionExecuted = false;
+        $action = new class ($actionExecuted) implements Action {
+            /** @phpstan-ignore-next-line */
+            public function __construct(private bool &$executed)
+            {
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->executed = true;
+
+                return ActionResult::continue();
+            }
+        };
+
+        // Create StateFlow with locking and WAIT strategy (5 second timeout, 50ms retry interval)
+        $lockConfig = new LockConfiguration(
+            strategy: LockStrategy::WAIT,
+            ttl: 30,
+            waitTimeout: 5,
+            retryInterval: 50
+        );
+        $config = new Configuration([], [$action]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        $startTime = microtime(true);
+        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
+        $endTime = microtime(true);
+        $duration = $endTime - $startTime;
+
+        // Verify lock was eventually acquired
+        $lockState = $context->getLockState();
+        $this->assertTrue($lockState->isLocked(), 'Lock should be acquired after waiting');
+
+        // Verify it took some time (at least 200ms) but less than timeout (5 seconds)
+        $this->assertGreaterThanOrEqual(0.2, $duration, 'Should have waited for lock to be released');
+        $this->assertLessThan(5, $duration, 'Should not have timed out');
+
+        // Verify multiple acquire attempts were made
+        $this->assertGreaterThan(1, $attemptCount, 'Should have retried acquiring the lock');
+
+        // Verify action was executed
+        $this->assertTrue($actionExecuted, 'Action should execute after lock acquired');
+
+        // Verify transition completed successfully
+        $this->assertTrue($context->isCompleted(), 'Transition should complete successfully');
+
+        // Verify LockAcquired event was dispatched
+        $lockAcquiredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockAcquired);
+        $this->assertCount(1, $lockAcquiredEvents, 'LockAcquired event should be dispatched');
+    }
 }
