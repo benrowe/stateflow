@@ -18,6 +18,7 @@ use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStopped;
 use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
+use BenRowe\StateFlow\Exceptions\TransitionException;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -55,6 +56,10 @@ class StateWorker
 
     public function runActions(): TransitionContext
     {
+        if (!$this->context->didGatesPass()) {
+            throw new TransitionException('Gates not evaluated');
+        }
+
         $this->executeActions();
 
         // Mark as completed if we got through all actions

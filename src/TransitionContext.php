@@ -97,6 +97,25 @@ class TransitionContext
         $this->gateEvaluations[] = new GateEvaluation($gate, $result, $isActionGate);
     }
 
+    public function didGatesPass(): bool
+    {
+        $availableGates = count($this->getConfiguration()->getTransitionGates());
+        if ($availableGates === 0) {
+            return true;
+        }
+
+        if ($availableGates !== count($this->getGateEvaluations())) {
+            return false;
+        }
+        foreach ($this->getGateEvaluations() as $gateEvaluation) {
+            if ($gateEvaluation->result !== GateResult::ALLOW) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @return ActionSkip[]
      */
