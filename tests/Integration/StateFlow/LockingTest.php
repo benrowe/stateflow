@@ -12,9 +12,11 @@ use BenRowe\StateFlow\Events\Event;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\LockAcquired;
 use BenRowe\StateFlow\Events\LockFailed;
+use BenRowe\StateFlow\Events\LockLost;
 use BenRowe\StateFlow\Events\LockReleased;
 use BenRowe\StateFlow\Events\LockRestored;
 use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
+use BenRowe\StateFlow\Exceptions\LockLostException;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -341,6 +343,13 @@ class LockingTest extends TestCase
                 return microtime(true) >= $lockReleaseTime;
             });
 
+        // Lock exists check should return true
+        $lockProvider
+            ->expects($this->any())
+            ->method('exists')
+            ->with('order:123')
+            ->willReturn(true);
+
         // Create a lock key provider
         $lockKeyProvider = $this->createMock(LockKeyProvider::class);
         $lockKeyProvider
@@ -621,6 +630,13 @@ class LockingTest extends TestCase
             ->with('order:123', 30)
             ->willReturn(true);
 
+        // Lock exists check should return true
+        $lockProvider
+            ->expects($this->any())
+            ->method('exists')
+            ->with('order:123')
+            ->willReturn(true);
+
         $lockProvider
             ->expects($this->once())
             ->method('release')
@@ -700,6 +716,13 @@ class LockingTest extends TestCase
             ->expects($this->once())
             ->method('acquire')
             ->with('order:123', 30)
+            ->willReturn(true);
+
+        // Lock exists check should return true
+        $lockProvider
+            ->expects($this->any())
+            ->method('exists')
+            ->with('order:123')
             ->willReturn(true);
 
         // Lock should NOT be released when paused
@@ -783,6 +806,13 @@ class LockingTest extends TestCase
             ->with('order:123', 30)
             ->willReturn(true);
 
+        // Lock exists check should return true
+        $lockProvider
+            ->expects($this->any())
+            ->method('exists')
+            ->with('order:123')
+            ->willReturn(true);
+
         // Lock SHOULD be released when stopped
         $lockProvider
             ->expects($this->once())
@@ -860,6 +890,13 @@ class LockingTest extends TestCase
             ->expects($this->once())
             ->method('acquire')
             ->with('order:123', 30)
+            ->willReturn(true);
+
+        // Lock exists check should return true
+        $lockProvider
+            ->expects($this->any())
+            ->method('exists')
+            ->with('order:123')
             ->willReturn(true);
 
         // Lock should be renewed at least once during long execution
@@ -946,5 +983,117 @@ class LockingTest extends TestCase
 
         $lockRestoredEvent = array_values($lockRestoredEvents)[0];
         $this->assertSame('order:123', $lockRestoredEvent->lockKey);
+    }
+
+    /**
+     * Scenario 9.11: Detect lock lost during execution
+     *
+     * Given a lock acquired at start of transition
+     * And the lock expires or is lost mid-execution
+     * When the next action is about to execute
+     * Then a LockLostException should be thrown
+     * And a LockLost event should be dispatched
+     * And execution should stop
+     */
+    public function testDetectLockLostDuringExecution(): void
+    {
+        // Create a mock lock provider that tracks calls
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        // Lock exists initially, but then is lost (deleted by another process)
+        $lockProvider
+            ->expects($this->exactly(2))
+            ->method('exists')
+            ->with('order:123')
+            ->willReturnOnConsecutiveCalls(true, false); // First check passes, second fails
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create multiple actions - second action should not execute due to lost lock
+        $action1Executed = false;
+        $action1 = new class ($action1Executed) implements Action {
+            /** @phpstan-ignore-next-line */
+            public function __construct(private bool &$executed)
+            {
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->executed = true;
+
+                return ActionResult::continue();
+            }
+        };
+
+        $action2Executed = false;
+        $action2 = new class ($action2Executed) implements Action {
+            /** @phpstan-ignore-next-line */
+            public function __construct(private bool &$executed)
+            {
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->executed = true;
+
+                return ActionResult::continue();
+            }
+        };
+
+        // Create StateFlow with locking
+        $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $config = new Configuration([], [$action1, $action2]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        // Expect LockLostException to be thrown
+        $this->expectException(LockLostException::class);
+        $this->expectExceptionMessage('Lock was lost');
+
+        try {
+            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker->execute();
+        } finally {
+            // Verify first action executed
+            $this->assertTrue($action1Executed, 'First action should execute before lock is lost');
+
+            // Verify second action did NOT execute
+            $this->assertFalse($action2Executed, 'Second action should not execute after lock is lost');
+
+            // Verify LockLost event was dispatched
+            $lockLostEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockLost);
+            $this->assertCount(1, $lockLostEvents, 'LockLost event should be dispatched');
+
+            $lockLostEvent = array_values($lockLostEvents)[0];
+            $this->assertSame('order:123', $lockLostEvent->lockKey);
+        }
     }
 }
