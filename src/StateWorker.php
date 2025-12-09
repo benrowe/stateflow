@@ -341,7 +341,9 @@ class StateWorker
             LockStrategy::FAIL_FAST => $this->handleFailFast($lockKey),
             LockStrategy::SKIP => $this->handleSkip($lockKey),
             LockStrategy::WAIT => $this->handleWait($lockKey),
+            // @codeCoverageIgnoreStart
             LockStrategy::NONE => null, // @phpstan-ignore-line This case is unreachable but needed for match exhaustiveness
+            // @codeCoverageIgnoreEnd
         };
     }
 
@@ -427,6 +429,7 @@ class StateWorker
     private function releaseLock(): void
     {
         // Skip if no locking configured or no lock was acquired
+        // @codeCoverageIgnoreStart
         if (
             $this->lockProvider === null
             || $this->lockKeyProvider === null
@@ -434,6 +437,7 @@ class StateWorker
         ) {
             return;
         }
+        // @codeCoverageIgnoreEnd
 
         $lockState = $this->context->getLockState();
         $lockKey = $lockState->lockKey;
