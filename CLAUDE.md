@@ -59,7 +59,7 @@ make check
 This runs all quality checks in one command:
 1. **Linting** - Ensures code style compliance (PHP-CS-Fixer)
 2. **Static Analysis** - Runs PHPStan and PHPMD
-3. **Tests** - Runs full test suite (48 tests, 165 assertions)
+3. **Tests** - Runs full test suite (175 tests, 740 assertions)
 
 Only consider your changes complete when `make check` passes with all green checks.
 
@@ -145,24 +145,30 @@ $configProvider = function(State $currentState, array $delta): Configuration {
 ## Implementation Progress (from checklist.md)
 
 ### Core Components Status
-- ✅ StateFlow, StateWorker, TransitionContext - basic structure implemented
-- ❌ Locking system - not yet implemented (`src/Locking/*`)
-- ❌ Pause/resume serialization - partially implemented (methods exist but not complete)
-- ❌ Step-through execution - `runGates()`, `runActions()` not implemented on StateWorker
-- ❌ `StateFlow::fromContext()` - not implemented
+- ✅ StateFlow, StateWorker, TransitionContext - fully implemented
+- ✅ Locking system - fully implemented with all strategies (FAIL_FAST, SKIP, WAIT, NONE)
+- ✅ Pause/resume workflows - fully implemented via `StateFlow::fromContext()`
+- ✅ Step-through execution - `runGates()`, `runActions()`, `runNextAction()` all implemented
+- ❌ Context serialization/unserialization - not yet implemented (future feature)
 
 ### What Works Now
-- Basic transition flow: `StateFlow::transition()` → `StateWorker::execute()`
-- Gate evaluation with tracking
-- Action execution with result tracking
-- Event system (events defined, dispatcher integration pending)
+- ✅ Complete transition flow: `StateFlow::transition()` → `StateWorker::execute()`
+- ✅ Gate evaluation with tracking (transition gates + action gates)
+- ✅ Action execution with full control (CONTINUE, PAUSE, STOP states)
+- ✅ Complete event system (all events dispatched throughout lifecycle)
+- ✅ Step-by-step execution (`runGates()`, `runActions()`, `runNextAction()`)
+- ✅ Pause/resume workflows via `StateFlow::fromContext()`
+- ✅ Full locking system with race condition prevention
+  - All 4 lock strategies: NONE, FAIL_FAST, SKIP, WAIT
+  - Automatic lock acquisition/release
+  - Lock renewal for long-running transitions
+  - Lock lost detection during execution
+  - Lock maintained during pause, released on stop/completion/failure
 
 ### What's Missing
-See `checklist.md` for detailed implementation checklist. Major gaps:
-- Complete locking system (LockProvider, LockKeyProvider, LockStrategy, LockState)
-- Pause/resume workflow support
-- Step-through execution methods
-- Context serialization/unserialization
+See `checklist.md` for detailed implementation checklist. Remaining features:
+- Context serialization/unserialization (future feature for persisting paused workflows)
+- `getStatusMetadata()` method on TransitionContext (for accessing PAUSE/STOP metadata)
 
 ## Testing Structure
 
