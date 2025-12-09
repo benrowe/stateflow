@@ -509,6 +509,37 @@ class StateWorkerTest extends TestCase
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $context->getActionSkips()[0]->gateResult);
     }
 
+    public function testSetNextActionIndexAllowsJumpingToSpecificAction(): void
+    {
+        // Create 3 actions
+        $action1 = $this->createStubAction('Action1');
+        $action2 = $this->createStubAction('Action2');
+        $action3 = $this->createStubAction('Action3');
+
+        $config = new Configuration([], [$action1, $action2, $action3]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, ['status' => 'published'], $config);
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+
+        // Skip action1 and action2 by setting index to 2
+        $worker->setNextActionIndex(2);
+
+        // Execute next action (should be action3, not action1)
+        $worker->runNextAction();
+
+        // Verify only action3 executed
+        $this->assertCount(1, $context->getActionExecutions());
+
+        // Execute next action again (should execute nothing since we're at the end)
+        $worker->runNextAction();
+
+        // Still only 1 action executed
+        $this->assertCount(1, $context->getActionExecutions());
+    }
+
     protected function getLogger(): ExecutionLogger
     {
         return $this->logger;

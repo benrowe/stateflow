@@ -986,6 +986,111 @@ class LockingTest extends TestCase
     }
 
     /**
+     * Test lock renewal fails (renew returns false)
+     *
+     * When lock renewal fails (returns false), the lock is considered lost
+     * and no LockRestored event should be dispatched
+     */
+    public function testRenewLockFailsDoesNotDispatchLockRestored(): void
+    {
+        // Create a mock lock provider that tracks calls
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        // Lock exists check should return true
+        $lockProvider
+            ->expects($this->any())
+            ->method('exists')
+            ->with('order:123')
+            ->willReturn(true);
+
+        // Lock renewal should fail
+        $lockProvider
+            ->expects($this->atLeastOnce())
+            ->method('renew')
+            ->with('order:123', 30)
+            ->willReturn(false); // Renewal fails
+
+        $lockProvider
+            ->expects($this->once())
+            ->method('release')
+            ->with('order:123')
+            ->willReturn(true);
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create action that simulates time passing
+        $action1 = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                // Simulate time passing - manipulate lock state to appear old
+                $transitionContext = $context->executionContext;
+                $currentLockState = $transitionContext->getLockState();
+
+                // Create new lock state with old acquired time (25 seconds ago)
+                $oldLockState = new LockState(
+                    $currentLockState->lockKey,
+                    microtime(true) - 25, // 25 seconds in the past
+                    $currentLockState->ttl
+                );
+                $transitionContext->setLockState($oldLockState);
+
+                return ActionResult::continue();
+            }
+        };
+
+        $action2 = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::continue();
+            }
+        };
+
+        // Create StateFlow with locking (30 second TTL)
+        $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $config = new Configuration([], [$action1, $action2]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
+
+        // Verify transition completed despite failed renewal
+        $this->assertTrue($context->isCompleted(), 'Transition should complete even if renewal fails');
+
+        // Verify NO LockRestored event was dispatched (because renewal failed)
+        $lockRestoredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockRestored);
+        $this->assertCount(0, $lockRestoredEvents, 'LockRestored event should NOT be dispatched when renewal fails');
+    }
+
+    /**
      * Scenario 9.11: Detect lock lost during execution
      *
      * Given a lock acquired at start of transition
