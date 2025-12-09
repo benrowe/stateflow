@@ -680,4 +680,86 @@ class LockingTest extends TestCase
             $this->assertSame('order:123', $lockReleasedEvent->lockKey);
         }
     }
+
+    /**
+     * Scenario 9.8: Maintain lock during pause
+     *
+     * Given a transition that pauses mid-execution
+     * When the action returns PAUSE
+     * Then the lock should remain held
+     * And the lock TTL should be extended if needed
+     * And getLockState() should show the lock is still held
+     */
+    public function testMaintainLockDuringPause(): void
+    {
+        // Create a mock lock provider that tracks calls
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        // Lock should NOT be released when paused
+        $lockProvider
+            ->expects($this->never())
+            ->method('release');
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create an action that pauses execution
+        $action = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::pause();
+            }
+        };
+
+        // Create StateFlow with locking
+        $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $config = new Configuration([], [$action]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
+
+        // Verify lock is still held
+        $this->assertTrue($context->getLockState()->isLocked(), 'Lock should remain held when paused');
+        $this->assertSame('order:123', $context->getLockState()->lockKey);
+
+        // Verify transition is paused
+        $this->assertTrue($context->isPaused(), 'Transition should be paused');
+
+        // Verify NO LockReleased event was dispatched
+        $lockReleasedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockReleased);
+        $this->assertCount(0, $lockReleasedEvents, 'LockReleased event should NOT be dispatched when paused');
+
+        // Verify LockAcquired event was dispatched
+        $lockAcquiredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockAcquired);
+        $this->assertCount(1, $lockAcquiredEvents, 'LockAcquired event should be dispatched');
+    }
 }
