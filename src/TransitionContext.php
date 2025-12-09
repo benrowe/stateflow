@@ -191,4 +191,150 @@ class TransitionContext
     {
         return $this->skippedDueToLock;
     }
+
+    /**
+     * Get metadata from the last PAUSE or STOP action.
+     *
+     * Returns null if no PAUSE/STOP action has been executed or if the action had no metadata.
+     */
+    public function getStatusMetadata(): mixed
+    {
+        // Find the last action that caused PAUSE or STOP
+        foreach (array_reverse($this->actions) as $actionResult) {
+            if ($actionResult->executionState === ExecutionState::PAUSE
+                || $actionResult->executionState === ExecutionState::STOP
+            ) {
+                return $actionResult->metadata;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Serialize the context to a JSON string for persistence.
+     */
+    public function serialize(): string
+    {
+        $data = [
+            'initialState' => $this->initialState->toArray(),
+            'currentState' => $this->currentState->toArray(),
+            'desiredDelta' => $this->desiredDelta,
+            'status' => $this->status?->value,
+            'skippedDueToLock' => $this->skippedDueToLock,
+            'lockState' => $this->lockState->toArray(),
+            'configuration' => [
+                'transitionGates' => array_map(
+                    fn($gate) => get_class($gate),
+                    $this->configuration->getTransitionGates()
+                ),
+                'actions' => array_map(
+                    fn($action) => get_class($action),
+                    $this->configuration->getActions()
+                ),
+            ],
+            'gateEvaluations' => array_map(
+                fn(GateEvaluation $eval) => [
+                    'gate' => get_class($eval->gate),
+                    'result' => $eval->result->value,
+                    'isActionGate' => $eval->isActionGate,
+                ],
+                $this->gateEvaluations
+            ),
+            'actions' => array_map(
+                fn(ActionResult $result) => [
+                    'executionState' => $result->executionState->value,
+                    'newState' => $result->newState?->toArray(),
+                    'metadata' => $result->metadata,
+                ],
+                $this->actions
+            ),
+            'actionSkips' => array_map(
+                fn(ActionSkip $skip) => [
+                    'action' => get_class($skip->action),
+                    'gateResult' => $skip->gateResult->value,
+                ],
+                $this->actionSkips
+            ),
+        ];
+
+        return json_encode($data, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Deserialize a context from a JSON string.
+     *
+     * @throws \JsonException
+     */
+    public static function unserialize(
+        string $data,
+        StateFactory $stateFactory,
+        ActionFactory $actionFactory,
+        GateFactory $gateFactory
+    ): self {
+        $decoded = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+
+        // Reconstruct states
+        $initialState = $stateFactory->fromArray($decoded['initialState']);
+        $currentState = $stateFactory->fromArray($decoded['currentState']);
+
+        // Reconstruct configuration
+        $transitionGates = array_map(
+            fn(string $className) => $gateFactory->fromClassName($className),
+            $decoded['configuration']['transitionGates']
+        );
+        $actions = array_map(
+            fn(string $className) => $actionFactory->fromClassName($className),
+            $decoded['configuration']['actions']
+        );
+        $configuration = new Configuration($transitionGates, $actions);
+
+        // Create new context
+        $context = new self($initialState, $decoded['desiredDelta'], $configuration);
+
+        // Restore current state
+        $context->currentState = $currentState;
+
+        // Restore status
+        if ($decoded['status'] !== null) {
+            $context->status = ExecutionState::from($decoded['status']);
+        }
+
+        // Restore lock state
+        $context->lockState = LockState::fromArray($decoded['lockState']);
+        $context->skippedDueToLock = $decoded['skippedDueToLock'];
+
+        // Restore gate evaluations
+        foreach ($decoded['gateEvaluations'] as $evalData) {
+            $gate = $gateFactory->fromClassName($evalData['gate']);
+            $result = GateResult::from($evalData['result']);
+            $context->gateEvaluations[] = new GateEvaluation(
+                $gate,
+                $result,
+                $evalData['isActionGate']
+            );
+        }
+
+        // Restore action executions
+        foreach ($decoded['actions'] as $actionData) {
+            $executionState = ExecutionState::from($actionData['executionState']);
+            $newState = $actionData['newState'] !== null
+                ? $stateFactory->fromArray($actionData['newState'])
+                : null;
+            $context->actions[] = new ActionResult(
+                $executionState,
+                $newState,
+                $actionData['metadata']
+            );
+        }
+
+        // Restore action skips
+        foreach ($decoded['actionSkips'] as $skipData) {
+            $action = $actionFactory->fromClassName($skipData['action']);
+            $gateResult = GateResult::from($skipData['gateResult']);
+            $context->actionSkips[] = new ActionSkip($action, $gateResult);
+        }
+
+        return $context;
+    }
 }

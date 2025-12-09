@@ -357,4 +357,65 @@ class TransitionContextTest extends TestCase
     {
         return $this->logger;
     }
+
+    public function testGetStatusMetadataReturnsNullWhenNoActionsExecuted(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $this->assertNull($context->getStatusMetadata());
+    }
+
+    public function testGetStatusMetadataReturnsNullWhenNoStopOrPauseActions(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context->addActionResult(ActionResult::continue());
+        $context->addActionResult(ActionResult::continue());
+
+        $this->assertNull($context->getStatusMetadata());
+    }
+
+    public function testGetStatusMetadataReturnsPauseMetadata(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $metadata = ['reason' => 'waiting for approval', 'approver' => 'manager@example.com'];
+
+        $context->addActionResult(ActionResult::continue());
+        $context->addActionResult(ActionResult::pause(null, $metadata));
+
+        $this->assertSame($metadata, $context->getStatusMetadata());
+    }
+
+    public function testGetStatusMetadataReturnsStopMetadata(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $metadata = ['error' => 'Payment failed', 'code' => 'CARD_DECLINED'];
+
+        $context->addActionResult(ActionResult::continue());
+        $context->addActionResult(ActionResult::stop(null, $metadata));
+
+        $this->assertSame($metadata, $context->getStatusMetadata());
+    }
+
+    public function testGetStatusMetadataReturnsLastPauseOrStopMetadata(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $metadata1 = ['first' => 'pause'];
+        $metadata2 = ['second' => 'stop'];
+
+        $context->addActionResult(ActionResult::pause(null, $metadata1));
+        $context->addActionResult(ActionResult::continue());
+        $context->addActionResult(ActionResult::stop(null, $metadata2));
+
+        // Should return the most recent PAUSE/STOP metadata
+        $this->assertSame($metadata2, $context->getStatusMetadata());
+    }
+
+    public function testGetStatusMetadataReturnsNullWhenMetadataIsNull(): void
+    {
+        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+
+        $context->addActionResult(ActionResult::pause(null, null));
+
+        $this->assertNull($context->getStatusMetadata());
+    }
 }
