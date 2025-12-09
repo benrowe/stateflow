@@ -440,10 +440,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 
 ---
 
-## 9. Locking (Future Feature)
+## 9. Locking
 
 ### Scenario 9.1: Acquire lock before transition
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a StateFlow with LockProvider configured
 **And** LockStrategy is FAIL_FAST
@@ -452,8 +452,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** a LockAcquired event should be dispatched
 **And** getLockState().isLocked() should return true
 
+**Test:** `testAcquireLockBeforeTransition()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:51
+
 ### Scenario 9.2: Lock already held - FAIL_FAST strategy
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a StateFlow with FAIL_FAST lock strategy
 **And** the lock is already held by another process
@@ -462,8 +465,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** a LockFailed event should be dispatched
 **And** no gates or actions should execute
 
+**Test:** `testLockAlreadyHeldFailFastThrowsException()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:115
+
 ### Scenario 9.3: Lock already held - SKIP strategy
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a StateFlow with SKIP lock strategy
 **And** the lock is already held
@@ -473,8 +479,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** wasSkippedDueToLock() should return true
 **And** no gates or actions should execute
 
+**Test:** `testLockAlreadyHeldSkipStrategy()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:221
+
 ### Scenario 9.4: Lock already held - WAIT strategy
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a StateFlow with WAIT lock strategy
 **And** wait timeout of 5 seconds
@@ -484,8 +493,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** it should succeed within 5 seconds
 **And** the transition should proceed normally
 
+**Test:** `testLockAlreadyHeldWaitStrategySucceeds()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:328
+
 ### Scenario 9.5: Lock already held - WAIT timeout
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a StateFlow with WAIT lock strategy
 **And** wait timeout of 2 seconds
@@ -495,16 +507,22 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** a LockAcquisitionException should be thrown
 **And** no transition should occur
 
+**Test:** `testLockAlreadyHeldWaitStrategyTimesOut()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:444
+
 ### Scenario 9.6: Release lock after completion
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a successful transition with lock acquired
 **When** the transition completes
 **Then** the lock should be automatically released
 **And** a LockReleased event should be dispatched
 
+**Test:** `testReleaseLockAfterCompletion()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:550
+
 ### Scenario 9.7: Release lock after failure
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a transition that fails with an exception
 **And** a lock was acquired
@@ -512,8 +530,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** the lock should be automatically released
 **And** the exception should propagate
 
+**Test:** `testReleaseLockAfterFailure()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:623
+
 ### Scenario 9.8: Maintain lock during pause
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a transition that pauses mid-execution
 **When** the action returns PAUSE
@@ -521,16 +542,22 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **And** the lock TTL should be extended if needed
 **And** getLockState() should show the lock is still held
 
+**Test:** `testMaintainLockDuringPause()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:711
+
 ### Scenario 9.9: Release lock on stop
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a transition that stops mid-execution
 **When** an action returns STOP
 **Then** the lock should be released
 **And** a LockReleased event should be dispatched
 
+**Test:** `testReleaseLockOnStop()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:799
+
 ### Scenario 9.10: Renew lock during long-running transition
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a transition with 30 second lock TTL
 **And** the transition takes 50 seconds to complete
@@ -538,8 +565,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** the lock should be automatically renewed
 **And** a LockRestored event should be dispatched
 
+**Test:** `testRenewLockDuringLongRunningTransition()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:885
+
 ### Scenario 9.11: Detect lock lost during execution
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a lock acquired at start of transition
 **And** the lock expires or is lost mid-execution
@@ -547,6 +577,9 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 **Then** a LockLostException should be thrown
 **And** a LockLost event should be dispatched
 **And** execution should stop
+
+**Test:** `testDetectLockLostDuringExecution()`
+**Location:** tests/Integration/StateFlow/LockingTest.php:998
 
 ---
 
@@ -829,10 +862,10 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 ## Summary Statistics
 
 - **Total Scenarios:** 85
-- **Implemented:** ~50 (core functionality complete!)
+- **Implemented:** ~61 (core functionality + locking complete!)
 - **Partially Implemented:** 0
-- **Not Implemented:** ~29
-- **Future Features:** ~6
+- **Not Implemented:** ~18
+- **Future Features:** ~6 (serialization + parallel execution)
 
 ### Recent Progress
 - ✅ Completed all Basic State Transitions scenarios (1.1-1.3)
@@ -851,6 +884,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ **Completed ALL Event Dispatching scenarios (10.1-10.10)** - Full observability across entire workflow lifecycle!
 - ✅ **Completed ALL Error Handling scenarios (12.1-12.3)** - Configuration validation, exception handling, and gate result validation!
 - ✅ **Completed Complex Workflows (13.1, 13.2, 13.4)** - Conditional branching, multi-step approval with pause/resume, and idempotent transitions!
+- ✅ **Completed ALL Locking scenarios (9.1-9.11)** - Full mutex locking system with FAIL_FAST, SKIP, and WAIT strategies, lock renewal, and lock lost detection!
 
 ## Priority Recommendations
 
@@ -867,6 +901,6 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 4. ✅ Action gates (Scenarios 4.1-4.3) - **DONE**
 
 ### Lower Priority (Advanced Features)
-1. Locking (Scenarios 9.1-9.11)
-2. Serialization (Scenarios 11.1-11.3)
-3. Complex workflows (Scenarios 13.1-13.5)
+1. ✅ Locking (Scenarios 9.1-9.11) - **COMPLETE!** All 11 scenarios implemented and tested
+2. Serialization (Scenarios 11.1-11.3) - Future feature
+3. ✅ Complex workflows (Scenarios 13.1-13.2, 13.4) - **MOSTLY COMPLETE!** (13.3 rollback saga pattern still pending)
