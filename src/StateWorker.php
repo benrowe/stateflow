@@ -16,6 +16,7 @@ use BenRowe\StateFlow\Events\GateEvaluating;
 use BenRowe\StateFlow\Events\LockAcquired;
 use BenRowe\StateFlow\Events\LockFailed;
 use BenRowe\StateFlow\Events\LockReleased;
+use BenRowe\StateFlow\Events\LockRestored;
 use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
@@ -187,6 +188,9 @@ class StateWorker
         if ($this->context->isStopped()) {
             return;
         }
+
+        // Renew lock if it's about to expire
+        $this->renewLockIfNeeded();
 
         $actions = $this->configuration->getActions();
 
@@ -438,5 +442,49 @@ class StateWorker
         $this->eventDispatcher->dispatch(
             new LockReleased($lockKey, $this->context->getCurrentState())
         );
+    }
+
+    private function renewLockIfNeeded(): void
+    {
+        // Skip if no locking configured or no lock was acquired
+        if (
+            $this->lockProvider === null
+            || $this->lockConfiguration === null
+            || !$this->context->getLockState()->isLocked()
+        ) {
+            return;
+        }
+
+        $lockState = $this->context->getLockState();
+        $acquiredAt = $lockState->acquiredAt;
+        $ttl = $lockState->ttl;
+
+        assert($acquiredAt !== null);
+        assert($ttl !== null);
+
+        // Calculate how much time has elapsed since lock was acquired
+        $elapsed = microtime(true) - $acquiredAt;
+
+        // Renew if more than 50% of TTL has elapsed
+        $renewThreshold = $ttl * 0.5;
+
+        if ($elapsed >= $renewThreshold) {
+            $lockKey = $lockState->lockKey;
+            assert($lockKey !== null);
+
+            // Renew the lock
+            $renewed = $this->lockProvider->renew($lockKey, $ttl);
+
+            if ($renewed) {
+                // Update lock state with new acquired time
+                $newLockState = new LockState($lockKey, microtime(true), $ttl);
+                $this->context->setLockState($newLockState);
+
+                // Dispatch LockRestored event
+                $this->eventDispatcher->dispatch(
+                    new LockRestored($lockKey, $this->context->getCurrentState())
+                );
+            }
+        }
     }
 }
