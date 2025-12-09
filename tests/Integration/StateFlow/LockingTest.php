@@ -12,6 +12,7 @@ use BenRowe\StateFlow\Events\Event;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\LockAcquired;
 use BenRowe\StateFlow\Events\LockFailed;
+use BenRowe\StateFlow\Events\LockReleased;
 use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -416,5 +417,267 @@ class LockingTest extends TestCase
         // Verify LockAcquired event was dispatched
         $lockAcquiredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockAcquired);
         $this->assertCount(1, $lockAcquiredEvents, 'LockAcquired event should be dispatched');
+    }
+
+    /**
+     * Scenario 9.5: Lock already held - WAIT timeout
+     *
+     * Given a StateFlow with WAIT lock strategy
+     * And wait timeout of 2 seconds
+     * And the lock remains held for longer than timeout
+     * When I attempt a transition
+     * Then it should retry for 2 seconds
+     * And a LockAcquisitionException should be thrown
+     * And no transition should occur
+     */
+    public function testLockAlreadyHeldWaitStrategyTimesOut(): void
+    {
+        $attemptCount = 0;
+
+        // Create a mock lock provider that always fails (lock never released)
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->atLeastOnce())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturnCallback(function () use (&$attemptCount) {
+                $attemptCount++;
+
+                // Lock is never released
+                return false;
+            });
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create a simple action to verify it does NOT execute
+        $actionExecuted = false;
+        $action = new class ($actionExecuted) implements Action {
+            /** @phpstan-ignore-next-line */
+            public function __construct(private bool &$executed)
+            {
+            }
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->executed = true;
+
+                return ActionResult::continue();
+            }
+        };
+
+        // Create StateFlow with locking and WAIT strategy (0.5 second timeout, 50ms retry interval)
+        $lockConfig = new LockConfiguration(
+            strategy: LockStrategy::WAIT,
+            ttl: 30,
+            waitTimeout: 1, // 1 second timeout for faster test
+            retryInterval: 50
+        );
+        $config = new Configuration([], [$action]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        // Expect exception to be thrown
+        $this->expectException(LockAcquisitionException::class);
+        $this->expectExceptionMessage('Failed to acquire lock');
+
+        $startTime = microtime(true);
+
+        try {
+            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker->execute();
+        } finally {
+            $endTime = microtime(true);
+            $duration = $endTime - $startTime;
+
+            // Verify it waited for approximately the timeout duration
+            $this->assertGreaterThanOrEqual(1.0, $duration, 'Should have waited for at least timeout duration');
+            $this->assertLessThan(1.5, $duration, 'Should not have waited significantly longer than timeout');
+
+            // Verify multiple acquire attempts were made
+            $this->assertGreaterThan(1, $attemptCount, 'Should have retried acquiring the lock multiple times');
+
+            // Verify LockFailed event was dispatched
+            $lockFailedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockFailed);
+            $this->assertCount(1, $lockFailedEvents, 'LockFailed event should be dispatched on timeout');
+
+            // Verify action was NOT executed
+            $this->assertFalse($actionExecuted, 'Action should not execute when lock acquisition times out');
+        }
+    }
+
+    /**
+     * Scenario 9.6: Release lock after completion
+     *
+     * Given a successful transition with lock acquired
+     * When the transition completes
+     * Then the lock should be automatically released
+     * And a LockReleased event should be dispatched
+     */
+    public function testReleaseLockAfterCompletion(): void
+    {
+        // Create a mock lock provider that tracks calls
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        $lockProvider
+            ->expects($this->once())
+            ->method('release')
+            ->with('order:123')
+            ->willReturn(true);
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create StateFlow with locking
+        $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $config = new Configuration([], []);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
+
+        // Verify lock was acquired
+        $this->assertTrue($context->getLockState()->isLocked());
+
+        // Verify transition completed
+        $this->assertTrue($context->isCompleted());
+
+        // Verify LockReleased event was dispatched
+        $lockReleasedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockReleased);
+        $this->assertCount(1, $lockReleasedEvents, 'LockReleased event should be dispatched');
+
+        $lockReleasedEvent = array_values($lockReleasedEvents)[0];
+        $this->assertSame('order:123', $lockReleasedEvent->lockKey);
+    }
+
+    /**
+     * Scenario 9.7: Release lock after failure
+     *
+     * Given a transition that fails with an exception
+     * And a lock was acquired
+     * When the exception is thrown
+     * Then the lock should be automatically released
+     * And the exception should propagate
+     */
+    public function testReleaseLockAfterFailure(): void
+    {
+        // Create a mock lock provider that tracks calls
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        $lockProvider
+            ->expects($this->once())
+            ->method('release')
+            ->with('order:123')
+            ->willReturn(true);
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create an action that throws an exception
+        $action = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                throw new \RuntimeException('Action failed');
+            }
+        };
+
+        // Create StateFlow with locking
+        $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $config = new Configuration([], [$action]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        // Expect exception to be thrown
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Action failed');
+
+        try {
+            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker->execute();
+        } finally {
+            // Verify LockReleased event was dispatched even though exception was thrown
+            $lockReleasedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockReleased);
+            $this->assertCount(1, $lockReleasedEvents, 'LockReleased event should be dispatched even on failure');
+
+            $lockReleasedEvent = array_values($lockReleasedEvents)[0];
+            $this->assertSame('order:123', $lockReleasedEvent->lockKey);
+        }
     }
 }

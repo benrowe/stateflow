@@ -15,10 +15,16 @@
     </rule>
     <rule ref="rulesets/codesize.xml">
         <exclude name="TooManyPublicMethods"/>
+        <exclude name="ExcessiveClassComplexity"/>
     </rule>
     <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
         <properties>
             <property name="maxmethods" value="15" />
+        </properties>
+    </rule>
+    <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity">
+        <properties>
+            <property name="maximum" value="60" />
         </properties>
     </rule>
     <rule ref="rulesets/controversial.xml"/>

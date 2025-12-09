@@ -15,6 +15,7 @@ use BenRowe\StateFlow\Events\GateEvaluated;
 use BenRowe\StateFlow\Events\GateEvaluating;
 use BenRowe\StateFlow\Events\LockAcquired;
 use BenRowe\StateFlow\Events\LockFailed;
+use BenRowe\StateFlow\Events\LockReleased;
 use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
@@ -99,32 +100,40 @@ class StateWorker
             return $this->context;
         }
 
-        // Run transition gates first
-        $gateResult = $this->evaluateGates();
+        try {
+            // Run transition gates first
+            $gateResult = $this->evaluateGates();
 
-        // Skip actions if gates denied or returned SKIP_IDEMPOTENT
-        if ($gateResult->shouldSkipAction()) {
-            $this->skipAllActions($gateResult);
+            // Skip actions if gates denied or returned SKIP_IDEMPOTENT
+            if ($gateResult->shouldSkipAction()) {
+                $this->skipAllActions($gateResult);
 
-            // SKIP_IDEMPOTENT should complete successfully (idempotent transitions are considered complete)
-            if ($gateResult === GateResult::SKIP_IDEMPOTENT) {
+                // SKIP_IDEMPOTENT should complete successfully (idempotent transitions are considered complete)
+                if ($gateResult === GateResult::SKIP_IDEMPOTENT) {
+                    $this->context->markAsCompleted();
+                    $this->eventDispatcher->dispatch(new TransitionCompleted($this->context->getCurrentState(), $this->context));
+                }
+
+                return $this->context;
+            }
+
+            // Only run actions if all gates allowed
+            $this->executeActions();
+
+            // Mark as completed if we got through all actions
+            if (!$this->context->isPaused() && !$this->context->isStopped()) {
                 $this->context->markAsCompleted();
                 $this->eventDispatcher->dispatch(new TransitionCompleted($this->context->getCurrentState(), $this->context));
             }
 
             return $this->context;
+        } finally {
+            // Always release lock if it was acquired (including on exception or pause/stop)
+            // Only keep lock if paused (scenario 9.8) - but we haven't implemented that yet
+            if ($this->context->getLockState()->isLocked() && !$this->context->isPaused()) {
+                $this->releaseLock();
+            }
         }
-
-        // Only run actions if all gates allowed
-        $this->executeActions();
-
-        // Mark as completed if we got through all actions
-        if (!$this->context->isPaused() && !$this->context->isStopped()) {
-            $this->context->markAsCompleted();
-            $this->eventDispatcher->dispatch(new TransitionCompleted($this->context->getCurrentState(), $this->context));
-        }
-
-        return $this->context;
     }
 
     private function evaluateGates(): GateResult
@@ -404,5 +413,30 @@ class StateWorker
                 return;
             }
         }
+    }
+
+    private function releaseLock(): void
+    {
+        // Skip if no locking configured or no lock was acquired
+        if (
+            $this->lockProvider === null
+            || $this->lockKeyProvider === null
+            || !$this->context->getLockState()->isLocked()
+        ) {
+            return;
+        }
+
+        $lockState = $this->context->getLockState();
+        $lockKey = $lockState->lockKey;
+
+        assert($lockKey !== null);
+
+        // Release the lock
+        $this->lockProvider->release($lockKey);
+
+        // Dispatch LockReleased event
+        $this->eventDispatcher->dispatch(
+            new LockReleased($lockKey, $this->context->getCurrentState())
+        );
     }
 }
