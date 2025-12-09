@@ -13,6 +13,7 @@ use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\LockAcquired;
 use BenRowe\StateFlow\Events\LockFailed;
 use BenRowe\StateFlow\Events\LockReleased;
+use BenRowe\StateFlow\Events\LockRestored;
 use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -20,6 +21,7 @@ use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Locking\LockConfiguration;
 use BenRowe\StateFlow\Locking\LockKeyProvider;
 use BenRowe\StateFlow\Locking\LockProvider;
+use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\Locking\LockStrategy;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
@@ -839,5 +841,110 @@ class LockingTest extends TestCase
 
         $lockReleasedEvent = array_values($lockReleasedEvents)[0];
         $this->assertSame('order:123', $lockReleasedEvent->lockKey);
+    }
+
+    /**
+     * Scenario 9.10: Renew lock during long-running transition
+     *
+     * Given a transition with 30 second lock TTL
+     * And the transition takes 50 seconds to complete
+     * When the TTL is about to expire
+     * Then the lock should be automatically renewed
+     * And a LockRestored event should be dispatched
+     */
+    public function testRenewLockDuringLongRunningTransition(): void
+    {
+        // Create a mock lock provider that tracks calls
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        // Lock should be renewed at least once during long execution
+        $lockProvider
+            ->expects($this->atLeastOnce())
+            ->method('renew')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        $lockProvider
+            ->expects($this->once())
+            ->method('release')
+            ->with('order:123')
+            ->willReturn(true);
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create multiple actions that simulate long execution
+        // We'll manipulate the lock acquired time to simulate TTL expiry
+        $action1 = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                // Simulate time passing - manipulate lock state to appear old
+                $transitionContext = $context->executionContext;
+                $currentLockState = $transitionContext->getLockState();
+
+                // Create new lock state with old acquired time (25 seconds ago)
+                $oldLockState = new LockState(
+                    $currentLockState->lockKey,
+                    microtime(true) - 25, // 25 seconds in the past
+                    $currentLockState->ttl
+                );
+                $transitionContext->setLockState($oldLockState);
+
+                return ActionResult::continue();
+            }
+        };
+
+        $action2 = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::continue();
+            }
+        };
+
+        // Create StateFlow with locking (30 second TTL)
+        $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $config = new Configuration([], [$action1, $action2]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
+
+        // Verify transition completed
+        $this->assertTrue($context->isCompleted(), 'Transition should complete successfully');
+
+        // Verify LockRestored event was dispatched (lock was renewed)
+        $lockRestoredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockRestored);
+        $this->assertGreaterThan(0, count($lockRestoredEvents), 'LockRestored event should be dispatched when lock is renewed');
+
+        $lockRestoredEvent = array_values($lockRestoredEvents)[0];
+        $this->assertSame('order:123', $lockRestoredEvent->lockKey);
     }
 }
