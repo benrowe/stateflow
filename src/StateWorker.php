@@ -15,6 +15,7 @@ use BenRowe\StateFlow\Events\GateEvaluated;
 use BenRowe\StateFlow\Events\GateEvaluating;
 use BenRowe\StateFlow\Events\LockAcquired;
 use BenRowe\StateFlow\Events\LockFailed;
+use BenRowe\StateFlow\Events\LockLost;
 use BenRowe\StateFlow\Events\LockReleased;
 use BenRowe\StateFlow\Events\LockRestored;
 use BenRowe\StateFlow\Events\TransitionCompleted;
@@ -23,6 +24,7 @@ use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStopped;
 use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
 use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
+use BenRowe\StateFlow\Exceptions\LockLostException;
 use BenRowe\StateFlow\Exceptions\TransitionException;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -188,6 +190,9 @@ class StateWorker
         if ($this->context->isStopped()) {
             return;
         }
+
+        // Check if lock is still held (detect if it was lost/expired)
+        $this->checkLockStillHeld();
 
         // Renew lock if it's about to expire
         $this->renewLockIfNeeded();
@@ -485,6 +490,37 @@ class StateWorker
                     new LockRestored($lockKey, $this->context->getCurrentState())
                 );
             }
+        }
+    }
+
+    private function checkLockStillHeld(): void
+    {
+        // Skip if no locking configured or no lock was acquired
+        if (
+            $this->lockProvider === null
+            || !$this->context->getLockState()->isLocked()
+        ) {
+            return;
+        }
+
+        $lockState = $this->context->getLockState();
+        $lockKey = $lockState->lockKey;
+
+        assert($lockKey !== null);
+
+        // Check if lock still exists
+        $lockExists = $this->lockProvider->exists($lockKey);
+
+        if (!$lockExists) {
+            // Dispatch LockLost event
+            $this->eventDispatcher->dispatch(
+                new LockLost($lockKey, $this->context->getCurrentState())
+            );
+
+            // Throw exception to stop execution
+            throw new LockLostException(
+                sprintf('Lock was lost during execution for key: %s', $lockKey)
+            );
         }
     }
 }
