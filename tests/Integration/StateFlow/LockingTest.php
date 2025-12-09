@@ -762,4 +762,82 @@ class LockingTest extends TestCase
         $lockAcquiredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockAcquired);
         $this->assertCount(1, $lockAcquiredEvents, 'LockAcquired event should be dispatched');
     }
+
+    /**
+     * Scenario 9.9: Release lock on stop
+     *
+     * Given a transition that stops mid-execution
+     * When an action returns STOP
+     * Then the lock should be released
+     * And a LockReleased event should be dispatched
+     */
+    public function testReleaseLockOnStop(): void
+    {
+        // Create a mock lock provider that tracks calls
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->once())
+            ->method('acquire')
+            ->with('order:123', 30)
+            ->willReturn(true);
+
+        // Lock SHOULD be released when stopped
+        $lockProvider
+            ->expects($this->once())
+            ->method('release')
+            ->with('order:123')
+            ->willReturn(true);
+
+        // Create a lock key provider
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->once())
+            ->method('getLockKey')
+            ->willReturn('order:123');
+
+        // Track events
+        $dispatchedEvents = [];
+        $mockDispatcher = $this->createMock(EventDispatcher::class);
+        $mockDispatcher
+            ->expects($this->any())
+            ->method('dispatch')
+            ->willReturnCallback(function (Event $event) use (&$dispatchedEvents) {
+                $dispatchedEvents[] = $event;
+            });
+
+        // Create an action that stops execution
+        $action = new class () implements Action {
+            public function execute(ActionContext $context): ActionResult
+            {
+                return ActionResult::stop();
+            }
+        };
+
+        // Create StateFlow with locking
+        $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $config = new Configuration([], [$action]);
+
+        $stateFlow = new StateFlow(
+            fn () => $config,
+            $mockDispatcher,
+            $lockProvider,
+            $lockKeyProvider,
+            $lockConfig
+        );
+
+        $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
+
+        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $context = $worker->execute();
+
+        // Verify transition is stopped
+        $this->assertTrue($context->isStopped(), 'Transition should be stopped');
+
+        // Verify LockReleased event was dispatched
+        $lockReleasedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockReleased);
+        $this->assertCount(1, $lockReleasedEvents, 'LockReleased event should be dispatched when stopped');
+
+        $lockReleasedEvent = array_values($lockReleasedEvents)[0];
+        $this->assertSame('order:123', $lockReleasedEvent->lockKey);
+    }
 }
