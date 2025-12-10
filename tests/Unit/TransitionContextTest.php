@@ -353,11 +353,6 @@ class TransitionContextTest extends TestCase
         $this->assertTrue($context->wasSkippedDueToLock());
     }
 
-    protected function getLogger(): ExecutionLogger
-    {
-        return $this->logger;
-    }
-
     public function testGetStatusMetadataReturnsNullWhenNoActionsExecuted(): void
     {
         $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
@@ -417,5 +412,10 @@ class TransitionContextTest extends TestCase
         $context->addActionResult(ActionResult::pause(null, null));
 
         $this->assertNull($context->getStatusMetadata());
+    }
+
+    protected function getLogger(): ExecutionLogger
+    {
+        return $this->logger;
     }
 }

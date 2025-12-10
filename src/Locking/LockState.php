@@ -46,7 +46,9 @@ readonly class LockState
     public static function fromArray(array $data): self
     {
         $lockKey = isset($data['lockKey']) && is_string($data['lockKey']) ? $data['lockKey'] : null;
-        $acquiredAt = isset($data['acquiredAt']) && is_float($data['acquiredAt']) ? $data['acquiredAt'] : null;
+        $acquiredAt = isset($data['acquiredAt']) && (is_float($data['acquiredAt']) || is_int($data['acquiredAt']))
+            ? (float) $data['acquiredAt']
+            : null;
         $ttl = isset($data['ttl']) && is_int($data['ttl']) ? $data['ttl'] : null;
 
         return new self($lockKey, $acquiredAt, $ttl);
