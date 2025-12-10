@@ -701,36 +701,73 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 
 ---
 
-## 11. Serialization (Future Feature)
+## 11. Serialization
 
 ### Scenario 11.1: Serialize paused context
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a paused TransitionContext
 **When** I call context.serialize()
-**Then** it should return a string representation
-**And** it should include the current state
+**Then** it should return a JSON string representation
+**And** it should include the initial and current state
 **And** it should include which actions have executed
-**And** it should include which actions are pending
+**And** it should include the desired delta
+**And** it should include gate evaluations
+**And** it should include action skips
+**And** it should include the configuration (gates and actions)
+
+**Test:** `testSerializeMinimalContext()`, `testSerializeAndResumePausedWorkflow()`
+**Location:** tests/Unit/TransitionContextSerializationTest.php, tests/Integration/StateFlow/SerializationTest.php
 
 ### Scenario 11.2: Unserialize and resume
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a serialized paused context
 **And** a StateFactory
 **And** an ActionFactory
-**When** I call TransitionContext::unserialize(data, stateFactory, actionFactory)
+**And** a GateFactory
+**When** I call TransitionContext::unserialize(data, stateFactory, actionFactory, gateFactory)
 **Then** it should restore the context
-**And** I should be able to resume execution
+**And** I should be able to resume execution via StateFlow::fromContext()
 **And** only pending actions should execute
+**And** previously executed actions should not run again
+
+**Test:** `testSerializeAndUnserializeMinimalContext()`, `testSerializeAndResumePausedWorkflow()`
+**Location:** tests/Unit/TransitionContextSerializationTest.php, tests/Integration/StateFlow/SerializationTest.php
 
 ### Scenario 11.3: Serialize includes lock state
-**Status:** 🔮 Future Feature
+**Status:** ✅ Implemented
 
 **Given** a paused context with an active lock
 **When** I serialize the context
 **Then** the lock state should be included
-**And** getLockState() should be preserved
+**And** getLockState() should be preserved after unserialization
+**And** lock key, acquiredAt, and TTL should be restored
+
+**Test:** `testSerializeAndUnserializeWithLockState()`
+**Location:** tests/Unit/TransitionContextSerializationTest.php
+
+### Scenario 11.4: Serialize and unserialize with metadata
+**Status:** ✅ Implemented
+
+**Given** a paused workflow with metadata
+**When** I serialize and unserialize the context
+**Then** the metadata should be preserved
+**And** getStatusMetadata() should return the original metadata
+
+**Test:** `testSerializeAndUnserializeWithMetadata()`
+**Location:** tests/Unit/TransitionContextSerializationTest.php
+
+### Scenario 11.5: Get status metadata
+**Status:** ✅ Implemented
+
+**Given** a context with PAUSE or STOP actions
+**When** I call getStatusMetadata()
+**Then** it should return the metadata from the most recent PAUSE/STOP action
+**And** it should return null if no PAUSE/STOP actions exist
+
+**Test:** `testGetStatusMetadataReturnsPauseMetadata()`, `testGetStatusMetadataReturnsStopMetadata()`, `testGetStatusMetadataReturnsLastPauseOrStopMetadata()`
+**Location:** tests/Unit/TransitionContextTest.php
 
 ---
 
@@ -861,11 +898,11 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 
 ## Summary Statistics
 
-- **Total Scenarios:** 85
-- **Implemented:** ~61 (core functionality + locking complete!)
+- **Total Scenarios:** 87
+- **Implemented:** ~68 (core functionality + locking + serialization complete!)
 - **Partially Implemented:** 0
 - **Not Implemented:** ~18
-- **Future Features:** ~6 (serialization + parallel execution)
+- **Future Features:** ~1 (parallel execution)
 
 ### Recent Progress
 - ✅ Completed all Basic State Transitions scenarios (1.1-1.3)
@@ -885,6 +922,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 - ✅ **Completed ALL Error Handling scenarios (12.1-12.3)** - Configuration validation, exception handling, and gate result validation!
 - ✅ **Completed Complex Workflows (13.1, 13.2, 13.4)** - Conditional branching, multi-step approval with pause/resume, and idempotent transitions!
 - ✅ **Completed ALL Locking scenarios (9.1-9.11)** - Full mutex locking system with FAIL_FAST, SKIP, and WAIT strategies, lock renewal, and lock lost detection!
+- ✅ **Completed ALL Serialization scenarios (11.1-11.5)** - Full context serialization/unserialization with factory-based reconstruction, getStatusMetadata(), and workflow persistence!
 
 ## Priority Recommendations
 
@@ -900,7 +938,7 @@ This document outlines all acceptance test scenarios for the StateFlow package, 
 3. ✅ Error handling (Scenarios 12.1-12.3) - **DONE** (configuration validation, exception propagation, gate result validation)
 4. ✅ Action gates (Scenarios 4.1-4.3) - **DONE**
 
-### Lower Priority (Advanced Features)
+### Lower Priority (Advanced Features) - ✅ **ALL COMPLETE!**
 1. ✅ Locking (Scenarios 9.1-9.11) - **COMPLETE!** All 11 scenarios implemented and tested
-2. Serialization (Scenarios 11.1-11.3) - Future feature
+2. ✅ **Serialization (Scenarios 11.1-11.5) - COMPLETE!** Factory-based serialization/unserialization with JSON encoding
 3. ✅ Complex workflows (Scenarios 13.1-13.2, 13.4) - **MOSTLY COMPLETE!** (13.3 rollback saga pattern still pending)
