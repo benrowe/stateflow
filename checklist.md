@@ -30,9 +30,12 @@ This checklist is generated from the documentation to track the creation of all 
   - ✅ `getActionSkips(): array`
   - ✅ `clearPauseStatus(): void`
   - ✅ `getLockState(): LockState`
-  - ❌ `getStatusMetadata(): mixed`
-  - ❌ `serialize(): string`
-  - ❌ `unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self`
+  - ✅ `getStatusMetadata(): mixed`
+  - ✅ `serialize(): string`
+  - ✅ `unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory, GateFactory $gateFactory): self`
+- ✅ `src/StateFactory.php` (interface for deserializing State objects)
+- ✅ `src/ActionFactory.php` (interface for deserializing Action objects)
+- ✅ `src/GateFactory.php` (interface for deserializing Gate objects)
 
 ## `src/Events`
 - ✅ `src/Events/EventDispatcher.php` (interface)
