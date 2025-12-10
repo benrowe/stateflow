@@ -310,6 +310,452 @@ class TransitionContextSerializationTest extends TestCase
         // Verify lock state
         $this->assertTrue($restored->getLockState()->isLocked());
     }
+
+    public function testUnserializeWithInvalidJsonThrowsException(): void
+    {
+        $this->expectException(\JsonException::class);
+        $this->expectExceptionMessage('Invalid JSON data: expected object');
+
+        TransitionContext::unserialize(
+            'null',
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+    }
+
+    public function testUnserializeWithMissingConfigurationData(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $serialized = $context->serialize();
+
+        // Decode and remove configuration
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        unset($data['configuration']);
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should have empty configuration
+        $this->assertCount(0, $restored->getConfiguration()->getTransitionGates());
+        $this->assertCount(0, $restored->getConfiguration()->getActions());
+    }
+
+    public function testUnserializeWithInvalidConfigurationData(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $serialized = $context->serialize();
+
+        // Decode and set configuration to a non-array value
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['configuration'] = 'invalid';
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should have empty configuration (defaults when not array)
+        $this->assertCount(0, $restored->getConfiguration()->getTransitionGates());
+        $this->assertCount(0, $restored->getConfiguration()->getActions());
+    }
+
+    public function testUnserializeWithNullLockStateData(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $serialized = $context->serialize();
+
+        // Decode and set lockState to null
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['lockState'] = null;
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should have empty lock state
+        $this->assertFalse($restored->getLockState()->isLocked());
+    }
+
+    public function testUnserializeWithMissingSkippedDueToLock(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $serialized = $context->serialize();
+
+        // Decode and remove skippedDueToLock
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        unset($data['skippedDueToLock']);
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should default to false
+        $this->assertFalse($restored->wasSkippedDueToLock());
+    }
+
+    public function testUnserializeWithNullStatus(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $serialized = $context->serialize();
+
+        // Decode and set status to null
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['status'] = null;
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should have no status
+        $this->assertFalse($restored->isCompleted());
+        $this->assertFalse($restored->isPaused());
+        $this->assertFalse($restored->isStopped());
+    }
+
+    public function testUnserializeWithInvalidStatusUsesDefault(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->markAsCompleted();
+        $serialized = $context->serialize();
+
+        // Decode and set invalid status
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['status'] = 'INVALID_STATUS';
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should have no status (default case returns null)
+        $this->assertFalse($restored->isCompleted());
+        $this->assertFalse($restored->isPaused());
+        $this->assertFalse($restored->isStopped());
+    }
+
+    public function testUnserializeWithInvalidGateResultUsesDefault(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $gate = new TestGate();
+        $config = new Configuration([$gate], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
+        $serialized = $context->serialize();
+
+        // Decode and set invalid gate result
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['gateEvaluations'][0]['result'] = 'INVALID_RESULT';
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should use default ALLOW
+        $evaluations = $restored->getGateEvaluations();
+        $this->assertCount(1, $evaluations);
+        $this->assertSame(GateResult::ALLOW, $evaluations[0]->result);
+    }
+
+    public function testUnserializeWithInvalidActionExecutionStateUsesDefault(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addActionResult(new ActionResult(ExecutionState::CONTINUE));
+        $serialized = $context->serialize();
+
+        // Decode and set invalid execution state
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['actions'][0]['executionState'] = 'INVALID_STATE';
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should use default CONTINUE
+        $executions = $restored->getActionExecutions();
+        $this->assertCount(1, $executions);
+        $this->assertSame(ExecutionState::CONTINUE, $executions[0]->executionState);
+    }
+
+    public function testUnserializeWithInvalidActionSkipGateResultUsesDefault(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $action = new TestAction();
+        $config = new Configuration([], [$action]);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addActionSkip($action, GateResult::DENY);
+        $serialized = $context->serialize();
+
+        // Decode and set invalid gate result
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['actionSkips'][0]['gateResult'] = 'INVALID_RESULT';
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should use default ALLOW
+        $skips = $restored->getActionSkips();
+        $this->assertCount(1, $skips);
+        $this->assertSame(GateResult::ALLOW, $skips[0]->gateResult);
+    }
+
+    public function testSerializeAndUnserializeWithGateDenyResult(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $gate = new TestGate();
+        $config = new Configuration([$gate], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addGateEvaluation($gate, GateResult::DENY, false);
+
+        $serialized = $context->serialize();
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $evaluations = $restored->getGateEvaluations();
+        $this->assertCount(1, $evaluations);
+        $this->assertSame(GateResult::DENY, $evaluations[0]->result);
+    }
+
+    public function testSerializeAndUnserializeWithGateSkipIdempotentResult(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $gate = new TestGate();
+        $config = new Configuration([$gate], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addGateEvaluation($gate, GateResult::SKIP_IDEMPOTENT, false);
+
+        $serialized = $context->serialize();
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $evaluations = $restored->getGateEvaluations();
+        $this->assertCount(1, $evaluations);
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $evaluations[0]->result);
+    }
+
+    public function testSerializeAndUnserializeWithActionSkipAllowResult(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $action = new TestAction();
+        $config = new Configuration([], [$action]);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addActionSkip($action, GateResult::ALLOW);
+
+        $serialized = $context->serialize();
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $skips = $restored->getActionSkips();
+        $this->assertCount(1, $skips);
+        $this->assertSame(GateResult::ALLOW, $skips[0]->gateResult);
+    }
+
+    public function testSerializeAndUnserializeWithActionSkipIdempotentResult(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $action = new TestAction();
+        $config = new Configuration([], [$action]);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addActionSkip($action, GateResult::SKIP_IDEMPOTENT);
+
+        $serialized = $context->serialize();
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $skips = $restored->getActionSkips();
+        $this->assertCount(1, $skips);
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skips[0]->gateResult);
+    }
+
+    public function testSerializeAndUnserializeWithPauseExecutionState(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addActionResult(new ActionResult(ExecutionState::PAUSE));
+
+        $serialized = $context->serialize();
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $executions = $restored->getActionExecutions();
+        $this->assertCount(1, $executions);
+        $this->assertSame(ExecutionState::PAUSE, $executions[0]->executionState);
+    }
+
+    public function testSerializeAndUnserializeWithStopExecutionState(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addActionResult(new ActionResult(ExecutionState::STOP));
+
+        $serialized = $context->serialize();
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $executions = $restored->getActionExecutions();
+        $this->assertCount(1, $executions);
+        $this->assertSame(ExecutionState::STOP, $executions[0]->executionState);
+    }
 }
 
 // Test implementations
