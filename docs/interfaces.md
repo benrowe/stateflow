@@ -306,6 +306,7 @@ final class ActionSkipCollection extends ArrayCollection
 ```
 
 **Collection Features:**
+
 - **Immutable:** All collections use the `with()` method which returns a new instance
 - **Type-safe:** Constructor and `set()`/`offsetSet()` methods enforce type constraints at runtime
 - **Doctrine Collections:** Extends `ArrayCollection` providing full Collection API (map, filter, etc.)
