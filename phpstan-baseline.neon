@@ -1,40 +1,172 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Asserted type array\<BenRowe\\StateFlow\\Action\\Action\> for \$this\-\>actions with type array\<BenRowe\\StateFlow\\Action\\Action\> does not narrow down the type\.$#'
-			identifier: assert.alreadyNarrowedType
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Asserted type array\<BenRowe\\StateFlow\\Gate\\Gate\> for \$this\-\>transitionGates with type array\<BenRowe\\StateFlow\\Gate\\Gate\> does not narrow down the type\.$#'
-			identifier: assert.alreadyNarrowedType
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateActions\(\) will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateGates\(\) will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
 			message: '#^Instanceof between BenRowe\\StateFlow\\Action\\Action and BenRowe\\StateFlow\\Action\\Action will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
+			count: 2
+			path: src/Action/ActionCollection.php
+
+		-
+			message: '#^Parameter \#1 \$elements of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\Action\>\:\:__construct\(\) expects array\<int, BenRowe\\StateFlow\\Action\\Action\>, array\<int\|string, BenRowe\\StateFlow\\Action\\Action\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Action/ActionCollection.php
+
+		-
+			message: '#^Parameter \#1 \$offset of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\Action\>\:\:offsetSet\(\) expects int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Action/ActionCollection.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$actions \(BenRowe\\StateFlow\\Action\\Action\) of method BenRowe\\StateFlow\\Action\\ActionCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\Action\>\:\:__construct\(\)\.$#'
+			identifier: method.childParameterType
+			count: 1
+			path: src/Action/ActionCollection.php
+
+		-
+			message: '#^Instanceof between BenRowe\\StateFlow\\Action\\ActionResult and BenRowe\\StateFlow\\Action\\ActionResult will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 2
+			path: src/Action/ActionResultCollection.php
+
+		-
+			message: '#^Parameter \#1 \$elements of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\ActionResult\>\:\:__construct\(\) expects array\<int, BenRowe\\StateFlow\\Action\\ActionResult\>, array\<int\|string, BenRowe\\StateFlow\\Action\\ActionResult\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Action/ActionResultCollection.php
+
+		-
+			message: '#^Parameter \#1 \$offset of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\ActionResult\>\:\:offsetSet\(\) expects int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Action/ActionResultCollection.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$results \(BenRowe\\StateFlow\\Action\\ActionResult\) of method BenRowe\\StateFlow\\Action\\ActionResultCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\ActionResult\>\:\:__construct\(\)\.$#'
+			identifier: method.childParameterType
+			count: 1
+			path: src/Action/ActionResultCollection.php
+
+		-
+			message: '#^Instanceof between BenRowe\\StateFlow\\ActionSkip and BenRowe\\StateFlow\\ActionSkip will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 2
+			path: src/ActionSkipCollection.php
+
+		-
+			message: '#^Parameter \#1 \$elements of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\ActionSkip\>\:\:__construct\(\) expects array\<int, BenRowe\\StateFlow\\ActionSkip\>, array\<int\|string, BenRowe\\StateFlow\\ActionSkip\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ActionSkipCollection.php
+
+		-
+			message: '#^Parameter \#1 \$offset of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\ActionSkip\>\:\:offsetSet\(\) expects int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ActionSkipCollection.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$skips \(BenRowe\\StateFlow\\ActionSkip\) of method BenRowe\\StateFlow\\ActionSkipCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\ActionSkip\>\:\:__construct\(\)\.$#'
+			identifier: method.childParameterType
+			count: 1
+			path: src/ActionSkipCollection.php
+
+		-
+			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateActions\(\) with array\<BenRowe\\StateFlow\\Action\\Action\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateGates\(\) with array\<BenRowe\\StateFlow\\Gate\\Gate\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$actions with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$actions with no value type specified in iterable type array\|\(BenRowe\\StateFlow\\Action\\ActionCollection&iterable\<BenRowe\\StateFlow\\Action\\Action\>\)\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$transitionGates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$transitionGates with no value type specified in iterable type array\|\(BenRowe\\StateFlow\\Gate\\GateCollection&iterable\<BenRowe\\StateFlow\\Gate\\Gate\>\)\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Parameter \#1 \$actions of method BenRowe\\StateFlow\\Configuration\\Configuration\:\:createActionCollection\(\) expects array\<BenRowe\\StateFlow\\Action\\Action\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Parameter \#1 \$gates of method BenRowe\\StateFlow\\Configuration\\Configuration\:\:createGateCollection\(\) expects array\<BenRowe\\StateFlow\\Gate\\Gate\>, array given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Configuration/Configuration.php
 
 		-
 			message: '#^Instanceof between BenRowe\\StateFlow\\Gate\\Gate and BenRowe\\StateFlow\\Gate\\Gate will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
+			count: 2
+			path: src/Gate/GateCollection.php
+
+		-
+			message: '#^Parameter \#1 \$elements of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Gate\\Gate\>\:\:__construct\(\) expects array\<int, BenRowe\\StateFlow\\Gate\\Gate\>, array\<int\|string, BenRowe\\StateFlow\\Gate\\Gate\> given\.$#'
+			identifier: argument.type
 			count: 1
-			path: src/Configuration/Configuration.php
+			path: src/Gate/GateCollection.php
+
+		-
+			message: '#^Parameter \#1 \$offset of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Gate\\Gate\>\:\:offsetSet\(\) expects int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Gate/GateCollection.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$gates \(BenRowe\\StateFlow\\Gate\\Gate\) of method BenRowe\\StateFlow\\Gate\\GateCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Gate\\Gate\>\:\:__construct\(\)\.$#'
+			identifier: method.childParameterType
+			count: 1
+			path: src/Gate/GateCollection.php
+
+		-
+			message: '#^Instanceof between BenRowe\\StateFlow\\GateEvaluation and BenRowe\\StateFlow\\GateEvaluation will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 2
+			path: src/GateEvaluationCollection.php
+
+		-
+			message: '#^Parameter \#1 \$elements of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\GateEvaluation\>\:\:__construct\(\) expects array\<int, BenRowe\\StateFlow\\GateEvaluation\>, array\<int\|string, BenRowe\\StateFlow\\GateEvaluation\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/GateEvaluationCollection.php
+
+		-
+			message: '#^Parameter \#1 \$offset of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\GateEvaluation\>\:\:offsetSet\(\) expects int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/GateEvaluationCollection.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$evaluations \(BenRowe\\StateFlow\\GateEvaluation\) of method BenRowe\\StateFlow\\GateEvaluationCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\GateEvaluation\>\:\:__construct\(\)\.$#'
+			identifier: method.childParameterType
+			count: 1
+			path: src/GateEvaluationCollection.php
 
 		-
 			message: '#^Match arm comparison between BenRowe\\StateFlow\\Locking\\LockStrategy\:\:WAIT and BenRowe\\StateFlow\\Locking\\LockStrategy\:\:WAIT is always true\.$#'
@@ -97,16 +229,52 @@ parameters:
 			path: tests/Integration/Configuration/ConfigurationTest.php
 
 		-
+			message: '#^Cannot access property \$gateResult on BenRowe\\StateFlow\\ActionSkip\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Integration/StateFlow/ActionGuardTest.php
+
+		-
+			message: '#^Cannot access property \$isActionGate on BenRowe\\StateFlow\\GateEvaluation\|null\.$#'
+			identifier: property.nonObject
+			count: 5
+			path: tests/Integration/StateFlow/ActionGuardTest.php
+
+		-
+			message: '#^Cannot access property \$result on BenRowe\\StateFlow\\GateEvaluation\|null\.$#'
+			identifier: property.nonObject
+			count: 5
+			path: tests/Integration/StateFlow/ActionGuardTest.php
+
+		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ActionGuardTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
 			path: tests/Integration/StateFlow/ActionGuardTest.php
 
 		-
+			message: '#^Cannot access property \$executionState on BenRowe\\StateFlow\\Action\\ActionResult\|null\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: tests/Integration/StateFlow/BasicExecutionTest.php
+
+		-
+			message: '#^Cannot access property \$result on BenRowe\\StateFlow\\GateEvaluation\|null\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: tests/Integration/StateFlow/BasicExecutionTest.php
+
+		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\BasicExecutionTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
 			path: tests/Integration/StateFlow/BasicExecutionTest.php
+
+		-
+			message: '#^Cannot access property \$gateResult on BenRowe\\StateFlow\\ActionSkip\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Integration/StateFlow/ComplexWorkflowTest.php
 
 		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ComplexWorkflowTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
@@ -121,7 +289,7 @@ parameters:
 			path: tests/Integration/StateFlow/DeltaAccessTest.php
 
 		-
-			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:152\:\:message\(\) never returns null so it can be removed from the return type\.$#'
+			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:148\:\:message\(\) never returns null so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
 			path: tests/Integration/StateFlow/ErrorHandlingTest.php
@@ -217,6 +385,42 @@ parameters:
 			path: tests/Integration/StateFlow/WorkflowResumeTest.php
 
 		-
+			message: '#^BenRowe\\StateFlow\\Action\\ActionCollection does not accept string\.$#'
+			identifier: offsetAssign.valueType
+			count: 1
+			path: tests/Unit/Action/ActionCollectionTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\Action\\Action\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Action/ActionCollectionTest.php
+
+		-
+			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\Action\\ActionCollection\:\:set\(\) expects BenRowe\\StateFlow\\Action\\Action, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Action/ActionCollectionTest.php
+
+		-
+			message: '#^BenRowe\\StateFlow\\Action\\ActionResultCollection does not accept string\.$#'
+			identifier: offsetAssign.valueType
+			count: 1
+			path: tests/Unit/Action/ActionResultCollectionTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\Action\\ActionResult\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Action/ActionResultCollectionTest.php
+
+		-
+			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\Action\\ActionResultCollection\:\:set\(\) expects BenRowe\\StateFlow\\Action\\ActionResult, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Action/ActionResultCollectionTest.php
+
+		-
 			message: '#^Method PHPUnit\\Framework\\MockObject\\Generator\\Generator\:\:testDouble\(\) invoked with named argument \$allowMockingUnknownTypes, but it''s not allowed because of @no\-named\-arguments\.$#'
 			identifier: argument.named
 			count: 1
@@ -239,6 +443,60 @@ parameters:
 			identifier: argument.named
 			count: 1
 			path: tests/Unit/Action/ActionResultTest.php
+
+		-
+			message: '#^BenRowe\\StateFlow\\ActionSkipCollection does not accept string\.$#'
+			identifier: offsetAssign.valueType
+			count: 1
+			path: tests/Unit/ActionSkipCollectionTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\ActionSkip\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/ActionSkipCollectionTest.php
+
+		-
+			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\ActionSkipCollection\:\:set\(\) expects BenRowe\\StateFlow\\ActionSkip, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/ActionSkipCollectionTest.php
+
+		-
+			message: '#^BenRowe\\StateFlow\\Gate\\GateCollection does not accept string\.$#'
+			identifier: offsetAssign.valueType
+			count: 1
+			path: tests/Unit/Gate/GateCollectionTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\Gate\\Gate\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Gate/GateCollectionTest.php
+
+		-
+			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\Gate\\GateCollection\:\:set\(\) expects BenRowe\\StateFlow\\Gate\\Gate, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Gate/GateCollectionTest.php
+
+		-
+			message: '#^BenRowe\\StateFlow\\GateEvaluationCollection does not accept string\.$#'
+			identifier: offsetAssign.valueType
+			count: 1
+			path: tests/Unit/GateEvaluationCollectionTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\GateEvaluation\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/GateEvaluationCollectionTest.php
+
+		-
+			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\GateEvaluationCollection\:\:set\(\) expects BenRowe\\StateFlow\\GateEvaluation, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/GateEvaluationCollectionTest.php
 
 		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Unit\\StateFlowTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'

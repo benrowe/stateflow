@@ -651,11 +651,78 @@ class AuditAction implements Action
 }
 ```
 
+## Collections
+
+### Typed Collections
+
+StateFlow uses typed, immutable collections for runtime type safety. All collections are built on [Doctrine Collections](https://github.com/doctrine/collections) and extend `ArrayCollection`, providing the full Collection API while enforcing type constraints.
+
+**Available Collections:**
+
+- `GateCollection` - Collection of `Gate` objects
+- `ActionCollection` - Collection of `Action` objects
+- `ActionResultCollection` - Collection of `ActionResult` objects
+- `GateEvaluationCollection` - Collection of `GateEvaluation` objects
+- `ActionSkipCollection` - Collection of `ActionSkip` objects
+
+### Collection Features
+
+**Immutability:**
+All collections are immutable. Use the `with()` method to add items, which returns a new collection instance:
+
+```php
+use BenRowe\StateFlow\Action\ActionCollection;
+
+$actions = ActionCollection::empty();
+$newActions = $actions->with(new MyAction());  // Returns new instance
+```
+
+**Type Safety:**
+Collections enforce type constraints at runtime. Attempting to add the wrong type throws an `InvalidArgumentException`:
+
+```php
+$gates = GateCollection::empty();
+$gates->set(0, new stdClass()); // InvalidArgumentException
+```
+
+**Doctrine Collection API:**
+Since all collections extend `ArrayCollection`, you have access to the full Doctrine Collections API:
+
+```php
+use BenRowe\StateFlow\Gate\GateCollection;
+
+$gates = GateCollection::fromArray([
+    new PermissionGate(),
+    new ValidationGate(),
+]);
+
+// Use Doctrine Collection methods
+$filtered = $gates->filter(fn($gate) => $gate instanceof PermissionGate);
+$mapped = $gates->map(fn($gate) => $gate->message());
+$count = $gates->count();
+
+// Iterate
+foreach ($gates as $gate) {
+    // ...
+}
+```
+
+**Array Conversion:**
+Use `toArray()` to convert collections back to plain PHP arrays:
+
+```php
+$gates = GateCollection::fromArray([new MyGate()]);
+$array = $gates->toArray(); // Gate[]
+```
+
 ## Configuration
 
 ### Interface Definition
 
 ```php
+use BenRowe\StateFlow\Gate\GateCollection;
+use BenRowe\StateFlow\Action\ActionCollection;
+
 interface ConfigurationProvider
 {
     /**
@@ -668,18 +735,20 @@ interface ConfigurationProvider
 class Configuration
 {
     /**
-     * @param Gate[] $transitionGates Gates that must pass for transition to proceed
-     * @param Action[] $actions Actions to execute in order
+     * @param Gate[]|GateCollection $transitionGates Gates that must pass for transition to proceed
+     * @param Action[]|ActionCollection $actions Actions to execute in order
      */
     public function __construct(
-        private array $transitionGates = [],
-        private array $actions = [],
+        GateCollection|array $transitionGates = [],
+        ActionCollection|array $actions = [],
     ) {}
 
-    public function getTransitionGates(): array { return $this->transitionGates; }
-    public function getActions(): array { return $this->actions; }
+    public function getTransitionGates(): GateCollection;
+    public function getActions(): ActionCollection;
 }
 ```
+
+**Note:** The Configuration constructor accepts both arrays and collection instances for backward compatibility. Arrays are automatically converted to typed collections internally. The getter methods return typed collections.
 
 ### Why Lazy Configuration?
 
@@ -812,6 +881,10 @@ The `TransitionContext` is an object that **tracks everything about a single tra
 ### Key Methods
 
 ```php
+use BenRowe\StateFlow\GateEvaluationCollection;
+use BenRowe\StateFlow\Action\ActionResultCollection;
+use BenRowe\StateFlow\ActionSkipCollection;
+
 class TransitionContext
 {
     // State access
@@ -823,15 +896,18 @@ class TransitionContext
     public function isPaused(): bool;
     public function isStopped(): bool;
 
-    // Execution history
-    public function getGateEvaluations(): array;
-    public function getActionExecutions(): array;
+    // Execution history (returns typed collections)
+    public function getGateEvaluations(): GateEvaluationCollection;
+    public function getActionExecutions(): ActionResultCollection;
+    public function getActionSkips(): ActionSkipCollection;
 
     // Serialization
     public function serialize(): string;
     public static function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self;
 }
 ```
+
+**Note:** The execution history methods return typed collections. Use `->toArray()` if you need plain PHP arrays for iteration or inspection.
 
 ### Usage in Actions
 
@@ -843,14 +919,25 @@ class SmartAction implements Action
     public function execute(ActionContext $context): ActionResult
     {
         $executionContext = $context->executionContext;
-        
-        // Check if a specific gate passed
-        $canNotify = collect($executionContext->getGateEvaluations())
-            ->first(fn($e) => $e['gate'] === NotificationGate::class)
-            ?->result === 'ALLOW';
 
-        if ($canNotify) {
+        // Get gate evaluations as collection
+        $evaluations = $executionContext->getGateEvaluations();
+
+        // Use Doctrine Collection methods
+        $notificationGate = $evaluations->filter(
+            fn($eval) => $eval->gate instanceof NotificationGate
+        )->first();
+
+        if ($notificationGate && $notificationGate->result === GateResult::ALLOW) {
             // ...
+        }
+
+        // Or convert to array if needed
+        foreach ($executionContext->getGateEvaluations()->toArray() as $eval) {
+            Log::info("Gate evaluated", [
+                'gate' => get_class($eval->gate),
+                'result' => $eval->result->name,
+            ]);
         }
 
         return ActionResult::continue();
