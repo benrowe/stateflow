@@ -12,9 +12,9 @@ use BenRowe\StateFlow\Gate\GateCollection;
 
 readonly class Configuration
 {
-    private GateCollection $transitionGates;
+    public GateCollection $transitionGates;
 
-    private ActionCollection $actions;
+    public ActionCollection $actions;
 
     /**
      * @param Gate[]|GateCollection $transitionGates
@@ -31,16 +31,6 @@ readonly class Configuration
         $this->actions = $actions instanceof ActionCollection
             ? $actions
             : $this->createActionCollection($actions);
-    }
-
-    public function getTransitionGates(): GateCollection
-    {
-        return $this->transitionGates;
-    }
-
-    public function getActions(): ActionCollection
-    {
-        return $this->actions;
     }
 
     /**

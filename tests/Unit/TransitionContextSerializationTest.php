@@ -21,7 +21,9 @@ use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFactory;
 use BenRowe\StateFlow\TransitionContext;
+use JsonException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class TransitionContextSerializationTest extends TestCase
 {
@@ -296,8 +298,8 @@ class TransitionContextSerializationTest extends TestCase
         $this->assertSame($delta, $restored->getDesiredDelta()->asArray());
 
         // Verify configuration
-        $this->assertCount(1, $restored->getConfiguration()->getTransitionGates());
-        $this->assertCount(1, $restored->getConfiguration()->getActions());
+        $this->assertCount(1, $restored->getConfiguration()->transitionGates);
+        $this->assertCount(1, $restored->getConfiguration()->actions);
 
         // Verify gate evaluations
         $this->assertCount(1, $restored->getGateEvaluations());
@@ -314,7 +316,7 @@ class TransitionContextSerializationTest extends TestCase
 
     public function testUnserializeWithInvalidJsonThrowsException(): void
     {
-        $this->expectException(\JsonException::class);
+        $this->expectException(JsonException::class);
         $this->expectExceptionMessage('Invalid JSON data: expected object');
 
         TransitionContext::unserialize(
@@ -353,8 +355,8 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should have empty configuration
-        $this->assertCount(0, $restored->getConfiguration()->getTransitionGates());
-        $this->assertCount(0, $restored->getConfiguration()->getActions());
+        $this->assertCount(0, $restored->getConfiguration()->transitionGates);
+        $this->assertCount(0, $restored->getConfiguration()->actions);
     }
 
     public function testUnserializeWithInvalidConfigurationData(): void
@@ -385,8 +387,8 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should have empty configuration (defaults when not array)
-        $this->assertCount(0, $restored->getConfiguration()->getTransitionGates());
-        $this->assertCount(0, $restored->getConfiguration()->getActions());
+        $this->assertCount(0, $restored->getConfiguration()->transitionGates);
+        $this->assertCount(0, $restored->getConfiguration()->actions);
     }
 
     public function testUnserializeWithNullLockStateData(): void
@@ -794,8 +796,8 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertCount(1, $restored->getConfiguration()->getActions());
-        $this->assertInstanceOf(TestAction::class, $restored->getConfiguration()->getActions()->toArray()[0]);
+        $this->assertCount(1, $restored->getConfiguration()->actions);
+        $this->assertInstanceOf(TestAction::class, $restored->getConfiguration()->actions->toArray()[0]);
         $this->assertCount(1, $restored->getActionExecutions());
         $this->assertSame(ExecutionState::CONTINUE, $restored->getActionExecutions()->toArray()[0]->executionState);
     }
@@ -864,7 +866,7 @@ class TestActionFactory implements ActionFactory
             return new TestAction();
         }
 
-        throw new \RuntimeException("Unknown action class: {$className}");
+        throw new RuntimeException("Unknown action class: {$className}");
     }
 }
 
@@ -876,6 +878,6 @@ class TestGateFactory implements GateFactory
             return new TestGate();
         }
 
-        throw new \RuntimeException("Unknown gate class: {$className}");
+        throw new RuntimeException("Unknown gate class: {$className}");
     }
 }

@@ -181,8 +181,8 @@ $config = new Configuration(
 );
 
 // Getters return typed collections
-$gates = $config->getTransitionGates(); // GateCollection
-$actions = $config->getActions();       // ActionCollection
+$gates = $config->transitionGates; // GateCollection
+$actions = $config->actions;       // ActionCollection
 
 // Use Doctrine Collection methods
 $filtered = $gates->filter(fn($g) => $g instanceof PermissionGate);
