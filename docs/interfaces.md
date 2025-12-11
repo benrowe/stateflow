@@ -46,8 +46,6 @@ interface ActionFactory
 }
 ```
 
-
-
 ## Validation (Gates)
 
 ### Gate
@@ -113,8 +111,6 @@ interface Guardable
 }
 ```
 
-
-
 ## Actions
 
 ### Action
@@ -171,8 +167,6 @@ class ActionContext
 }
 ```
 
-
-
 ## Configuration
 
 ### ConfigurationProvider
@@ -206,8 +200,6 @@ class Configuration
     public function getActions(): array;
 }
 ```
-
-
 
 ## Events & Observability
 
@@ -419,8 +411,6 @@ class LockLost extends Event
 }
 ```
 
-
-
 ## Locking
 
 ### LockProvider
@@ -537,8 +527,6 @@ class LockState
 }
 ```
 
-
-
 ## Core Machine
 
 ### StateFlow
@@ -644,8 +632,6 @@ class TransitionContext implements \Serializable
 }
 ```
 
-
-
 ## Exceptions
 
 ```php
@@ -657,8 +643,6 @@ class LockLostException extends \RuntimeException {}
 
 class TransitionException extends \RuntimeException {}
 ```
-
-
 
 ## Helper Classes
 

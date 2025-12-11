@@ -24,16 +24,17 @@ interface State
 ### Design Rationale
 
 **Why an interface?**
+
 - Users control state representation (class properties, arrays, immutable objects, etc.)
 - Users implement their own merge strategy in `with()`
 - Type safety at boundaries
 - Flexibility for simple or complex state objects
 
 **Why `with()` instead of machine-managed merging?**
+
 - State merging can be complex (deep merge, shallow merge, null handling, etc.)
 - Users know their domain and requirements
 - The machine stays agnostic to state structure, and delegates the responsibility of merging to the `Action`s.
-
 
 ### Implementation Example
 
@@ -81,6 +82,7 @@ class OrderState implements State
 ### Alternative Implementations
 
 **Array-based (simple):**
+
 ```php
 class ArrayState implements State
 {
@@ -95,6 +97,7 @@ class ArrayState implements State
 ```
 
 **Immutable with named constructors:**
+
 ```php
 class ImmutableOrderState implements State
 {
@@ -112,8 +115,6 @@ class ImmutableOrderState implements State
     }
 }
 ```
-
-
 
 ## Gates
 
@@ -172,6 +173,7 @@ class GateContext
 - Use case: "Is this transition allowed at all?"
 
 **Example:**
+
 ```php
 class CanPublishGate implements Gate
 {
@@ -207,6 +209,7 @@ class CanPublishGate implements Gate
 - Use case: "Should this specific action run?"
 
 **Example:**
+
 ```php
 interface Guardable
 {
@@ -248,6 +251,7 @@ class HasSubscribersGate implements Gate
 ### Gate Patterns
 
 **Permission check:**
+
 ```php
 class UserCanPublishGate implements Gate
 {
@@ -263,6 +267,7 @@ class UserCanPublishGate implements Gate
 ```
 
 **State validation:**
+
 ```php
 class HasRequiredFieldsGate implements Gate
 {
@@ -284,6 +289,7 @@ class HasRequiredFieldsGate implements Gate
 ```
 
 **Idempotency check:**
+
 ```php
 class NotAlreadyPublishedGate implements Gate
 {
@@ -308,8 +314,6 @@ class NotAlreadyPublishedGate implements Gate
     }
 }
 ```
-
-
 
 ## Actions
 
@@ -369,6 +373,7 @@ class ActionContext
 ### Action Patterns
 
 **Simple state mutation:**
+
 ```php
 class SetPublishDateAction implements Action
 {
@@ -385,6 +390,7 @@ class SetPublishDateAction implements Action
 ```
 
 **Side effect (no state change):**
+
 ```php
 class SendEmailAction implements Action
 {
@@ -401,6 +407,7 @@ class SendEmailAction implements Action
 ```
 
 **Async operation with pause:**
+
 ```php
 class GenerateThumbnailsAction implements Action
 {
@@ -422,6 +429,7 @@ class GenerateThumbnailsAction implements Action
 ```
 
 **Conditional stop:**
+
 ```php
 class ValidateContentAction implements Action
 {
@@ -444,6 +452,7 @@ class ValidateContentAction implements Action
 ```
 
 **Action with gate:**
+
 ```php
 class NotifySubscribersAction implements Action, Guardable
 {
@@ -467,6 +476,7 @@ class NotifySubscribersAction implements Action, Guardable
 ```
 
 **Accessing execution context:**
+
 ```php
 class AuditAction implements Action
 {
@@ -488,8 +498,6 @@ class AuditAction implements Action
     }
 }
 ```
-
-
 
 ## Configuration
 
@@ -572,8 +580,6 @@ $worker = $stateFlow->transition($someOrderState, ['status' => 'published']);
 $context = $worker->execute();
 ```
 
-
-
 ## StateFlow
 
 The `StateFlow` is a **stateless, reusable service**. Its main responsibility is to take a state object and a desired change, and create a `StateWorker` to handle the transition.
@@ -609,6 +615,7 @@ class StateFlow
 ### Usage
 
 **Simple Execution:**
+
 ```php
 $lockProvider = new RedisLockProvider($redis);
 $stateFlow = new StateFlow(
@@ -627,6 +634,7 @@ if ($context->isCompleted()) {
 ```
 
 **Step-by-Step Execution:**
+
 ```php
 $worker = $stateFlow->transition($initialState, ['status' => 'published']);
 
@@ -638,18 +646,16 @@ if (!$gateResult->shouldStopTransition()) {
 }
 ```
 
-
-
 ## TransitionContext
 
 The `TransitionContext` is an object that **tracks everything about a single transition**. It is created and managed by the `StateWorker`. While you will interact with it to get the final result of a transition, you will rarely need to create or manage it yourself.
 
 ### Responsibilities
 
-1.  **State Management** - Owns the current state of the transition.
-2.  **Execution History** - Records all gates evaluated and actions executed.
-3.  **Status Tracking** - `Completed`, `Paused`, `Stopped`, `Failed`.
-4.  **Serialization** - Can be serialized to be resumed later.
+1. **State Management** - Owns the current state of the transition.
+2. **Execution History** - Records all gates evaluated and actions executed.
+3. **Status Tracking** - `Completed`, `Paused`, `Stopped`, `Failed`.
+4. **Serialization** - Can be serialized to be resumed later.
 
 ### Key Methods
 
@@ -678,6 +684,7 @@ class TransitionContext
 ### Usage in Actions
 
 Actions receive the `TransitionContext` via the `ActionContext`. This allows actions to inspect the history of the current transition.
+
 ```php
 class SmartAction implements Action
 {
@@ -698,4 +705,3 @@ class SmartAction implements Action
     }
 }
 ```
-

@@ -11,8 +11,6 @@ Visual representations of StateFlow's architecture and execution flow.
 5. [Pause and Resume Flow](#pause-and-resume-flow)
 6. [Race Condition Prevention](#race-condition-prevention)
 
-
-
 ## High-Level Execution Flow
 
 ```mermaid
@@ -56,8 +54,6 @@ graph TD
     style GatesPassed fill:#ffe1e1
     style ActionResult fill:#ffe1e1
 ```
-
-
 
 ## Detailed Transition Lifecycle
 
@@ -158,8 +154,6 @@ graph TD
     style DispatchAfter fill:#e1e8ff
 ```
 
-
-
 ## Action Execution Flow
 
 ```mermaid
@@ -220,8 +214,6 @@ flowchart TD
     style DispatchBefore fill:#e1e8ff
     style DispatchAfter fill:#e1e8ff
 ```
-
-
 
 ## Pause and Resume Flow
 
@@ -290,8 +282,6 @@ sequenceDiagram
     User->>Storage: delete context
 ```
 
-
-
 ## Race Condition Prevention
 
 ```mermaid
@@ -340,12 +330,6 @@ sequenceDiagram
 
     Note over Process A,Process B: Result: Only one process executes transition<br/>No duplicate state changes<br/>No race conditions
 ```
-
-
-
-
-
-
 
 ## Component Architecture
 
@@ -417,8 +401,6 @@ graph TB
     style Action fill:#ffe1ff
     style ED fill:#ffe1e1
 ```
-
-
 
 ## State Flow Decision Tree
 

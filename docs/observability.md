@@ -122,6 +122,7 @@ class TransitionStarting extends Event
 ```
 
 **Use cases:**
+
 - Log transition attempts
 - Start performance timers
 - Send monitoring events
@@ -143,6 +144,7 @@ class TransitionCompleted extends Event
 ```
 
 **Use cases:**
+
 - Audit logging
 - Metrics collection
 - Trigger downstream workflows
@@ -166,6 +168,7 @@ class TransitionPaused extends Event
 ```
 
 **Use cases:**
+
 - Store serialized context
 - Schedule resume job
 - Update UI status
@@ -189,6 +192,7 @@ class TransitionStopped extends Event
 ```
 
 **Use cases:**
+
 - Error tracking
 - Rollback operations
 - User notifications
@@ -212,12 +216,11 @@ class TransitionFailed extends Event
 ```
 
 **Use cases:**
+
 - Error logging
 - Exception tracking (Sentry, etc.)
 - Manual lock release
 - Dead letter queue
-
-
 
 ## 2. Gate Events
 
@@ -239,6 +242,7 @@ class GateEvaluating extends Event
 ```
 
 **Use cases:**
+
 - Debug logging
 - Performance tracking
 - Inject dynamic data into context
@@ -262,12 +266,11 @@ class GateEvaluated extends Event
 ```
 
 **Use cases:**
+
 - Audit trail
 - Failed gate tracking
 - Permission violation alerts
 - Metrics (gate pass/fail rates)
-
-
 
 ## 3. Action Events
 
@@ -288,6 +291,7 @@ class ActionExecuting extends Event
 ```
 
 **Use cases:**
+
 - Performance monitoring
 - Pre-action hooks
 - State snapshots
@@ -310,6 +314,7 @@ class ActionExecuted extends Event
 ```
 
 **Use cases:**
+
 - State change tracking
 - Performance measurement
 - Post-action hooks
@@ -332,11 +337,10 @@ class ActionSkipped extends Event
 ```
 
 **Use cases:**
+
 - Debug logging
 - Conditional logic tracking
 - Business metrics
-
-
 
 ## 4. Lock Events
 
@@ -438,12 +442,11 @@ class LockLost extends Event
 ```
 
 **Lock event use cases:**
+
 - Deadlock detection
 - Lock contention metrics
 - Race condition monitoring
 - Debug lock expiration issues
-
-
 
 ## Implementation Examples
 
@@ -661,8 +664,6 @@ class DebugDispatcher implements EventDispatcher
 }
 ```
 
-
-
 ## Use Case: Complete Monitoring Setup
 
 ```php
@@ -683,8 +684,6 @@ $stateFlow = new StateFlow(
 // 3. Events published for external systems to react to
 // 4. Full audit trail for compliance
 ```
-
-
 
 ## Benefits
 
