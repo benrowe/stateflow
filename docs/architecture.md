@@ -18,11 +18,11 @@ Users specify only what should change, not the entire final state:
 
 ```php
 // Good: Delta approach
-$worker = $stateFlow->transition($orderState, ['status' => 'published']);
+$worker = $stateFlow->transition($orderState, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 // Avoided: Full state (verbose and error-prone)
-$stateFlow->transition($orderState, ['status' => 'published', 'author' => 'same', 'created' => 'same', ...]);
+$stateFlow->transition($orderState, new ArrayDelta(['status' => 'published', 'author' => 'same', 'created' => 'same', ...]));
 ```
 
 **Rationale:** With rich state objects, deltas are more ergonomic and show clear intent.
@@ -48,14 +48,14 @@ The `StateWorker` allows for fine-grained control over the execution flow.
 **One-Shot Execution:**
 
 ```php
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute(); // Runs gates and actions
 ```
 
 **Step-Through Execution:**
 
 ```php
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $gateResult = $worker->runGates();
 if ($gateResult->shouldStopTransition()) {
     // Handle failed transition
@@ -75,7 +75,7 @@ class GenerateThumbnailsAction implements Action {
 }
 
 // Serialize and wait
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 if ($context->isPaused()) {
     saveToDatabase($context->serialize());
@@ -120,7 +120,7 @@ $stateFlow = new StateFlow(
 );
 
 // The worker will use the flows's lock provider
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 ```
 
@@ -210,7 +210,7 @@ Users implement their own merge logic in `with()`.
 **Why:** Allows dynamic gate/action selection based on what's changing.
 
 ```php
-$configProvider = function(State $currentState, array $desiredDelta): Configuration {
+$configProvider = function(State $currentState, Delta $desiredDelta): Configuration {
     // ... return Configuration based on state and delta
 };
 ```

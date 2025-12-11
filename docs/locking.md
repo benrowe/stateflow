@@ -152,7 +152,7 @@ interface LockKeyProvider
      * - Lock specific transition: "order:123:draft->published"
      * - Lock state snapshot: hash($state->toArray())
      */
-    public function getLockKey(State $state, array $desiredDelta): string;
+    public function getLockKey(State $state, Delta $desiredDelta): string;
 }
 ```
 
@@ -220,7 +220,7 @@ $stateFlow = new StateFlow(
 );
 
 try {
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 } catch (LockAcquisitionException $e) {
     // Another request is processing this entity
@@ -240,7 +240,7 @@ $stateFlow = new StateFlow(
     lockKeyProvider: new EntityLockKeyProvider(),
 );
 
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 ```
 
@@ -254,7 +254,7 @@ $stateFlow = new StateFlow(
 );
 
 try {
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 } catch (LockAcquisitionException $e) {
     Log::alert('Lock contention detected', ['entity' => $entity->id]);
@@ -286,7 +286,7 @@ class AsyncAction implements Action {
     }
 }
 
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 // Lock is held
 
@@ -313,7 +313,7 @@ Lock is released when:
 
 ```php
 // Automatic release on completion
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 if ($context->isCompleted()) {
     // Lock automatically released
@@ -321,7 +321,7 @@ if ($context->isCompleted()) {
 
 // Manual release on error
 try {
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 } catch (\Exception $e) {
     $worker->releaseLock(); // Manual cleanup
@@ -335,7 +335,7 @@ For long-running paused workflows, you can manually extend the lock TTL using `L
 
 ```php
 // Initial transition that pauses
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 if ($context->isPaused()) {
@@ -393,7 +393,7 @@ class LockState
 ### Accessing Lock State
 
 ```php
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 $lockState = $context->getLockState();
@@ -572,7 +572,7 @@ Lock the entire entity regardless of transition type.
 ```php
 class EntityLockKeyProvider implements LockKeyProvider
 {
-    public function getLockKey(State $state, array $desiredDelta): string
+    public function getLockKey(State $state, Delta $desiredDelta): string
     {
         $data = $state->toArray();
         $entityId = $data['id'] ?? 'unknown';
@@ -592,12 +592,12 @@ Lock only the specific transition type.
 ```php
 class TransitionLockKeyProvider implements LockKeyProvider
 {
-    public function getLockKey(State $state, array $desiredDelta): string
+    public function getLockKey(State $state, Delta $desiredDelta): string
     {
         $data = $state->toArray();
         $entityId = $data['id'] ?? 'unknown';
         $currentStatus = $data['status'] ?? 'unknown';
-        $targetStatus = $desiredDelta['status'] ?? 'unknown';
+        $targetStatus = $desiredDelta->get('status', 'unknown');
 
         return "stateflow:entity:{$entityId}:transition:{$currentStatus}->{$targetStatus}";
     }
@@ -615,10 +615,10 @@ Lock based on exact state contents.
 ```php
 class SnapshotLockKeyProvider implements LockKeyProvider
 {
-    public function getLockKey(State $state, array $desiredDelta): string
+    public function getLockKey(State $state, Delta $desiredDelta): string
     {
         $stateHash = md5(json_encode($state->toArray()));
-        $deltaHash = md5(json_encode($desiredDelta));
+        $deltaHash = md5(json_encode($desiredDelta->asArray()));
 
         return "stateflow:snapshot:{$stateHash}:{$deltaHash}";
     }
@@ -643,7 +643,7 @@ Thrown when lock can't be acquired (default behavior when `lockProvider` is conf
 
 ```php
 try {
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 } catch (LockAcquisitionException $e) {
     // Another process holds the lock
@@ -661,7 +661,7 @@ try {
 Thrown by `runNextAction()` when lock has expired during pause.
 
 ```php
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute(); // Lock acquired
 sleep(100); // Oops, lock TTL was 30 seconds
 
@@ -683,7 +683,7 @@ try {
 Thrown when resuming a paused transition if the lock no longer exists.
 
 ```php
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 saveToDatabase($context->serialize());
 
@@ -795,7 +795,7 @@ class LockMonitoringDispatcher implements EventDispatcher
 
 ```php
 try {
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 } catch (\Throwable $e) {
     // Always release lock on fatal errors
@@ -871,13 +871,13 @@ class StateTransitionTest extends TestCase
         $state = new OrderState('ORD-123', 'draft', 99.99);
 
         // StateFlow 1 acquires lock
-        $worker1 = $stateFlow1->transition($state, ['status' => 'published']);
+        $worker1 = $stateFlow1->transition($state, new ArrayDelta(['status' => 'published']));
         $context1 = $worker1->execute();
         $this->assertTrue($context1->getLockState()->isLocked());
 
         // StateFlow 2 fails to acquire lock
         $this->expectException(LockAcquisitionException::class);
-        $worker2 = $stateFlow2->transition($state, ['status' => 'published']);
+        $worker2 = $stateFlow2->transition($state, new ArrayDelta(['status' => 'published']));
         $worker2->execute();
     }
 }

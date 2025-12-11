@@ -73,7 +73,7 @@ $stateFlow = new StateFlow(
 
 // Execute transition with automatic locking
 $order = new Order('pending');
-$worker = $stateFlow->transition($order, ['status' => 'processing']);
+$worker = $stateFlow->transition($order, new ArrayDelta(['status' => 'processing']));
 $context = $worker->execute();
 
 
@@ -98,12 +98,12 @@ Specify only what changes:
 
 ```php
 // Just this
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 
 // Not this
-$worker = $stateFlow->transition($state, ['status' => 'published', 'author' => 'same', 'created' => 'same', ...]);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published', 'author' => 'same', 'created' => 'same', ...]));
 $context = $worker->execute();
 ```
 
@@ -112,7 +112,7 @@ $context = $worker->execute();
 The `StateWorker` gives you full control over the workflow execution:
 
 ```php
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 
 // 1. Run gates first
 $gateResult = $worker->runGates();
@@ -149,7 +149,7 @@ $stateFlow = new StateFlow(
 );
 
 // This transition will be automatically locked
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 ```
 
@@ -249,8 +249,8 @@ class OrderState implements State {
 }
 
 // 2. Configure workflow based on transition type
-$configProvider = function(State $state, array $delta): Configuration {
-    return match ($delta['status'] ?? null) {
+$configProvider = function(State $state, Delta $delta): Configuration {
+    return match ($delta->get('status')) {
         'processing' => new Configuration(
             transitionGates: [new HasInventoryGate($inventory)],
             actions: [
@@ -273,7 +273,7 @@ $stateFlow = new StateFlow(
     eventDispatcher: new MetricsDispatcher(),
     lockProvider: new RedisLockProvider($redis),
     lockKeyProvider: new class implements LockKeyProvider {
-        public function getLockKey(State $state, array $delta): string {
+        public function getLockKey(State $state, Delta $delta): string {
             return "order:" . $state->toArray()['id'];
         }
     },
@@ -282,7 +282,7 @@ $stateFlow = new StateFlow(
 // 4. Execute with race protection
 try {
     $order = new OrderState('ORD-123', 'pending', 99.99);
-    $worker = $stateFlow->transition($order, ['status' => 'processing']);
+    $worker = $stateFlow->transition($order, new ArrayDelta(['status' => 'processing']));
     $context = $worker->execute();
 
     if ($context->isCompleted()) {

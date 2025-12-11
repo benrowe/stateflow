@@ -72,7 +72,7 @@ Only consider your changes complete when `make check` passes with all green chec
 
 StateFlow uses a **two-step execution model** that separates setup from execution:
 
-1. **Setup Phase**: `StateFlow::transition(State, array $delta)` returns a `StateWorker`
+1. **Setup Phase**: `StateFlow::transition(State, Delta $delta)` returns a `StateWorker`
 2. **Execution Phase**: `StateWorker::execute()` runs the transition
 
 This separation enables:
@@ -131,15 +131,15 @@ interface State {
 }
 ```
 
-Users define their own merge strategy in `with()`. The `$changes` array is the delta passed to `transition()`.
+Users define their own merge strategy in `with()`. The `$changes` array is converted from the Delta object passed to `transition()`.
 
 ### Configuration Provider
 
 Lazy-loaded configuration based on current state and desired delta:
 
 ```php
-$configProvider = function(State $currentState, array $delta): Configuration {
-    return match ($delta['status'] ?? null) {
+$configProvider = function(State $currentState, Delta $delta): Configuration {
+    return match ($delta->get('status')) {
         'processing' => new Configuration(
             transitionGates: [new HasInventoryGate()],
             actions: [new ChargePaymentAction(), new ReserveInventoryAction()],

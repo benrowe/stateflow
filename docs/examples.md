@@ -48,8 +48,8 @@ class ArticleState implements State
 }
 
 // 2. Create configuration
-$config = function(State $state, array $delta): Configuration {
-    if (isset($delta['status']) && $delta['status'] === 'published') {
+$config = function(State $state, Delta $delta): Configuration {
+    if ($delta->has('status') && $delta->get('status') === 'published') {
         return new Configuration(
             transitionGates: [new CanPublishGate()],
             actions: [new PublishAction()],
@@ -66,7 +66,7 @@ $stateFlow = new StateFlow(
 
 // 4. Execute transition
 $state = new ArticleState('draft');
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 // 5. Check result
@@ -237,13 +237,13 @@ class OrderConfigurationProvider implements ConfigurationProvider
         private ShippingService $shipping,
     ) {}
 
-    public function provide(State $currentState, array $desiredDelta): Configuration
+    public function provide(State $currentState, Delta $desiredDelta): Configuration
     {
-        if (!isset($desiredDelta['status'])) {
+        if (!$desiredDelta->has('status')) {
             return new Configuration();
         }
 
-        return match ($desiredDelta['status']) {
+        return match ($desiredDelta->get('status')) {
             'processing' => new Configuration(
                 transitionGates: [new HasPaymentGate()],
                 actions: [
@@ -275,7 +275,7 @@ $stateFlow = new StateFlow(
     eventDispatcher: new OrderEventDispatcher(),
     lockProvider: new RedisLockProvider($redis),
     lockKeyProvider: new class implements LockKeyProvider {
-        public function getLockKey(State $state, array $delta): string {
+        public function getLockKey(State $state, Delta $delta): string {
             return "order:{$state->toArray()['id']}";
         }
     },
@@ -288,7 +288,7 @@ try {
         status: 'pending',
         total: 99.99,
     );
-    $worker = $stateFlow->transition($state, ['status' => 'processing']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
     $context = $worker->execute();
 
     if ($context->isCompleted()) {
@@ -340,8 +340,8 @@ class ContentState implements State
 
 // Publishing workflow
 $stateFlow = new StateFlow(
-    configProvider: function(State $state, array $delta): Configuration {
-        if (isset($delta['status']) && $delta['status'] === 'published') {
+    configProvider: function(State $state, Delta $delta): Configuration {
+        if ($delta->has('status') && $delta->get('status') === 'published') {
             return new Configuration(
                 transitionGates: [
                     new HasContentGate(),
@@ -365,7 +365,7 @@ $stateFlow = new StateFlow(
 
 // Publish with automatic pause for thumbnails
 $state = new ContentState('article-1', 'draft', 'Content here');
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 if ($context->isPaused()) {
@@ -428,7 +428,7 @@ $stateFlow = new StateFlow(
 
 // Start workflow
 $state = new VideoState('pending');
-$worker = $stateFlow->transition($state, ['status' => 'processing']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
 $context = $worker->execute();
 
 if ($context->isPaused()) {
@@ -495,7 +495,7 @@ $stateFlow = new StateFlow(
 );
 
 $state = new ArticleState('draft');
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 
 // Run gates first
 $gateResult = $worker->runGates();
@@ -525,7 +525,7 @@ foreach ($context->getActionExecutions() as $exec) {
 ### Gate Failures
 
 ```php
-$worker = $stateFlow->transition($state, ['status' => 'published']);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 if ($context->isStopped()) {
@@ -567,7 +567,7 @@ class SafeAction implements Action
 
 ```php
 try {
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 
 } catch (LockAcquisitionException $e) {
@@ -576,7 +576,7 @@ try {
 
     // Retry with exponential backoff
     retry(3, function() use ($stateFlow, $state) {
-        $worker = $stateFlow->transition($state, ['status' => 'published']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
         return $worker->execute();
     }, 1000);
 }
@@ -586,7 +586,7 @@ try {
 
 ```php
 try {
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 
 } catch (LockAcquisitionException $e) {
@@ -630,7 +630,7 @@ class OrderWorkflowTest extends TestCase
         );
 
         $state = new OrderState('ORD-123', 'pending', 99.99);
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         $this->assertTrue($context->isCompleted());
@@ -651,7 +651,7 @@ public function test_cannot_publish_without_content()
     );
 
     $state = new ArticleState('draft', content: '');
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 
     $this->assertTrue($context->isStopped());
@@ -681,7 +681,7 @@ public function test_idempotent_transition_succeeds_without_running_actions()
 
     // Already in 'published' state
     $state = new ArticleState('published');
-    $worker = $stateFlow->transition($state, ['status' => 'published']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
 
     // Transition completes successfully
@@ -729,13 +729,13 @@ public function test_concurrent_transitions_prevented()
     $state = new OrderState('ORD-123', 'pending', 99.99);
 
     // Flow 1 acquires lock
-    $worker1 = $stateFlow1->transition($state, ['status' => 'published']);
+    $worker1 = $stateFlow1->transition($state, new ArrayDelta(['status' => 'published']));
     $context1 = $worker1->execute();
     $this->assertTrue($context1->getLockState()->isLocked());
 
     // Flow 2 fails to acquire lock
     $this->expectException(LockAcquisitionException::class);
-    $worker2 = $stateFlow2->transition($state, ['status' => 'published']);
+    $worker2 = $stateFlow2->transition($state, new ArrayDelta(['status' => 'published']));
     $worker2->execute();
 }
 ```
@@ -755,7 +755,7 @@ public function test_workflow_can_pause_and_resume()
     );
 
     $state = new VideoState('pending');
-    $worker = $stateFlow->transition($state, ['status' => 'processing']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
     $context = $worker->execute();
     $this->assertTrue($context->isPaused());
 
@@ -788,7 +788,7 @@ public function test_events_are_dispatched()
     );
 
     $state = new OrderState('ORD-123', 'pending', 99.99);
-    $worker = $stateFlow->transition($state, ['status' => 'processing']);
+    $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
     $worker->execute();
 
     $dispatcher->assertDispatched(TransitionStarting::class);
