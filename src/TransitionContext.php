@@ -242,7 +242,7 @@ class TransitionContext
                 ],
                 $this->gateEvaluations
             ),
-            'actions' => array_map(
+            'actionExecutions' => array_map(
                 fn (ActionResult $result) => [
                     'executionState' => $result->executionState->name,
                     'newState' => $result->newState?->toArray(),
@@ -381,7 +381,7 @@ class TransitionContext
     private static function restoreActionExecutions(self $context, array $decoded, StateFactory $stateFactory): void
     {
         /** @var array<int, array{executionState: string, newState: array<string, mixed>|null, metadata: mixed}> $actionExecutions */
-        $actionExecutions = $decoded['actions'] ?? [];
+        $actionExecutions = $decoded['actionExecutions'] ?? [];
         foreach ($actionExecutions as $actionData) {
             $executionState = match ($actionData['executionState']) {
                 'CONTINUE' => ExecutionState::CONTINUE,
