@@ -152,4 +152,13 @@ class GateCollectionTest extends TestCase
         $this->assertCount(3, $collection);
         $this->assertSame([$gate1, $gate2, $gate3], $collection->toArray());
     }
+
+    public function testCanSetWithArray(): void
+    {
+        $collection = new GateCollection();
+        $gate = $this->createMock(Gate::class);
+        $collection[] = $gate;
+        $this->assertCount(1, $collection);
+        $this->assertSame([$gate], $collection->toArray());
+    }
 }

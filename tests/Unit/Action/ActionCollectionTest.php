@@ -152,4 +152,13 @@ class ActionCollectionTest extends TestCase
         $this->assertCount(3, $collection);
         $this->assertSame([$action1, $action2, $action3], $collection->toArray());
     }
+
+    public function testCanSetWithArray(): void
+    {
+        $collection = new ActionCollection();
+        $action = $this->createMock(Action::class);
+        $collection[] = $action;
+        $this->assertCount(1, $collection);
+        $this->assertSame([$action], $collection->toArray());
+    }
 }
