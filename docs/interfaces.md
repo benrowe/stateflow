@@ -222,21 +222,94 @@ interface ConfigurationProvider
 ### Configuration
 
 ```php
+use BenRowe\StateFlow\Gate\GateCollection;
+use BenRowe\StateFlow\Action\ActionCollection;
+
 class Configuration
 {
     /**
-     * @param Gate[] $transitionGates Gates that must pass for transition to proceed
-     * @param Action[] $actions Actions to execute in order
+     * @param Gate[]|GateCollection $transitionGates Gates that must pass for transition to proceed
+     * @param Action[]|ActionCollection $actions Actions to execute in order
      */
     public function __construct(
-        private array $transitionGates = [],
-        private array $actions = [],
+        GateCollection|array $transitionGates = [],
+        ActionCollection|array $actions = [],
     ) {}
 
-    public function getTransitionGates(): array;
-    public function getActions(): array;
+    public function getTransitionGates(): GateCollection;
+    public function getActions(): ActionCollection;
 }
 ```
+
+**Note:** The constructor accepts both arrays and collection instances for backward compatibility. Arrays are automatically converted to typed collections internally.
+
+### Typed Collections
+
+StateFlow uses typed, immutable collections built on Doctrine Collections for runtime type safety:
+
+```php
+use BenRowe\StateFlow\Gate\GateCollection;
+use BenRowe\StateFlow\Action\ActionCollection;
+use BenRowe\StateFlow\Action\ActionResultCollection;
+use BenRowe\StateFlow\GateEvaluationCollection;
+use BenRowe\StateFlow\ActionSkipCollection;
+
+// GateCollection - for Gate objects
+final class GateCollection extends ArrayCollection
+{
+    public function __construct(Gate ...$gates) {}
+    public static function empty(): self;
+    public static function fromArray(array $gates): self;
+    public function with(Gate $gate): self;
+    public function toArray(): array;
+}
+
+// ActionCollection - for Action objects
+final class ActionCollection extends ArrayCollection
+{
+    public function __construct(Action ...$actions) {}
+    public static function empty(): self;
+    public static function fromArray(array $actions): self;
+    public function with(Action $action): self;
+    public function toArray(): array;
+}
+
+// ActionResultCollection - for ActionResult objects
+final class ActionResultCollection extends ArrayCollection
+{
+    public function __construct(ActionResult ...$results) {}
+    public static function empty(): self;
+    public static function fromArray(array $results): self;
+    public function with(ActionResult $result): self;
+    public function toArray(): array;
+}
+
+// GateEvaluationCollection - for GateEvaluation objects
+final class GateEvaluationCollection extends ArrayCollection
+{
+    public function __construct(GateEvaluation ...$evaluations) {}
+    public static function empty(): self;
+    public static function fromArray(array $evaluations): self;
+    public function with(GateEvaluation $evaluation): self;
+    public function toArray(): array;
+}
+
+// ActionSkipCollection - for ActionSkip objects
+final class ActionSkipCollection extends ArrayCollection
+{
+    public function __construct(ActionSkip ...$skips) {}
+    public static function empty(): self;
+    public static function fromArray(array $skips): self;
+    public function with(ActionSkip $skip): self;
+    public function toArray(): array;
+}
+```
+
+**Collection Features:**
+- **Immutable:** All collections use the `with()` method which returns a new instance
+- **Type-safe:** Constructor and `set()`/`offsetSet()` methods enforce type constraints at runtime
+- **Doctrine Collections:** Extends `ArrayCollection` providing full Collection API (map, filter, etc.)
+- **Conversion:** Use `toArray()` to convert back to plain PHP arrays when needed
 
 ## Events & Observability
 
@@ -645,17 +718,17 @@ class TransitionContext implements \Serializable
     // State access
     public function getCurrentState(): State;
     public function getDesiredDelta(): Delta;
-    
+
     // Status checks
     public function isCompleted(): bool;
     public function isPaused(): bool;
     public function isStopped(): bool;
     public function wasSkippedDueToLock(): bool;
 
-    // Execution history
-    public function getGateEvaluations(): array;
-    public function getActionExecutions(): array;
-    public function getActionSkips(): array;
+    // Execution history (returns collections)
+    public function getGateEvaluations(): GateEvaluationCollection;
+    public function getActionExecutions(): ActionResultCollection;
+    public function getActionSkips(): ActionSkipCollection;
 
     // Lock state
     public function getLockState(): LockState;
@@ -668,6 +741,8 @@ class TransitionContext implements \Serializable
     public static function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self;
 }
 ```
+
+**Note:** The execution history methods return typed collections. Use `->toArray()` if you need plain PHP arrays.
 
 ## Exceptions
 

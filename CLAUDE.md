@@ -62,7 +62,7 @@ This runs all quality checks in one command:
 
 1. **Linting** - Ensures code style compliance (PHP-CS-Fixer)
 2. **Static Analysis** - Runs PHPStan and PHPMD
-3. **Tests** - Runs full test suite (175 tests, 740 assertions)
+3. **Tests** - Runs full test suite (287 tests, 1036 assertions)
 
 Only consider your changes complete when `make check` passes with all green checks.
 
@@ -153,6 +153,45 @@ $configProvider = function(State $currentState, Delta $delta): Configuration {
 };
 ```
 
+### Typed Collections
+
+StateFlow uses typed, immutable collections built on Doctrine Collections for runtime type safety:
+
+- **GateCollection** - Collection of Gate objects
+- **ActionCollection** - Collection of Action objects
+- **ActionResultCollection** - Collection of ActionResult objects
+- **GateEvaluationCollection** - Collection of GateEvaluation objects
+- **ActionSkipCollection** - Collection of ActionSkip objects
+
+**Key Points:**
+- Configuration accepts both arrays and collections (backward compatible)
+- Getter methods return typed collections (e.g., `getTransitionGates(): GateCollection`)
+- Collections are immutable - use `with()` to add items (returns new instance)
+- Use `->toArray()` to convert collections to arrays when needed
+- All collections extend Doctrine's `ArrayCollection` providing full Collection API
+
+**Example:**
+```php
+// Configuration accepts arrays (converted to collections internally)
+$config = new Configuration(
+    transitionGates: [new MyGate()],  // Array input
+    actions: [new MyAction()],        // Array input
+);
+
+// Getters return typed collections
+$gates = $config->getTransitionGates(); // GateCollection
+$actions = $config->getActions();       // ActionCollection
+
+// Use Doctrine Collection methods
+$filtered = $gates->filter(fn($g) => $g instanceof PermissionGate);
+$count = $actions->count();
+
+// Convert to array when needed
+foreach ($gates->toArray() as $gate) {
+    // ...
+}
+```
+
 ## Implementation Progress (from checklist.md)
 
 ### Core Components Status
@@ -187,10 +226,11 @@ $configProvider = function(State $currentState, Delta $delta): Configuration {
 
 **StateFlow is feature-complete!** All planned functionality has been implemented and tested:
 
-- 198 tests passing with 821 assertions
+- 287 tests passing with 1036 assertions
 - 100% code coverage maintained
 - All acceptance test scenarios completed (87 scenarios, 68+ implemented)
 - Production-ready with comprehensive observability and locking mechanisms
+- Typed collection classes for runtime type safety (GateCollection, ActionCollection, etc.)
 
 ## Testing Structure
 
