@@ -114,7 +114,7 @@ class TransitionStarting extends Event
 {
     public function __construct(
         public readonly State $currentState,
-        public readonly array $desiredDelta,
+        public readonly Delta $desiredDelta,
     ) {
         parent::__construct();
     }
@@ -492,7 +492,7 @@ class PatternMatchedDispatcher implements EventDispatcher
     {
         Log::info('Transition starting', [
             'currentState' => $event->currentState->toArray(),
-            'desiredDelta' => $event->desiredDelta,
+            'desiredDelta' => $event->desiredDelta->asArray(),
         ]);
     }
 
@@ -619,7 +619,7 @@ class AuditTrailDispatcher implements EventDispatcher
             $this->auditLog->record([
                 'user_id' => $this->user?->id,
                 'action' => 'state_transition',
-                'before' => $event->context->getDesiredDelta(), // What changed
+                'before' => $event->context->getDesiredDelta()->asArray(), // What changed
                 'after' => $event->finalState->toArray(),
                 'gates_evaluated' => $event->context->getGateEvaluations(),
                 'actions_executed' => $event->context->getActionExecutions(),

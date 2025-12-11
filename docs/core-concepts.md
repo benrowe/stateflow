@@ -1,5 +1,157 @@
 # Core Concepts
 
+## Delta
+
+### Interface Definition
+
+```php
+interface Delta
+{
+    /**
+     * Get a value from the delta by key
+     */
+    public function get(string $key, mixed $default = null): mixed;
+
+    /**
+     * Check if a key exists in the delta
+     */
+    public function has(string $key): bool;
+
+    /**
+     * Get all delta values as an array
+     */
+    public function asArray(): array;
+}
+```
+
+### Design Rationale
+
+**Why a Delta interface?**
+
+- Provides a clean API for accessing delta values without array access syntax
+- Allows for different delta implementations (array-based, immutable, validated, etc.)
+- Type-safe access to delta values
+- Clear intent: this is a set of changes, not a full state
+
+### ArrayDelta Implementation
+
+StateFlow provides `ArrayDelta` as the default implementation:
+
+```php
+use BenRowe\StateFlow\Delta\ArrayDelta;
+
+// Create a delta
+$delta = new ArrayDelta(['status' => 'published', 'publishedAt' => '2025-01-01']);
+
+// Access values
+$status = $delta->get('status'); // 'published'
+$author = $delta->get('author', 'unknown'); // 'unknown' (default)
+
+// Check existence
+if ($delta->has('status')) {
+    // ...
+}
+
+// Get as array (for State::with())
+$changes = $delta->asArray(); // ['status' => 'published', 'publishedAt' => '2025-01-01']
+```
+
+### Usage in Transitions
+
+```php
+use BenRowe\StateFlow\Delta\ArrayDelta;
+
+$state = new OrderState('ORD-123', 'pending', 99.99);
+$worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
+$context = $worker->execute();
+```
+
+### Usage in Configuration Providers
+
+```php
+$configProvider = function(State $state, Delta $delta): Configuration {
+    // Access delta values using ->get()
+    return match ($delta->get('status')) {
+        'published' => new Configuration(
+            transitionGates: [new CanPublishGate()],
+            actions: [new PublishAction()],
+        ),
+        'archived' => new Configuration(
+            transitionGates: [new CanArchiveGate()],
+            actions: [new ArchiveAction()],
+        ),
+        default => new Configuration(),
+    };
+};
+```
+
+### Usage in Gates
+
+```php
+class HasRequiredFieldsGate implements Gate
+{
+    public function evaluate(GateContext $context): GateResult
+    {
+        // Access delta via context
+        $delta = $context->desiredDelta;
+
+        // Use ->get() to access values
+        if ($delta->has('status') && $delta->get('status') === 'published') {
+            $final = $context->currentState->with($delta->asArray());
+            $data = $final->toArray();
+
+            if (empty($data['content'])) {
+                return GateResult::DENY;
+            }
+        }
+
+        return GateResult::ALLOW;
+    }
+}
+```
+
+### Custom Delta Implementations
+
+You can create custom Delta implementations for specific use cases:
+
+```php
+// Validated delta that ensures only allowed fields
+class ValidatedDelta implements Delta
+{
+    public function __construct(
+        private array $data,
+        private array $allowedFields
+    ) {
+        foreach (array_keys($data) as $key) {
+            if (!in_array($key, $allowedFields)) {
+                throw new \InvalidArgumentException("Field '$key' is not allowed");
+            }
+        }
+    }
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->data[$key] ?? $default;
+    }
+
+    public function has(string $key): bool
+    {
+        return array_key_exists($key, $this->data);
+    }
+
+    public function asArray(): array
+    {
+        return $this->data;
+    }
+}
+
+// Usage
+$delta = new ValidatedDelta(
+    ['status' => 'published'],
+    allowedFields: ['status', 'publishedAt']
+);
+```
+
 ## State
 
 ### Interface Definition
@@ -158,7 +310,7 @@ class GateContext
 {
     public function __construct(
         public readonly State $currentState,
-        public readonly array $desiredDelta,
+        public readonly Delta $desiredDelta,
     ) {}
 }
 ```
@@ -273,7 +425,7 @@ class HasRequiredFieldsGate implements Gate
 {
     public function evaluate(GateContext $context): GateResult
     {
-        $final = $context->currentState->with($context->desiredDelta);
+        $final = $context->currentState->with($context->desiredDelta->asArray());
         $data = $final->toArray();
 
         $required = ['title', 'content', 'author'];
@@ -301,7 +453,7 @@ class NotAlreadyPublishedGate implements Gate
         // If already in the desired state, skip actions but succeed
         // Use SKIP_IDEMPOTENT instead of DENY so the transition completes successfully
         // without re-running actions that would be redundant
-        if (isset($desired['status']) && $current['status'] === $desired['status']) {
+        if ($desired->has('status') && $current['status'] === $desired->get('status')) {
             return GateResult::SKIP_IDEMPOTENT;
         }
 
@@ -364,7 +516,7 @@ class ActionContext
 {
     public function __construct(
         public readonly State $currentState,
-        public readonly array $desiredDelta,
+        public readonly Delta $desiredDelta,
         public readonly TransitionContext $executionContext,
     ) {}
 }
@@ -510,7 +662,7 @@ interface ConfigurationProvider
      * Provide configuration for a state transition
      * Lazy-loaded based on current state and desired changes
      */
-    public function provide(State $currentState, array $desiredDelta): Configuration;
+    public function provide(State $currentState, Delta $desiredDelta): Configuration;
 }
 
 class Configuration
@@ -536,10 +688,10 @@ class Configuration
 **Solution:** Load configuration based on what's changing.
 
 ```php
-$configProvider = function(State $currentState, array $desiredDelta): Configuration {
+$configProvider = function(State $currentState, Delta $desiredDelta): Configuration {
     // Dynamic configuration based on transition
-    if (isset($desiredDelta['status'])) {
-        return match ($desiredDelta['status']) {
+    if ($desiredDelta->has('status')) {
+        return match ($desiredDelta->get('status')) {
             'published' => new Configuration(
                 transitionGates: [
                     new CanPublishGate(),
@@ -564,7 +716,7 @@ $configProvider = function(State $currentState, array $desiredDelta): Configurat
     }
 
     // Metadata-only changes
-    if (isset($desiredDelta['metadata'])) {
+    if ($desiredDelta->has('metadata')) {
         return new Configuration(
             actions: [new UpdateMetadataAction()],
         );
@@ -576,7 +728,7 @@ $configProvider = function(State $currentState, array $desiredDelta): Configurat
 $stateFlow = new StateFlow(configProvider: $configProvider);
 
 // Now the flow can be used for any state object
-$worker = $stateFlow->transition($someOrderState, ['status' => 'published']);
+$worker = $stateFlow->transition($someOrderState, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 ```
 
@@ -602,7 +754,7 @@ class StateFlow
      */
     public function transition(
         State $currentState,
-        array $desiredDelta
+        Delta $desiredDelta
     ): StateWorker;
 
     /**
@@ -624,7 +776,7 @@ $stateFlow = new StateFlow(
 );
 $initialState = new OrderState(/* ... */);
 
-$worker = $stateFlow->transition($initialState, ['status' => 'published']);
+$worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 $context = $worker->execute();
 
 if ($context->isCompleted()) {
@@ -636,7 +788,7 @@ if ($context->isCompleted()) {
 **Step-by-Step Execution:**
 
 ```php
-$worker = $stateFlow->transition($initialState, ['status' => 'published']);
+$worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
 $gateResult = $worker->runGates();
 
@@ -664,7 +816,7 @@ class TransitionContext
 {
     // State access
     public function getCurrentState(): State;
-    public function getDesiredDelta(): array;
+    public function getDesiredDelta(): Delta;
 
     // Status checks
     public function isCompleted(): bool;

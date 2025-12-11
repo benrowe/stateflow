@@ -2,6 +2,43 @@
 
 This document contains all interface definitions for the StateFlow package.
 
+## Delta
+
+### Delta
+
+```php
+interface Delta
+{
+    /**
+     * Get a value from the delta by key
+     */
+    public function get(string $key, mixed $default = null): mixed;
+
+    /**
+     * Check if a key exists in the delta
+     */
+    public function has(string $key): bool;
+
+    /**
+     * Get all delta values as an array
+     */
+    public function asArray(): array;
+}
+```
+
+### ArrayDelta
+
+```php
+class ArrayDelta implements Delta
+{
+    public function __construct(private array $data) {}
+
+    public function get(string $key, mixed $default = null): mixed;
+    public function has(string $key): bool;
+    public function asArray(): array;
+}
+```
+
 ## State Management
 
 ### State
@@ -94,7 +131,7 @@ class GateContext
 {
     public function __construct(
         public readonly State $currentState,
-        public readonly array $desiredDelta,
+        public readonly Delta $desiredDelta,
     ) {}
 }
 ```
@@ -161,7 +198,7 @@ class ActionContext
 {
     public function __construct(
         public readonly State $currentState,
-        public readonly array $desiredDelta,
+        public readonly Delta $desiredDelta,
         public readonly TransitionContext $executionContext,
     ) {}
 }
@@ -178,7 +215,7 @@ interface ConfigurationProvider
      * Provide configuration for a state transition
      * Lazy-loaded based on current state and desired changes
      */
-    public function provide(State $currentState, array $desiredDelta): Configuration;
+    public function provide(State $currentState, Delta $desiredDelta): Configuration;
 }
 ```
 
@@ -234,7 +271,7 @@ class TransitionStarting extends Event
 {
     public function __construct(
         public readonly State $currentState,
-        public readonly array $desiredDelta,
+        public readonly Delta $desiredDelta,
     ) {
         parent::__construct();
     }
@@ -465,7 +502,7 @@ interface LockKeyProvider
      * - Lock specific transition: "order:123:draft->published"
      * - Lock state snapshot: hash($state->toArray())
      */
-    public function getLockKey(State $state, array $desiredDelta): string;
+    public function getLockKey(State $state, Delta $desiredDelta): string;
 }
 ```
 
@@ -547,7 +584,7 @@ class StateFlow
      */
     public function transition(
         State $currentState,
-        array $desiredDelta
+        Delta $desiredDelta
     ): StateWorker;
 
     /**
@@ -607,7 +644,7 @@ class TransitionContext implements \Serializable
 
     // State access
     public function getCurrentState(): State;
-    public function getDesiredDelta(): array;
+    public function getDesiredDelta(): Delta;
     
     // Status checks
     public function isCompleted(): bool;
@@ -655,7 +692,7 @@ class CallableConfigurationProvider implements ConfigurationProvider
         private $callable
     ) {}
 
-    public function provide(State $currentState, array $desiredDelta): Configuration
+    public function provide(State $currentState, Delta $desiredDelta): Configuration
     {
         return ($this->callable)($currentState, $desiredDelta);
     }
