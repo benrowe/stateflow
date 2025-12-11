@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\ActionExecuted;
 use BenRowe\StateFlow\Events\ActionExecuting;
@@ -53,7 +54,7 @@ class EventDispatchingTest extends TestCase
     {
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'review'];
+        $delta = new ArrayDelta(['status' => 'review']);
 
         $mockDispatcher
             ->expects($this->once())

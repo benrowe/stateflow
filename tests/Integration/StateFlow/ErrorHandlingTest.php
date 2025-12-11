@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Exceptions\InvalidConfigurationException;
 use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
@@ -107,7 +108,7 @@ class ErrorHandlingTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Action failed');
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $worker->execute();
     }
 
@@ -126,7 +127,7 @@ class ErrorHandlingTest extends TestCase
         $stateFlow = new StateFlow(fn () => $config);
 
         try {
-            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
             $worker->execute();
             $this->fail('Expected exception to be thrown');
         } catch (RuntimeException $e) {
@@ -166,7 +167,7 @@ class ErrorHandlingTest extends TestCase
 
         $this->expectException(InvalidGateResultException::class);
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $worker->execute();
     }
 

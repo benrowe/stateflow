@@ -8,6 +8,7 @@ use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\ActionFactory;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -65,7 +66,7 @@ class SerializationTest extends TestCase
 
         // ===== PART 1: Execute workflow until pause =====
         $stateFlow1 = new StateFlow(fn () => $config);
-        $worker1 = $stateFlow1->transition($initialState, ['status' => 'pending']);
+        $worker1 = $stateFlow1->transition($initialState, new ArrayDelta(['status' => 'pending']));
         $pausedContext = $worker1->execute();
 
         // Verify workflow paused
@@ -142,7 +143,7 @@ class SerializationTest extends TestCase
 
         // Execute workflow
         $stateFlow = new StateFlow(fn () => $config);
-        $context = $stateFlow->transition($initialState, ['status' => 'published'])->execute();
+        $context = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']))->execute();
 
         // Serialize and unserialize
         $serialized = $context->serialize();
@@ -182,7 +183,7 @@ class SerializationTest extends TestCase
 
         // Execute workflow
         $stateFlow = new StateFlow(fn () => $config);
-        $context = $stateFlow->transition($initialState, ['status' => 'completed'])->execute();
+        $context = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'completed']))->execute();
 
         // Verify workflow stopped
         $this->assertTrue($context->isStopped());
@@ -225,7 +226,7 @@ class SerializationTest extends TestCase
 
         // Execute workflow
         $stateFlow = new StateFlow(fn () => $config);
-        $context = $stateFlow->transition($initialState, ['status' => 'review'])->execute();
+        $context = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'review']))->execute();
 
         // Verify state was updated
         $this->assertEquals(

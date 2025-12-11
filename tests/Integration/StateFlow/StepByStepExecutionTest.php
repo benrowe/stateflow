@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\StateFlow;
@@ -50,7 +51,7 @@ class StepByStepExecutionTest extends TestCase
             [$action1, $action2]
         ));
 
-        $worker = $stateFlow->transition($initialState, ['status' => 'published']);
+        $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
         // Run gates only
         $result = $worker->runGates();
@@ -98,7 +99,7 @@ class StepByStepExecutionTest extends TestCase
             [$action1]
         ));
 
-        $worker = $stateFlow->transition($initialState, ['status' => 'published']);
+        $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
         $result = $worker->runGates();
 
         // Verify the final result is DENY
@@ -134,7 +135,7 @@ class StepByStepExecutionTest extends TestCase
             [$action1, $action2, $action3]
         ));
 
-        $worker = $stateFlow->transition($initialState, ['status' => 'published']);
+        $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
         // Step 1: Run gates
         $gateResult = $worker->runGates();
@@ -177,7 +178,7 @@ class StepByStepExecutionTest extends TestCase
             [$action1, $action2, $action3]
         ));
 
-        $worker = $stateFlow->transition($initialState, ['status' => 'published']);
+        $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
         // First call: execute action 1
         $context1 = $worker->runNextAction();
@@ -217,7 +218,7 @@ class StepByStepExecutionTest extends TestCase
 
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
 
-        $worker = $stateFlow->transition($initialState, ['status' => 'published']);
+        $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
         // Action 1: gate allows, should execute
         $context1 = $worker->runNextAction();
@@ -255,7 +256,7 @@ class StepByStepExecutionTest extends TestCase
             [$action1, $action2]
         ));
 
-        $worker1 = $stateFlow1->transition($initialState, ['status' => 'published']);
+        $worker1 = $stateFlow1->transition($initialState, new ArrayDelta(['status' => 'published']));
         $gateResult = $worker1->runGates();
         $this->assertSame(GateResult::ALLOW, $gateResult);
 
@@ -268,7 +269,7 @@ class StepByStepExecutionTest extends TestCase
         ));
 
         $executeContext = $stateFlow2
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify both approaches produce the same results
@@ -309,7 +310,7 @@ class StepByStepExecutionTest extends TestCase
         ));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify gates were evaluated
@@ -340,7 +341,7 @@ class StepByStepExecutionTest extends TestCase
 
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
 
-        $worker = $stateFlow->transition($initialState, ['status' => 'published']);
+        $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
         // Execute - should run actions 1-2 and pause
         $context1 = $worker->execute();
@@ -378,7 +379,7 @@ class StepByStepExecutionTest extends TestCase
 
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
 
-        $worker = $stateFlow->transition($initialState, ['status' => 'published']);
+        $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
         // Execute - should run actions 1-2 and stop
         $context1 = $worker->execute();

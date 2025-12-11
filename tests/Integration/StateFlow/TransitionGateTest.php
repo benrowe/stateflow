@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\StateFlow;
@@ -50,7 +51,7 @@ class TransitionGateTest extends TestCase
         ));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify all 3 gates were evaluated
@@ -108,7 +109,7 @@ class TransitionGateTest extends TestCase
         ));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify ONLY first gate was evaluated (short-circuit)
@@ -152,7 +153,7 @@ class TransitionGateTest extends TestCase
         ));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify the gate was evaluated
@@ -198,7 +199,7 @@ class TransitionGateTest extends TestCase
         ));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify gates 1 and 2 were evaluated, but NOT gate 3 (short-circuit)
@@ -245,7 +246,7 @@ class TransitionGateTest extends TestCase
         ));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify gates were evaluated
@@ -291,7 +292,7 @@ class TransitionGateTest extends TestCase
         ));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify all 3 gates were evaluated

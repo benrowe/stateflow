@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\StateFlow;
@@ -40,7 +41,7 @@ class ActionGuardTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action]));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify the action's gate was evaluated
@@ -70,7 +71,7 @@ class ActionGuardTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action]));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify the action's gate was evaluated
@@ -104,7 +105,7 @@ class ActionGuardTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify all 3 action gates were evaluated

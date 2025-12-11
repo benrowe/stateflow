@@ -7,7 +7,9 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -42,7 +44,7 @@ class ComplexWorkflowTest extends TestCase
         $sendPublishedNotificationAction = $this->createTrackingAction('SendPublishedNotification', $executionLog);
 
         // Configuration provider that returns different actions based on state
-        $configProvider = function (State $state, array $delta) use (
+        $configProvider = function (State $state, Delta $delta) use (
             $checkApprovalAction,
             $sendApprovalNotificationAction,
             $sendPublishedNotificationAction
@@ -66,7 +68,7 @@ class ComplexWorkflowTest extends TestCase
 
         // Transition from draft to published - should execute approval workflow
         $draftState = $this->createTestState(['status' => 'draft', 'title' => 'My Document']);
-        $worker = $stateFlow->transition($draftState, ['status' => 'published']);
+        $worker = $stateFlow->transition($draftState, new ArrayDelta(['status' => 'published']));
         $context = $worker->execute();
 
         $this->assertTrue($context->isCompleted());
@@ -77,7 +79,7 @@ class ComplexWorkflowTest extends TestCase
 
         // Transition from published state - should execute published workflow
         $publishedState = $this->createTestState(['status' => 'published', 'title' => 'My Document']);
-        $worker = $stateFlow->transition($publishedState, ['title' => 'Updated Document']);
+        $worker = $stateFlow->transition($publishedState, new ArrayDelta(['title' => 'Updated Document']));
         $context = $worker->execute();
 
         $this->assertTrue($context->isCompleted());
@@ -125,7 +127,7 @@ class ComplexWorkflowTest extends TestCase
 
         // Execute the workflow - should pause at step 3
         $draftState = $this->createTestState(['status' => 'draft', 'title' => 'Document']);
-        $worker = $stateFlow->transition($draftState, ['status' => 'pending_approval']);
+        $worker = $stateFlow->transition($draftState, new ArrayDelta(['status' => 'pending_approval']));
         $context = $worker->execute();
 
         // Verify workflow paused
@@ -207,7 +209,7 @@ class ComplexWorkflowTest extends TestCase
 
         // First transition: draft -> published
         $state = $this->createTestState(['status' => 'draft', 'title' => 'Document']);
-        $worker = $stateFlow->transition($state, ['status' => 'published']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
         $context = $worker->execute();
 
         // Should complete successfully
@@ -221,7 +223,7 @@ class ComplexWorkflowTest extends TestCase
 
         // Second transition: same transition (draft -> published)
         $state2 = $this->createTestState(['status' => 'draft', 'title' => 'Another Document']);
-        $worker2 = $stateFlow->transition($state2, ['status' => 'published']);
+        $worker2 = $stateFlow->transition($state2, new ArrayDelta(['status' => 'published']));
         $context2 = $worker2->execute();
 
         // Should complete but skip actions due to idempotency

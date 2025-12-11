@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\Event;
 use BenRowe\StateFlow\Events\EventDispatcher;
@@ -89,7 +90,7 @@ class LockingTest extends TestCase
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         // Verify LockAcquired event was dispatched
@@ -194,7 +195,7 @@ class LockingTest extends TestCase
         $this->expectExceptionMessage('Failed to acquire lock');
 
         try {
-            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
             $worker->execute();
         } finally {
             // Verify LockFailed event was dispatched
@@ -296,7 +297,7 @@ class LockingTest extends TestCase
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
         // Execute - should NOT throw exception
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         // Verify LockFailed event was dispatched
@@ -403,7 +404,7 @@ class LockingTest extends TestCase
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
         $startTime = microtime(true);
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
         $endTime = microtime(true);
         $duration = $endTime - $startTime;
@@ -517,7 +518,7 @@ class LockingTest extends TestCase
         $startTime = microtime(true);
 
         try {
-            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
             $worker->execute();
         } finally {
             $endTime = microtime(true);
@@ -594,7 +595,7 @@ class LockingTest extends TestCase
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         // Verify lock was acquired
@@ -687,7 +688,7 @@ class LockingTest extends TestCase
         $this->expectExceptionMessage('Action failed');
 
         try {
-            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
             $worker->execute();
         } finally {
             // Verify LockReleased event was dispatched even though exception was thrown
@@ -769,7 +770,7 @@ class LockingTest extends TestCase
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         // Verify lock is still held
@@ -859,7 +860,7 @@ class LockingTest extends TestCase
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         // Verify transition is stopped
@@ -971,7 +972,7 @@ class LockingTest extends TestCase
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         // Verify transition completed
@@ -1079,7 +1080,7 @@ class LockingTest extends TestCase
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
-        $worker = $stateFlow->transition($state, ['status' => 'processing']);
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
         $context = $worker->execute();
 
         // Verify transition completed despite failed renewal
@@ -1184,7 +1185,7 @@ class LockingTest extends TestCase
         $this->expectExceptionMessage('Lock was lost');
 
         try {
-            $worker = $stateFlow->transition($state, ['status' => 'processing']);
+            $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
             $worker->execute();
         } finally {
             // Verify first action executed
