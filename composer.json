@@ -18,7 +18,7 @@
         "esi/phpunit-coverage-check": "^2.0",
         "friendsofphp/php-cs-fixer": "^3.0",
         "phpmd/phpmd": "^2.15",
-        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan": "^1.10 || ^2.0",
         "phpunit/phpunit": "^10.0"
     },
     "autoload": {
