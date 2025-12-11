@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -70,7 +71,7 @@ class DeltaAccessTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([$gate], []));
 
         $context = $stateFlow
-            ->transition($initialState, $expectedDelta)
+            ->transition($initialState, new ArrayDelta($expectedDelta))
             ->execute();
 
         // Verify the gate received the delta
@@ -112,7 +113,7 @@ class DeltaAccessTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action]));
 
         $context = $stateFlow
-            ->transition($initialState, $expectedDelta)
+            ->transition($initialState, new ArrayDelta($expectedDelta))
             ->execute();
 
         // Verify the action received the delta

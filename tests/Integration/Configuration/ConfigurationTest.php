@@ -7,8 +7,10 @@ namespace BenRowe\StateFlow\Tests\Integration\Configuration;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\State;
@@ -27,14 +29,14 @@ class ConfigurationTest extends TestCase
         $validationGate = $this->createStubGate('ValidationGate', GateResult::ALLOW);
 
         $provider = new CallableConfigurationProvider(
-            function (State $state, array $delta) use ($permissionGate, $validationGate) {
+            function (State $state, Delta $delta) use ($permissionGate, $validationGate) {
                 // Different gates based on the transition type
-                if (isset($delta['status']) && $delta['status'] === 'published') {
+                if ($delta->has('status') && $delta->get('status') === 'published') {
                     // Publishing requires permission check
                     return new Configuration([$permissionGate], []);
                 }
 
-                if (isset($delta['content'])) {
+                if ($delta->has('content')) {
                     // Content changes require validation
                     return new Configuration([$validationGate], []);
                 }
@@ -44,17 +46,17 @@ class ConfigurationTest extends TestCase
         );
 
         // Test publishing transition
-        $publishConfig = $provider->provide($state, ['status' => 'published']);
+        $publishConfig = $provider->provide($state, new ArrayDelta(['status' => 'published']));
         $this->assertCount(1, $publishConfig->getTransitionGates());
         $this->assertSame($permissionGate, $publishConfig->getTransitionGates()[0]);
 
         // Test content update transition
-        $contentConfig = $provider->provide($state, ['content' => 'New content']);
+        $contentConfig = $provider->provide($state, new ArrayDelta(['content' => 'New content']));
         $this->assertCount(1, $contentConfig->getTransitionGates());
         $this->assertSame($validationGate, $contentConfig->getTransitionGates()[0]);
 
         // Test simple transition
-        $simpleConfig = $provider->provide($state, ['priority' => 'high']);
+        $simpleConfig = $provider->provide($state, new ArrayDelta(['priority' => 'high']));
         $this->assertCount(0, $simpleConfig->getTransitionGates());
     }
 
@@ -68,7 +70,7 @@ class ConfigurationTest extends TestCase
         $updateIndexAction = $this->createStubAction('UpdateSearchIndex');
 
         $provider = new CallableConfigurationProvider(
-            function (State $state, array $delta) use (
+            function (State $state, Delta $delta) use (
                 $sendNotificationAction,
                 $incrementVersionAction,
                 $updateIndexAction
@@ -77,17 +79,17 @@ class ConfigurationTest extends TestCase
                 $actions = [];
 
                 // Always increment version on content changes
-                if (isset($delta['content'])) {
+                if ($delta->has('content')) {
                     $actions[] = $incrementVersionAction;
                 }
 
                 // Send notification when publishing
-                if ($stateData['status'] === 'draft' && isset($delta['status']) && $delta['status'] === 'published') {
+                if ($stateData['status'] === 'draft' && $delta->has('status') && $delta->get('status') === 'published') {
                     $actions[] = $sendNotificationAction;
                 }
 
                 // Update search index for published content
-                if (isset($delta['status']) && $delta['status'] === 'published') {
+                if ($delta->has('status') && $delta->get('status') === 'published') {
                     $actions[] = $updateIndexAction;
                 }
 
@@ -96,13 +98,13 @@ class ConfigurationTest extends TestCase
         );
 
         // Test publishing from draft
-        $publishConfig = $provider->provide($draftState, ['status' => 'published']);
+        $publishConfig = $provider->provide($draftState, new ArrayDelta(['status' => 'published']));
         $this->assertCount(2, $publishConfig->getActions());
         $this->assertContains($sendNotificationAction, $publishConfig->getActions());
         $this->assertContains($updateIndexAction, $publishConfig->getActions());
 
         // Test content update on published
-        $contentConfig = $provider->provide($publishedState, ['content' => 'Updated']);
+        $contentConfig = $provider->provide($publishedState, new ArrayDelta(['content' => 'Updated']));
         $this->assertCount(1, $contentConfig->getActions());
         $this->assertSame($incrementVersionAction, $contentConfig->getActions()[0]);
     }
@@ -116,20 +118,20 @@ class ConfigurationTest extends TestCase
         $action3 = $this->createStubAction('ProcessPayment');
 
         $provider = new CallableConfigurationProvider(
-            function (State $state, array $delta) use ($gate1, $gate2, $action1, $action2, $action3) {
+            function (State $state, Delta $delta) use ($gate1, $gate2, $action1, $action2, $action3) {
                 $stateData = $state->toArray();
                 $gates = [];
                 $actions = [];
 
                 // Workflow: pending -> approved
-                if ($stateData['status'] === 'pending' && isset($delta['status']) && $delta['status'] === 'approved') {
+                if ($stateData['status'] === 'pending' && $delta->has('status') && $delta->get('status') === 'approved') {
                     $gates[] = $gate1; // RequireApproval
                     $actions[] = $action1; // CreateAuditLog
                     $actions[] = $action2; // NotifyApprovers
                 }
 
                 // Workflow: approved -> paid
-                if ($stateData['status'] === 'approved' && isset($delta['status']) && $delta['status'] === 'paid') {
+                if ($stateData['status'] === 'approved' && $delta->has('status') && $delta->get('status') === 'paid') {
                     $gates[] = $gate2; // CheckBudget
                     $actions[] = $action1; // CreateAuditLog
                     $actions[] = $action3; // ProcessPayment
@@ -141,7 +143,7 @@ class ConfigurationTest extends TestCase
 
         // Test approval workflow
         $pendingState = $this->createTestState(['status' => 'pending', 'amount' => 1000]);
-        $approvalConfig = $provider->provide($pendingState, ['status' => 'approved']);
+        $approvalConfig = $provider->provide($pendingState, new ArrayDelta(['status' => 'approved']));
 
         $this->assertCount(1, $approvalConfig->getTransitionGates());
         $this->assertSame($gate1, $approvalConfig->getTransitionGates()[0]);
@@ -151,7 +153,7 @@ class ConfigurationTest extends TestCase
 
         // Test payment workflow
         $approvedState = $this->createTestState(['status' => 'approved', 'amount' => 1000]);
-        $paymentConfig = $provider->provide($approvedState, ['status' => 'paid']);
+        $paymentConfig = $provider->provide($approvedState, new ArrayDelta(['status' => 'paid']));
 
         $this->assertCount(1, $paymentConfig->getTransitionGates());
         $this->assertSame($gate2, $paymentConfig->getTransitionGates()[0]);

@@ -8,6 +8,7 @@ use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
@@ -46,7 +47,7 @@ class ExecutionControlTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'approved'])
+            ->transition($initialState, new ArrayDelta(['status' => 'approved']))
             ->execute();
 
         // Only actions 1 and 2 should execute, action 3 should NOT
@@ -84,7 +85,7 @@ class ExecutionControlTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'failed'])
+            ->transition($initialState, new ArrayDelta(['status' => 'failed']))
             ->execute();
 
         // Only actions 1 and 2 should execute, action 3 should NOT
@@ -204,7 +205,7 @@ class ExecutionControlTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
-            ->transition($initialState, $delta)
+            ->transition($initialState, new ArrayDelta($delta))
             ->execute();
 
         // Verify action 1 received initial state

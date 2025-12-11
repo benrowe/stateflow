@@ -7,7 +7,9 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFlow;
@@ -38,7 +40,7 @@ class BasicExecutionTest extends TestCase
      */
     public function testCanExecuteSimpleConfiguration(): void
     {
-        $stateFlow = new StateFlow(function (State $state, array $delta): Configuration {
+        $stateFlow = new StateFlow(function (State $state, Delta $delta): Configuration {
             $action1 = $this
                 ->createMock(Action::class);
             $action1->method('execute')->willReturnCallback(function () {
@@ -48,7 +50,7 @@ class BasicExecutionTest extends TestCase
             return new Configuration([], [$action1]);
         });
         $context = $stateFlow
-            ->transition($this->createMock(State::class), [])
+            ->transition($this->createMock(State::class), new ArrayDelta([]))
             ->execute();
         $this->assertInstanceOf(TransitionContext::class, $context);
         $this->assertCount(1, $context->getActionExecutions());
@@ -77,7 +79,7 @@ class BasicExecutionTest extends TestCase
         $createAuditLogAction = $this->createTestAction('CreateAuditLog');
 
         // Configure StateFlow with multiple gates and actions
-        $stateFlow = new StateFlow(function (State $state, array $delta) use (
+        $stateFlow = new StateFlow(function (State $state, Delta $delta) use (
             $permissionGate,
             $validationGate,
             $approvalGate,
@@ -94,7 +96,7 @@ class BasicExecutionTest extends TestCase
 
         // Execute the transition
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published', 'approved' => true])
+            ->transition($initialState, new ArrayDelta(['status' => 'published', 'approved' => true]))
             ->execute();
 
         // Verify execution
@@ -155,7 +157,7 @@ class BasicExecutionTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], [$publishAction]));
 
         $context = $stateFlow
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         $this->assertCount(1, $context->getActionExecutions());

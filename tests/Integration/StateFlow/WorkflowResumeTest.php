@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
@@ -53,7 +54,7 @@ class WorkflowResumeTest extends TestCase
 
         // Step 1: Initial execution - should pause after action 2
         $stateFlow1 = new StateFlow(fn () => $configuration);
-        $worker1 = $stateFlow1->transition($initialState, ['status' => 'pending']);
+        $worker1 = $stateFlow1->transition($initialState, new ArrayDelta(['status' => 'pending']));
         $pausedContext = $worker1->execute();
 
         // Verify the workflow paused
@@ -114,7 +115,7 @@ class WorkflowResumeTest extends TestCase
         // Initial execution
         $stateFlow1 = new StateFlow(fn () => $configuration);
         $pausedContext = $stateFlow1
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         // Verify state after pause
@@ -154,7 +155,7 @@ class WorkflowResumeTest extends TestCase
         // Execute to completion
         $stateFlow1 = new StateFlow(fn () => $configuration);
         $completedContext = $stateFlow1
-            ->transition($initialState, ['status' => 'published'])
+            ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
         $this->assertTrue($completedContext->isCompleted());
@@ -197,7 +198,7 @@ class WorkflowResumeTest extends TestCase
         // Execute until stopped
         $stateFlow1 = new StateFlow(fn () => $configuration);
         $stoppedContext = $stateFlow1
-            ->transition($initialState, ['status' => 'failed'])
+            ->transition($initialState, new ArrayDelta(['status' => 'failed']))
             ->execute();
 
         $this->assertTrue($stoppedContext->isStopped());
@@ -238,7 +239,7 @@ class WorkflowResumeTest extends TestCase
 
         // Step 1: Initial execution. Should use config V1 and pause after ActionA
         $stateFlow1 = new StateFlow($configProvider);
-        $pausedContext = $stateFlow1->transition($initialState, [])->execute();
+        $pausedContext = $stateFlow1->transition($initialState, new ArrayDelta([]))->execute();
 
         $this->assertTrue($pausedContext->isPaused());
         $this->assertContains('Action:ActionA', $this->logger->log);
