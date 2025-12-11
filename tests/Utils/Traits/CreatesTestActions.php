@@ -112,7 +112,7 @@ trait CreatesTestActions
                         return $this->result;
                     }
 
-                    public function message(): ?string
+                    public function message(): string
                     {
                         return $this->actionName . 'Gate';
                     }

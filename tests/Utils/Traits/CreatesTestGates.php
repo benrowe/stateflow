@@ -35,7 +35,7 @@ trait CreatesTestGates
                 return $this->result;
             }
 
-            public function message(): ?string
+            public function message(): string
             {
                 return $this->name;
             }
