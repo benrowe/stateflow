@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Tests\Unit\Configuration;
 
 use BenRowe\StateFlow\Action\Action;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\State;
 use PHPUnit\Framework\TestCase;
@@ -16,11 +18,11 @@ class CallableConfigurationProviderTest extends TestCase
     public function testProvideCallsCallableWithStateAndDelta(): void
     {
         $state = $this->createMock(State::class);
-        $delta = ['status' => 'active'];
+        $delta = new ArrayDelta(['status' => 'active']);
         $expectedConfig = new Configuration([], []);
 
         $callableInvoked = false;
-        $callable = function (State $configState, array $configDelta) use ($state, $delta, $expectedConfig, &$callableInvoked) {
+        $callable = function (State $configState, Delta $configDelta) use ($state, $delta, $expectedConfig, &$callableInvoked) {
             $this->assertSame($state, $configState);
             $this->assertSame($delta, $configDelta);
             $callableInvoked = true;
@@ -41,10 +43,10 @@ class CallableConfigurationProviderTest extends TestCase
         $gate = $this->createMock(Gate::class);
         $action = $this->createMock(Action::class);
 
-        $callable = fn (State $s, array $d) => new Configuration([$gate], [$action]);
+        $callable = fn (State $s, Delta $d) => new Configuration([$gate], [$action]);
 
         $provider = new CallableConfigurationProvider($callable);
-        $config = $provider->provide($state, ['foo' => 'bar']);
+        $config = $provider->provide($state, new ArrayDelta(['foo' => 'bar']));
 
         $this->assertCount(1, $config->getTransitionGates());
         $this->assertCount(1, $config->getActions());
@@ -63,7 +65,7 @@ class CallableConfigurationProviderTest extends TestCase
         $pendingGate = $this->createMock(Gate::class);
         $activeGate = $this->createMock(Gate::class);
 
-        $callable = function (State $state, array $delta) use ($pendingGate, $activeGate) {
+        $callable = function (State $state, Delta $delta) use ($pendingGate, $activeGate) {
             $stateData = $state->toArray();
             if ($stateData['status'] === 'pending') {
                 return new Configuration([$pendingGate], []);
@@ -74,8 +76,8 @@ class CallableConfigurationProviderTest extends TestCase
 
         $provider = new CallableConfigurationProvider($callable);
 
-        $config1 = $provider->provide($state1, []);
-        $config2 = $provider->provide($state2, []);
+        $config1 = $provider->provide($state1, new ArrayDelta([]));
+        $config2 = $provider->provide($state2, new ArrayDelta([]));
 
         $this->assertSame($pendingGate, $config1->getTransitionGates()[0]);
         $this->assertSame($activeGate, $config2->getTransitionGates()[0]);
@@ -87,8 +89,8 @@ class CallableConfigurationProviderTest extends TestCase
         $action1 = $this->createMock(Action::class);
         $action2 = $this->createMock(Action::class);
 
-        $callable = function (State $state, array $delta) use ($action1, $action2) {
-            if (isset($delta['priority']) && $delta['priority'] === 'high') {
+        $callable = function (State $state, Delta $delta) use ($action1, $action2) {
+            if ($delta->has('priority') && $delta->get('priority') === 'high') {
                 return new Configuration([], [$action1]);
             }
 
@@ -97,8 +99,8 @@ class CallableConfigurationProviderTest extends TestCase
 
         $provider = new CallableConfigurationProvider($callable);
 
-        $config1 = $provider->provide($state, ['priority' => 'high']);
-        $config2 = $provider->provide($state, ['priority' => 'low']);
+        $config1 = $provider->provide($state, new ArrayDelta(['priority' => 'high']));
+        $config2 = $provider->provide($state, new ArrayDelta(['priority' => 'low']));
 
         $this->assertSame($action1, $config1->getActions()[0]);
         $this->assertSame($action2, $config2->getActions()[0]);

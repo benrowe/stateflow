@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Unit;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\ActionExecuted;
 use BenRowe\StateFlow\Events\ActionExecuting;
@@ -72,7 +73,7 @@ class StateWorkerTest extends TestCase
 
         // Create state and context
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         // Create mock event dispatcher to verify TransitionCompleted is dispatched
         $completedEventDispatched = false;
@@ -136,7 +137,7 @@ class StateWorkerTest extends TestCase
 
         // Create state and context
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         // Create mock event dispatcher to verify TransitionCompleted is NOT dispatched
         $mockDispatcher = $this->createMock(EventDispatcher::class);
@@ -197,7 +198,7 @@ class StateWorkerTest extends TestCase
 
         // Create state and context
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         // Create mock event dispatcher to verify TransitionCompleted is dispatched
         $completedEventDispatched = false;
@@ -234,7 +235,7 @@ class StateWorkerTest extends TestCase
         $gateDeny = $this->createTestGate('second gate', GateResult::DENY);
 
         $config = new Configuration([$gateAllow, $gateDeny], []);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
         // ensure we expect the gate events
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $mockDispatcher
@@ -265,7 +266,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $mockDispatcher
@@ -293,7 +294,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([$gate], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
 
         $worker = new StateWorker($context, new NullEventDispatcher());
@@ -308,7 +309,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $mockDispatcher
@@ -333,7 +334,7 @@ class StateWorkerTest extends TestCase
     {
         $config = new Configuration([], []); // No actions
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = new NullEventDispatcher();
 
@@ -351,7 +352,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
         $context->markAsStopped(); // Mark as stopped
 
         $mockDispatcher = new NullEventDispatcher();
@@ -376,7 +377,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$pauseAction, $secondAction]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = new NullEventDispatcher();
 
@@ -400,7 +401,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$stopAction, $secondAction]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = new NullEventDispatcher();
 
@@ -430,7 +431,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([$invalidGate], []);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $worker = new StateWorker($context, new NullEventDispatcher());
 
@@ -461,7 +462,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$guardedAction]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = new NullEventDispatcher();
 
@@ -496,7 +497,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$guardedAction]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = new NullEventDispatcher();
 
@@ -518,7 +519,7 @@ class StateWorkerTest extends TestCase
 
         $config = new Configuration([], [$action1, $action2, $action3]);
         $state = $this->createTestState(['status' => 'draft']);
-        $context = new TransitionContext($state, ['status' => 'published'], $config);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
         $mockDispatcher = new NullEventDispatcher();
 

@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Unit\Events;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Events\ActionExecuted;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\TransitionContext;
@@ -19,7 +20,7 @@ class ActionExecutedTest extends TestCase
         $action = $this->createMock(Action::class);
         $context = new ActionContext(
             $this->createMock(State::class),
-            ['foo' => 'bar'],
+            new ArrayDelta(['foo' => 'bar']),
             $this->createMock(TransitionContext::class)
         );
         $result = ActionResult::continue();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Tests\Unit;
 
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFlow;
@@ -34,7 +35,7 @@ class StateFlowTest extends TestCase
         $this->assertInstanceOf(StateFlow::class, $stateFlow);
         $this->assertInstanceOf(
             StateWorker::class,
-            $stateFlow->transition($this->createMock(State::class), [])
+            $stateFlow->transition($this->createMock(State::class), new ArrayDelta([]))
         );
     }
 
@@ -43,7 +44,7 @@ class StateFlowTest extends TestCase
         $stateFlow = new StateFlow(fn () => new Configuration([], []));
         $state = $this->createTestState(['foo' => 'bar']);
         $config = new Configuration([], [$this->createTestAction('myAction')]);
-        $context = new TransitionContext($state, [], $config);
+        $context = new TransitionContext($state, new ArrayDelta([]), $config);
         $worker = $stateFlow->fromContext($context);
 
         $this->assertInstanceOf(StateWorker::class, $worker);
