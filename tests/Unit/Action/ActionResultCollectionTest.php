@@ -152,4 +152,13 @@ class ActionResultCollectionTest extends TestCase
         $this->assertCount(3, $collection);
         $this->assertSame([$result1, $result2, $result3], $collection->toArray());
     }
+
+    public function testCanSetWithArray(): void
+    {
+        $collection = new ActionResultCollection();
+        $result = ActionResult::continue();
+        $collection[] = $result;
+        $this->assertCount(1, $collection);
+        $this->assertSame([$result], $collection->toArray());
+    }
 }

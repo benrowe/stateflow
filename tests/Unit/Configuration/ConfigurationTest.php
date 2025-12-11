@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Tests\Unit\Configuration;
 
 use BenRowe\StateFlow\Action\Action;
+use BenRowe\StateFlow\Action\ActionCollection;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Exceptions\InvalidConfigurationException;
 use BenRowe\StateFlow\Gate\Gate;
+use BenRowe\StateFlow\Gate\GateCollection;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -72,5 +74,18 @@ class ConfigurationTest extends TestCase
         $this->expectExceptionMessage(sprintf('Action at index %d must implement %s, %s given', 0, Action::class, stdClass::class));
 
         new Configuration([], [new stdClass()]);
+    }
+
+    public function testCanCreateConfigWithCollections(): void
+    {
+        $gates = GateCollection::empty();
+        $gates->add($this->createMock(Gate::class));
+
+        $actions = ActionCollection::empty();
+        $actions->add($this->createMock(Action::class));
+
+        $config = new Configuration($gates, $actions);
+        $this->assertSame($gates, $config->getTransitionGates());
+        $this->assertSame($actions, $config->getActions());
     }
 }

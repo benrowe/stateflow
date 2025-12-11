@@ -178,4 +178,14 @@ class ActionSkipCollectionTest extends TestCase
         $this->assertCount(3, $collection);
         $this->assertSame([$skip1, $skip2, $skip3], $collection->toArray());
     }
+
+    public function testCanSetWithArray(): void
+    {
+        $collection = new ActionSkipCollection();
+        $action = $this->createMock(Action::class);
+        $skip = new ActionSkip($action, GateResult::DENY);
+        $collection[] = $skip;
+        $this->assertCount(1, $collection);
+        $this->assertSame([$skip], $collection->toArray());
+    }
 }
