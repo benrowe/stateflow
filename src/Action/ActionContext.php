@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Action;
 
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\TransitionContext;
 
 readonly class ActionContext
 {
-    /**
-     * @param array<string, mixed> $desiredDelta
-     */
     public function __construct(
         public State $currentState,
-        public array $desiredDelta,
+        public Delta $desiredDelta,
         public TransitionContext $executionContext,
     ) {
     }

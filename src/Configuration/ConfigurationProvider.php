@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Configuration;
 
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\State;
 
 interface ConfigurationProvider
 {
-    /**
-     * @param array<string, mixed> $desiredDelta
-     */
-    public function provide(State $currentState, array $desiredDelta): Configuration;
+    public function provide(State $currentState, Delta $desiredDelta): Configuration;
 }

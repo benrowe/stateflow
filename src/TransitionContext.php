@@ -38,12 +38,9 @@ class TransitionContext
 
     private bool $skippedDueToLock = false;
 
-    /**
-     * @param array<string, mixed> $desiredDelta
-     */
     public function __construct(
         private readonly State $initialState,
-        private readonly array $desiredDelta,
+        private readonly Delta $desiredDelta,
         private readonly Configuration $configuration,
     ) {
         $this->currentState = $initialState;
@@ -70,10 +67,7 @@ class TransitionContext
         $this->currentState = $newState;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getDesiredDelta(): array
+    public function getDesiredDelta(): Delta
     {
         return $this->desiredDelta;
     }
@@ -220,7 +214,7 @@ class TransitionContext
         $data = [
             'initialState' => $this->initialState->toArray(),
             'currentState' => $this->currentState->toArray(),
-            'desiredDelta' => $this->desiredDelta,
+            'desiredDelta' => $this->desiredDelta->asArray(),
             'status' => $this->status?->name,
             'skippedDueToLock' => $this->skippedDueToLock,
             'lockState' => $this->lockState->toArray(),
@@ -292,7 +286,7 @@ class TransitionContext
         $configuration = self::restoreConfiguration($decoded, $actionFactory, $gateFactory);
 
         // Create new context
-        $desiredDelta = $decoded['desiredDelta'] ?? [];
+        $desiredDelta = new ArrayDelta($decoded['desiredDelta'] ?? []);
         $context = new self($initialState, $desiredDelta, $configuration);
 
         // Restore current state
