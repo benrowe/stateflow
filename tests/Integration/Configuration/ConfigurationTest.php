@@ -48,12 +48,12 @@ class ConfigurationTest extends TestCase
         // Test publishing transition
         $publishConfig = $provider->provide($state, new ArrayDelta(['status' => 'published']));
         $this->assertCount(1, $publishConfig->getTransitionGates());
-        $this->assertSame($permissionGate, $publishConfig->getTransitionGates()[0]);
+        $this->assertSame($permissionGate, $publishConfig->getTransitionGates()->toArray()[0]);
 
         // Test content update transition
         $contentConfig = $provider->provide($state, new ArrayDelta(['content' => 'New content']));
         $this->assertCount(1, $contentConfig->getTransitionGates());
-        $this->assertSame($validationGate, $contentConfig->getTransitionGates()[0]);
+        $this->assertSame($validationGate, $contentConfig->getTransitionGates()->toArray()[0]);
 
         // Test simple transition
         $simpleConfig = $provider->provide($state, new ArrayDelta(['priority' => 'high']));
@@ -100,13 +100,13 @@ class ConfigurationTest extends TestCase
         // Test publishing from draft
         $publishConfig = $provider->provide($draftState, new ArrayDelta(['status' => 'published']));
         $this->assertCount(2, $publishConfig->getActions());
-        $this->assertContains($sendNotificationAction, $publishConfig->getActions());
-        $this->assertContains($updateIndexAction, $publishConfig->getActions());
+        $this->assertContains($sendNotificationAction, $publishConfig->getActions()->toArray());
+        $this->assertContains($updateIndexAction, $publishConfig->getActions()->toArray());
 
         // Test content update on published
         $contentConfig = $provider->provide($publishedState, new ArrayDelta(['content' => 'Updated']));
         $this->assertCount(1, $contentConfig->getActions());
-        $this->assertSame($incrementVersionAction, $contentConfig->getActions()[0]);
+        $this->assertSame($incrementVersionAction, $contentConfig->getActions()->toArray()[0]);
     }
 
     public function testConfigurationProviderSupportsComplexWorkflowScenarios(): void
@@ -146,20 +146,20 @@ class ConfigurationTest extends TestCase
         $approvalConfig = $provider->provide($pendingState, new ArrayDelta(['status' => 'approved']));
 
         $this->assertCount(1, $approvalConfig->getTransitionGates());
-        $this->assertSame($gate1, $approvalConfig->getTransitionGates()[0]);
+        $this->assertSame($gate1, $approvalConfig->getTransitionGates()->toArray()[0]);
         $this->assertCount(2, $approvalConfig->getActions());
-        $this->assertContains($action1, $approvalConfig->getActions());
-        $this->assertContains($action2, $approvalConfig->getActions());
+        $this->assertContains($action1, $approvalConfig->getActions()->toArray());
+        $this->assertContains($action2, $approvalConfig->getActions()->toArray());
 
         // Test payment workflow
         $approvedState = $this->createTestState(['status' => 'approved', 'amount' => 1000]);
         $paymentConfig = $provider->provide($approvedState, new ArrayDelta(['status' => 'paid']));
 
         $this->assertCount(1, $paymentConfig->getTransitionGates());
-        $this->assertSame($gate2, $paymentConfig->getTransitionGates()[0]);
+        $this->assertSame($gate2, $paymentConfig->getTransitionGates()->toArray()[0]);
         $this->assertCount(2, $paymentConfig->getActions());
-        $this->assertContains($action1, $paymentConfig->getActions());
-        $this->assertContains($action3, $paymentConfig->getActions());
+        $this->assertContains($action1, $paymentConfig->getActions()->toArray());
+        $this->assertContains($action3, $paymentConfig->getActions()->toArray());
     }
 
     private function createStubGate(string $name, GateResult $result): Gate

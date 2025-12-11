@@ -155,7 +155,7 @@ class SerializationTest extends TestCase
         );
 
         // Verify gate evaluations were preserved
-        $evaluations = $restored->getGateEvaluations();
+        $evaluations = $restored->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertInstanceOf(SimpleGate::class, $evaluations[0]->gate);
         $this->assertSame(GateResult::ALLOW, $evaluations[0]->result);

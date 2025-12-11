@@ -17,8 +17,8 @@ class ConfigurationTest extends TestCase
     {
         $config = new Configuration([], []);
 
-        $this->assertSame([], $config->getTransitionGates());
-        $this->assertSame([], $config->getActions());
+        $this->assertSame([], $config->getTransitionGates()->toArray());
+        $this->assertSame([], $config->getActions()->toArray());
     }
 
     public function testCanBeCreatedWithTransitionGates(): void
@@ -29,8 +29,8 @@ class ConfigurationTest extends TestCase
 
         $config = new Configuration($gates, []);
 
-        $this->assertSame($gates, $config->getTransitionGates());
-        $this->assertSame([], $config->getActions());
+        $this->assertSame($gates, $config->getTransitionGates()->toArray());
+        $this->assertSame([], $config->getActions()->toArray());
     }
 
     public function testCanBeCreatedWithActions(): void
@@ -41,8 +41,8 @@ class ConfigurationTest extends TestCase
 
         $config = new Configuration([], $actions);
 
-        $this->assertSame([], $config->getTransitionGates());
-        $this->assertSame($actions, $config->getActions());
+        $this->assertSame([], $config->getTransitionGates()->toArray());
+        $this->assertSame($actions, $config->getActions()->toArray());
     }
 
     public function testCanBeCreatedWithBothGatesAndActions(): void
@@ -54,8 +54,8 @@ class ConfigurationTest extends TestCase
 
         $config = new Configuration($gates, $actions);
 
-        $this->assertSame($gates, $config->getTransitionGates());
-        $this->assertSame($actions, $config->getActions());
+        $this->assertSame($gates, $config->getTransitionGates()->toArray());
+        $this->assertSame($actions, $config->getActions()->toArray());
     }
 
     public function testGateConfigIsValidated(): void

@@ -62,9 +62,9 @@ class StepByStepExecutionTest extends TestCase
         // Verify all gates were evaluated
         $context = $worker->getContext();
         $this->assertCount(3, $context->getGateEvaluations(), 'All gates should be evaluated');
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()[0]->result);
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()[1]->result);
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()[2]->result);
+        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[0]->result);
+        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[1]->result);
+        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[2]->result);
 
         // Verify NO actions were executed
         $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute');
@@ -108,8 +108,8 @@ class StepByStepExecutionTest extends TestCase
         // Verify only gates 1 and 2 were evaluated (short-circuit)
         $context = $worker->getContext();
         $this->assertCount(2, $context->getGateEvaluations(), 'Only 2 gates should be evaluated (short-circuit)');
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()[0]->result);
-        $this->assertSame(GateResult::DENY, $context->getGateEvaluations()[1]->result);
+        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[0]->result);
+        $this->assertSame(GateResult::DENY, $context->getGateEvaluations()->toArray()[1]->result);
 
         // Verify NO actions were executed
         $this->assertCount(0, $context->getActionExecutions());
@@ -315,8 +315,8 @@ class StepByStepExecutionTest extends TestCase
 
         // Verify gates were evaluated
         $this->assertCount(2, $context->getGateEvaluations());
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()[0]->result);
-        $this->assertSame(GateResult::DENY, $context->getGateEvaluations()[1]->result);
+        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[0]->result);
+        $this->assertSame(GateResult::DENY, $context->getGateEvaluations()->toArray()[1]->result);
 
         // Verify no actions executed
         $this->assertCount(0, $context->getActionExecutions());

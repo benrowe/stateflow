@@ -146,7 +146,7 @@ class StateWorker
             $this->context->getDesiredDelta()
         );
 
-        foreach ($this->configuration->getTransitionGates() as $gate) {
+        foreach ($this->configuration->getTransitionGates()->toArray() as $gate) {
             // Dispatch GateEvaluating event
             $this->eventDispatcher->dispatch(new GateEvaluating($gate, $gateContext, false));
 
@@ -169,7 +169,7 @@ class StateWorker
 
     private function executeActions(): void
     {
-        $actions = $this->configuration->getActions();
+        $actions = $this->configuration->getActions()->toArray();
         $actionCount = count($actions);
 
         // Execute remaining actions using runNextAction logic
@@ -197,7 +197,7 @@ class StateWorker
         // Renew lock if it's about to expire
         $this->renewLockIfNeeded();
 
-        $actions = $this->configuration->getActions();
+        $actions = $this->configuration->getActions()->toArray();
 
         // If we've already run all actions, do nothing
         if ($this->nextActionIndex >= count($actions)) {
@@ -278,7 +278,7 @@ class StateWorker
 
     private function skipAllActions(GateResult $reason): void
     {
-        foreach ($this->configuration->getActions() as $action) {
+        foreach ($this->configuration->getActions()->toArray() as $action) {
             $this->context->addActionSkip($action, $reason);
             // Dispatch ActionSkipped event
             $this->eventDispatcher->dispatch(new ActionSkipped($action, $reason));
