@@ -567,7 +567,7 @@ class TransitionContextSerializationTest extends TestCase
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
         }
-        $data['actions'][0]['executionState'] = 'INVALID_STATE';
+        $data['actionExecutions'][0]['executionState'] = 'INVALID_STATE';
         $modifiedSerialized = json_encode($data);
         if ($modifiedSerialized === false) {
             $this->fail('Failed to encode JSON');
@@ -755,6 +755,48 @@ class TransitionContextSerializationTest extends TestCase
         $executions = $restored->getActionExecutions();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::STOP, $executions[0]->executionState);
+    }
+
+    public function testSerializePreservesBothConfigurationActionsAndActionExecutions(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $action = new TestAction();
+        $config = new Configuration([], [$action]);
+
+        $context = new TransitionContext($state, $delta, $config);
+        $context->addActionResult(new ActionResult(ExecutionState::CONTINUE, new TestState(['status' => 'published'])));
+
+        $serialized = $context->serialize();
+        $data = json_decode($serialized, true);
+
+        // Verify both keys exist in the serialized JSON
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('configuration', $data);
+        $this->assertArrayHasKey('actions', $data['configuration'], 'Configuration should have "actions" key with action class names');
+        $this->assertArrayHasKey('actionExecutions', $data, 'Top level should have "actionExecutions" key with execution results');
+
+        // Verify configuration actions contains class names
+        $this->assertCount(1, $data['configuration']['actions']);
+        $this->assertSame(TestAction::class, $data['configuration']['actions'][0]);
+
+        // Verify actionExecutions contains execution state and metadata
+        $this->assertCount(1, $data['actionExecutions']);
+        $this->assertArrayHasKey('executionState', $data['actionExecutions'][0]);
+        $this->assertSame('CONTINUE', $data['actionExecutions'][0]['executionState']);
+
+        // Verify unserialization works correctly
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $this->assertCount(1, $restored->getConfiguration()->getActions());
+        $this->assertInstanceOf(TestAction::class, $restored->getConfiguration()->getActions()[0]);
+        $this->assertCount(1, $restored->getActionExecutions());
+        $this->assertSame(ExecutionState::CONTINUE, $restored->getActionExecutions()[0]->executionState);
     }
 }
 
