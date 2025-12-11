@@ -80,7 +80,7 @@ class TransitionContextTest extends TestCase
     {
         $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
-        $this->assertSame([], $context->getActionExecutions());
+        $this->assertSame([], $context->getActionExecutions()->toArray());
     }
 
     public function testAddActionResult(): void
@@ -92,7 +92,7 @@ class TransitionContextTest extends TestCase
         $context->addActionResult($result1);
         $context->addActionResult($result2);
 
-        $executions = $context->getActionExecutions();
+        $executions = $context->getActionExecutions()->toArray();
         $this->assertCount(2, $executions);
         $this->assertSame($result1, $executions[0]);
         $this->assertSame($result2, $executions[1]);
@@ -102,7 +102,7 @@ class TransitionContextTest extends TestCase
     {
         $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
-        $this->assertSame([], $context->getGateEvaluations());
+        $this->assertSame([], $context->getGateEvaluations()->toArray());
     }
 
     public function testAddGateEvaluation(): void
@@ -114,7 +114,7 @@ class TransitionContextTest extends TestCase
         $context->addGateEvaluation($gate1, GateResult::ALLOW, false);
         $context->addGateEvaluation($gate2, GateResult::DENY, true);
 
-        $evaluations = $context->getGateEvaluations();
+        $evaluations = $context->getGateEvaluations()->toArray();
         $this->assertCount(2, $evaluations);
 
         $this->assertInstanceOf(GateEvaluation::class, $evaluations[0]);
@@ -132,7 +132,7 @@ class TransitionContextTest extends TestCase
     {
         $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
-        $this->assertSame([], $context->getActionSkips());
+        $this->assertSame([], $context->getActionSkips()->toArray());
     }
 
     public function testAddActionSkip(): void
@@ -144,7 +144,7 @@ class TransitionContextTest extends TestCase
         $context->addActionSkip($action1, GateResult::DENY);
         $context->addActionSkip($action2, GateResult::SKIP_IDEMPOTENT);
 
-        $skips = $context->getActionSkips();
+        $skips = $context->getActionSkips()->toArray();
         $this->assertCount(2, $skips);
 
         $this->assertInstanceOf(ActionSkip::class, $skips[0]);

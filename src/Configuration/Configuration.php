@@ -5,43 +5,57 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Configuration;
 
 use BenRowe\StateFlow\Action\Action;
+use BenRowe\StateFlow\Action\ActionCollection;
 use BenRowe\StateFlow\Exceptions\InvalidConfigurationException;
 use BenRowe\StateFlow\Gate\Gate;
+use BenRowe\StateFlow\Gate\GateCollection;
 
 readonly class Configuration
 {
-    /**
-     * @param Gate[] $transitionGates
-     * @param Action[] $actions
-     */
-    public function __construct(private array $transitionGates, private array $actions)
-    {
-        $this->validateGates();
-        $this->validateActions();
-    }
+    private GateCollection $transitionGates;
+
+    private ActionCollection $actions;
 
     /**
-     * @return Gate[]
+     * @param Gate[]|GateCollection $transitionGates
+     * @param Action[]|ActionCollection $actions
      */
-    public function getTransitionGates(): array
+    public function __construct(
+        GateCollection|array $transitionGates,
+        ActionCollection|array $actions
+    ) {
+        if (is_array($transitionGates)) {
+            $this->validateGates($transitionGates);
+            $this->transitionGates = GateCollection::fromArray($transitionGates);
+        } else {
+            $this->transitionGates = $transitionGates;
+        }
+
+        if (is_array($actions)) {
+            $this->validateActions($actions);
+            $this->actions = ActionCollection::fromArray($actions);
+        } else {
+            $this->actions = $actions;
+        }
+    }
+
+    public function getTransitionGates(): GateCollection
     {
         return $this->transitionGates;
     }
 
-    /**
-     * @return Action[]
-     */
-    public function getActions(): array
+    public function getActions(): ActionCollection
     {
         return $this->actions;
     }
 
     /**
-     * @phpstan-assert Gate[] $this->transitionGates
+     * @param array<mixed> $gates
+     * @phpstan-assert Gate[] $gates
      */
-    private function validateGates(): void
+    private function validateGates(array $gates): void
     {
-        foreach ($this->transitionGates as $index => $gate) {
+        foreach ($gates as $index => $gate) {
             if (!$gate instanceof Gate) {
                 throw new InvalidConfigurationException(
                     sprintf(
@@ -56,11 +70,12 @@ readonly class Configuration
     }
 
     /**
-     * @phpstan-assert Action[] $this->actions
+     * @param array<mixed> $actions
+     * @phpstan-assert Action[] $actions
      */
-    private function validateActions(): void
+    private function validateActions(array $actions): void
     {
-        foreach ($this->actions as $index => $action) {
+        foreach ($actions as $index => $action) {
             if (!$action instanceof Action) {
                 throw new InvalidConfigurationException(
                     sprintf(

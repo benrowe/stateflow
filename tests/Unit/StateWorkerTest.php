@@ -103,7 +103,7 @@ class StateWorkerTest extends TestCase
         $this->assertCount(1, $resultContext->getActionSkips(), 'Action should be skipped');
 
         // Verify the skip reason
-        $skips = $resultContext->getActionSkips();
+        $skips = $resultContext->getActionSkips()->toArray();
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skips[0]->gateResult);
 
         // Verify TransitionCompleted event was dispatched
@@ -167,7 +167,7 @@ class StateWorkerTest extends TestCase
         $this->assertCount(1, $resultContext->getActionSkips(), 'Action should be skipped');
 
         // Verify the skip reason
-        $skips = $resultContext->getActionSkips();
+        $skips = $resultContext->getActionSkips()->toArray();
         $this->assertSame(GateResult::DENY, $skips[0]->gateResult);
     }
 
@@ -256,7 +256,7 @@ class StateWorkerTest extends TestCase
         $worker->runGates();
 
         $this->assertCount(2, $context->getGateEvaluations());
-        $this->assertSame(['first gate', 'second gate'], array_map(fn (GateEvaluation $eval) => $eval->gate->message(), $context->getGateEvaluations()));
+        $this->assertSame(['first gate', 'second gate'], array_map(fn (GateEvaluation $eval) => $eval->gate->message(), $context->getGateEvaluations()->toArray()));
 
     }
 
@@ -472,7 +472,7 @@ class StateWorkerTest extends TestCase
         // Action should be skipped because guard denied
         $this->assertCount(0, $context->getActionExecutions());
         $this->assertCount(1, $context->getActionSkips());
-        $this->assertSame(GateResult::DENY, $context->getActionSkips()[0]->gateResult);
+        $this->assertSame(GateResult::DENY, $context->getActionSkips()->toArray()[0]->gateResult);
     }
 
     public function testActionWithGuardThatReturnsSkipIdempotentSkipsAction(): void
@@ -507,7 +507,7 @@ class StateWorkerTest extends TestCase
         // Action should be skipped because guard returned SKIP_IDEMPOTENT
         $this->assertCount(0, $context->getActionExecutions());
         $this->assertCount(1, $context->getActionSkips());
-        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $context->getActionSkips()[0]->gateResult);
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $context->getActionSkips()->toArray()[0]->gateResult);
     }
 
     public function testSetNextActionIndexAllowsJumpingToSpecificAction(): void

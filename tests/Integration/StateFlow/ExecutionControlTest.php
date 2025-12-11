@@ -52,8 +52,8 @@ class ExecutionControlTest extends TestCase
 
         // Only actions 1 and 2 should execute, action 3 should NOT
         $this->assertCount(2, $context->getActionExecutions(), 'Only 2 actions should execute (action 3 skipped due to pause)');
-        $this->assertSame(ExecutionState::CONTINUE, $context->getActionExecutions()[0]->executionState);
-        $this->assertSame(ExecutionState::PAUSE, $context->getActionExecutions()[1]->executionState);
+        $this->assertSame(ExecutionState::CONTINUE, $context->getActionExecutions()->toArray()[0]->executionState);
+        $this->assertSame(ExecutionState::PAUSE, $context->getActionExecutions()->toArray()[1]->executionState);
 
         // Verify the context is marked as paused
         $this->assertTrue($context->isPaused(), 'Context should be marked as paused');
@@ -61,7 +61,7 @@ class ExecutionControlTest extends TestCase
         $this->assertFalse($context->isStopped(), 'Context should not be stopped');
 
         // Verify pause metadata is stored
-        $this->assertSame(['reason' => 'awaiting approval'], $context->getActionExecutions()[1]->metadata);
+        $this->assertSame(['reason' => 'awaiting approval'], $context->getActionExecutions()->toArray()[1]->metadata);
 
         // Verify execution log shows action 3 did NOT execute
         $this->assertContains('Action:Action1', $this->logger->log);
@@ -90,8 +90,8 @@ class ExecutionControlTest extends TestCase
 
         // Only actions 1 and 2 should execute, action 3 should NOT
         $this->assertCount(2, $context->getActionExecutions(), 'Only 2 actions should execute (action 3 skipped due to stop)');
-        $this->assertSame(ExecutionState::CONTINUE, $context->getActionExecutions()[0]->executionState);
-        $this->assertSame(ExecutionState::STOP, $context->getActionExecutions()[1]->executionState);
+        $this->assertSame(ExecutionState::CONTINUE, $context->getActionExecutions()->toArray()[0]->executionState);
+        $this->assertSame(ExecutionState::STOP, $context->getActionExecutions()->toArray()[1]->executionState);
 
         // Verify the context is marked as stopped
         $this->assertTrue($context->isStopped(), 'Context should be marked as stopped');
@@ -99,7 +99,7 @@ class ExecutionControlTest extends TestCase
         $this->assertFalse($context->isPaused(), 'Context should not be paused');
 
         // Verify stop metadata is stored
-        $this->assertSame(['reason' => 'validation failed'], $context->getActionExecutions()[1]->metadata);
+        $this->assertSame(['reason' => 'validation failed'], $context->getActionExecutions()->toArray()[1]->metadata);
 
         // Verify execution log shows action 3 did NOT execute
         $this->assertContains('Action:Action1', $this->logger->log);

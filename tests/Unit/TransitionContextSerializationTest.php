@@ -92,7 +92,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations();
+        $evaluations = $restored->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertInstanceOf(GateEvaluation::class, $evaluations[0]);
         $this->assertInstanceOf(TestGate::class, $evaluations[0]->gate);
@@ -119,7 +119,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions();
+        $executions = $restored->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::CONTINUE, $executions[0]->executionState);
         $this->assertEquals($newState->toArray(), $executions[0]->newState?->toArray());
@@ -212,7 +212,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $skips = $restored->getActionSkips();
+        $skips = $restored->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertInstanceOf(ActionSkip::class, $skips[0]);
         $this->assertInstanceOf(TestAction::class, $skips[0]->action);
@@ -237,7 +237,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions();
+        $executions = $restored->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame($metadata, $executions[0]->metadata);
         $this->assertSame($metadata, $restored->getStatusMetadata());
@@ -548,7 +548,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should use default ALLOW
-        $evaluations = $restored->getGateEvaluations();
+        $evaluations = $restored->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertSame(GateResult::ALLOW, $evaluations[0]->result);
     }
@@ -582,7 +582,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should use default CONTINUE
-        $executions = $restored->getActionExecutions();
+        $executions = $restored->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::CONTINUE, $executions[0]->executionState);
     }
@@ -617,7 +617,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should use default ALLOW
-        $skips = $restored->getActionSkips();
+        $skips = $restored->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertSame(GateResult::ALLOW, $skips[0]->gateResult);
     }
@@ -640,7 +640,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations();
+        $evaluations = $restored->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertSame(GateResult::DENY, $evaluations[0]->result);
     }
@@ -663,7 +663,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations();
+        $evaluations = $restored->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $evaluations[0]->result);
     }
@@ -686,7 +686,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $skips = $restored->getActionSkips();
+        $skips = $restored->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertSame(GateResult::ALLOW, $skips[0]->gateResult);
     }
@@ -709,7 +709,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $skips = $restored->getActionSkips();
+        $skips = $restored->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skips[0]->gateResult);
     }
@@ -731,7 +731,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions();
+        $executions = $restored->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::PAUSE, $executions[0]->executionState);
     }
@@ -753,7 +753,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions();
+        $executions = $restored->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::STOP, $executions[0]->executionState);
     }
@@ -795,9 +795,9 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         $this->assertCount(1, $restored->getConfiguration()->getActions());
-        $this->assertInstanceOf(TestAction::class, $restored->getConfiguration()->getActions()[0]);
+        $this->assertInstanceOf(TestAction::class, $restored->getConfiguration()->getActions()->toArray()[0]);
         $this->assertCount(1, $restored->getActionExecutions());
-        $this->assertSame(ExecutionState::CONTINUE, $restored->getActionExecutions()[0]->executionState);
+        $this->assertSame(ExecutionState::CONTINUE, $restored->getActionExecutions()->toArray()[0]->executionState);
     }
 }
 

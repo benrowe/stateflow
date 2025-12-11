@@ -55,7 +55,7 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify all 3 gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->getGateEvaluations()->toArray();
         $this->assertCount(3, $gateEvaluations, 'All 3 gates should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[1]->result);
@@ -113,7 +113,7 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify ONLY first gate was evaluated (short-circuit)
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->getGateEvaluations()->toArray();
         $this->assertCount(1, $gateEvaluations, 'Only first gate should be evaluated (short-circuit)');
         $this->assertSame(GateResult::DENY, $gateEvaluations[0]->result);
 
@@ -157,7 +157,7 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify the gate was evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->getGateEvaluations()->toArray();
         $this->assertCount(1, $gateEvaluations, 'Gate should be evaluated');
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $gateEvaluations[0]->result);
 
@@ -165,7 +165,7 @@ class TransitionGateTest extends TestCase
         $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate returns SKIP_IDEMPOTENT');
 
         // Verify both actions were skipped with SKIP_IDEMPOTENT reason
-        $actionSkips = $context->getActionSkips();
+        $actionSkips = $context->getActionSkips()->toArray();
         $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $actionSkips[0]->gateResult);
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $actionSkips[1]->gateResult);
@@ -203,7 +203,7 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify gates 1 and 2 were evaluated, but NOT gate 3 (short-circuit)
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->getGateEvaluations()->toArray();
         $this->assertCount(2, $gateEvaluations, 'Gates 1 and 2 should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::DENY, $gateEvaluations[1]->result);
@@ -250,7 +250,7 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->getGateEvaluations()->toArray();
         $this->assertCount(2, $gateEvaluations);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::DENY, $gateEvaluations[1]->result);
@@ -296,7 +296,7 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify all 3 gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->getGateEvaluations()->toArray();
         $this->assertCount(3, $gateEvaluations, 'All 3 gates should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[1]->result);

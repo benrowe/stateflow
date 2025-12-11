@@ -50,8 +50,8 @@ class CallableConfigurationProviderTest extends TestCase
 
         $this->assertCount(1, $config->getTransitionGates());
         $this->assertCount(1, $config->getActions());
-        $this->assertSame($gate, $config->getTransitionGates()[0]);
-        $this->assertSame($action, $config->getActions()[0]);
+        $this->assertSame($gate, $config->getTransitionGates()->toArray()[0]);
+        $this->assertSame($action, $config->getActions()->toArray()[0]);
     }
 
     public function testProvideWithDifferentStatesReturnsDifferentConfigurations(): void
@@ -79,8 +79,8 @@ class CallableConfigurationProviderTest extends TestCase
         $config1 = $provider->provide($state1, new ArrayDelta([]));
         $config2 = $provider->provide($state2, new ArrayDelta([]));
 
-        $this->assertSame($pendingGate, $config1->getTransitionGates()[0]);
-        $this->assertSame($activeGate, $config2->getTransitionGates()[0]);
+        $this->assertSame($pendingGate, $config1->getTransitionGates()->toArray()[0]);
+        $this->assertSame($activeGate, $config2->getTransitionGates()->toArray()[0]);
     }
 
     public function testProvideWithDifferentDeltasReturnsDifferentConfigurations(): void
@@ -102,7 +102,7 @@ class CallableConfigurationProviderTest extends TestCase
         $config1 = $provider->provide($state, new ArrayDelta(['priority' => 'high']));
         $config2 = $provider->provide($state, new ArrayDelta(['priority' => 'low']));
 
-        $this->assertSame($action1, $config1->getActions()[0]);
-        $this->assertSame($action2, $config2->getActions()[0]);
+        $this->assertSame($action1, $config1->getActions()->toArray()[0]);
+        $this->assertSame($action2, $config2->getActions()->toArray()[0]);
     }
 }

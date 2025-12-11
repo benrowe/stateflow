@@ -54,7 +54,7 @@ class BasicExecutionTest extends TestCase
             ->execute();
         $this->assertInstanceOf(TransitionContext::class, $context);
         $this->assertCount(1, $context->getActionExecutions());
-        $action = $context->getActionExecutions()[0];
+        $action = $context->getActionExecutions()->toArray()[0];
         $this->assertInstanceOf(ActionResult::class, $action);
         $this->assertSame(ExecutionState::CONTINUE, $action->executionState);
     }
@@ -161,7 +161,7 @@ class BasicExecutionTest extends TestCase
             ->execute();
 
         $this->assertCount(1, $context->getActionExecutions());
-        $this->assertSame($newState, $context->getActionExecutions()[0]->newState);
+        $this->assertSame($newState, $context->getActionExecutions()->toArray()[0]->newState);
         $this->assertContains('Action:PublishAction', $this->logger->log);
     }
 
