@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Unit;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\ActionSkip;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -38,27 +39,27 @@ class TransitionContextTest extends TestCase
 
     public function testConstructWithoutDelta(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $this->assertSame($this->mockState, $context->getCurrentState());
         $this->assertSame($this->mockState, $context->getInitialState());
-        $this->assertSame([], $context->getDesiredDelta());
+        $this->assertSame([], $context->getDesiredDelta()->asArray());
         $this->assertSame($this->mockConfiguration, $context->getConfiguration());
     }
 
     public function testConstructWithDelta(): void
     {
         $delta = ['status' => 'published', 'priority' => 'high'];
-        $context = new TransitionContext($this->mockState, $delta, $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta($delta), $this->mockConfiguration);
 
         $this->assertSame($this->mockState, $context->getCurrentState());
         $this->assertSame($this->mockState, $context->getInitialState());
-        $this->assertSame($delta, $context->getDesiredDelta());
+        $this->assertSame($delta, $context->getDesiredDelta()->asArray());
     }
 
     public function testUpdateCurrentState(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $newState = $this->createStub(State::class);
 
         $context->updateCurrentState($newState);
@@ -70,21 +71,21 @@ class TransitionContextTest extends TestCase
     public function testGetDesiredDelta(): void
     {
         $delta = ['foo' => 'bar', 'baz' => 123];
-        $context = new TransitionContext($this->mockState, $delta, $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta($delta), $this->mockConfiguration);
 
-        $this->assertSame($delta, $context->getDesiredDelta());
+        $this->assertSame($delta, $context->getDesiredDelta()->asArray());
     }
 
     public function testActionExecutionsEmptyByDefault(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $this->assertSame([], $context->getActionExecutions());
     }
 
     public function testAddActionResult(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $result1 = ActionResult::continue();
         $result2 = ActionResult::pause();
 
@@ -99,14 +100,14 @@ class TransitionContextTest extends TestCase
 
     public function testGateEvaluationsEmptyByDefault(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $this->assertSame([], $context->getGateEvaluations());
     }
 
     public function testAddGateEvaluation(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $gate1 = $this->createStub(Gate::class);
         $gate2 = $this->createStub(Gate::class);
 
@@ -129,14 +130,14 @@ class TransitionContextTest extends TestCase
 
     public function testActionSkipsEmptyByDefault(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $this->assertSame([], $context->getActionSkips());
     }
 
     public function testAddActionSkip(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $action1 = $this->createStub(Action::class);
         $action2 = $this->createStub(Action::class);
 
@@ -157,7 +158,7 @@ class TransitionContextTest extends TestCase
 
     public function testStatusDefaultsToNull(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $this->assertFalse($context->isCompleted());
         $this->assertFalse($context->isPaused());
@@ -166,7 +167,7 @@ class TransitionContextTest extends TestCase
 
     public function testMarkAsCompleted(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $context->markAsCompleted();
 
@@ -177,7 +178,7 @@ class TransitionContextTest extends TestCase
 
     public function testMarkAsPaused(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $context->markAsPaused();
 
@@ -188,7 +189,7 @@ class TransitionContextTest extends TestCase
 
     public function testMarkAsStopped(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $context->markAsStopped();
 
@@ -199,7 +200,7 @@ class TransitionContextTest extends TestCase
 
     public function testStatusCanBeChangedMultipleTimes(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         // Initially null
         $this->assertFalse($context->isCompleted());
@@ -223,7 +224,7 @@ class TransitionContextTest extends TestCase
 
     public function testCompleteWorkflow(): void
     {
-        $context = new TransitionContext($this->mockState, ['status' => 'published'], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $this->mockConfiguration);
 
         // Add gate evaluations
         $gate = $this->createStub(Gate::class);
@@ -241,13 +242,13 @@ class TransitionContextTest extends TestCase
         $this->assertCount(1, $context->getActionExecutions());
         $this->assertCount(0, $context->getActionSkips());
         $this->assertTrue($context->isCompleted());
-        $this->assertSame(['status' => 'published'], $context->getDesiredDelta());
+        $this->assertSame(['status' => 'published'], $context->getDesiredDelta()->asArray());
     }
 
     public function testDidGatePassEmpty(): void
     {
         $config = new Configuration([], []);
-        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $this->assertTrue($context->didGatesPass());
     }
 
@@ -256,7 +257,7 @@ class TransitionContextTest extends TestCase
         $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
         $gate2 = $this->createTestGate('gate 2', GateResult::ALLOW);
         $config = new Configuration([$gate1, $gate2], []);
-        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $context->addGateEvaluation($gate1, GateResult::ALLOW, false);
         $context->addGateEvaluation($gate2, GateResult::ALLOW, false);
 
@@ -268,7 +269,7 @@ class TransitionContextTest extends TestCase
         $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
         $gate2 = $this->createTestGate('gate 2', GateResult::DENY);
         $config = new Configuration([$gate1, $gate2], []);
-        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $context->addGateEvaluation($gate1, GateResult::ALLOW, false);
         $context->addGateEvaluation($gate2, GateResult::DENY, false);
 
@@ -280,7 +281,7 @@ class TransitionContextTest extends TestCase
         $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
         $gate2 = $this->createTestGate('gate 2', GateResult::DENY);
         $config = new Configuration([$gate1, $gate2], []);
-        $context = new TransitionContext($this->mockState, ['status' => 'published'], $config);
+        $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $context->addGateEvaluation($gate1, GateResult::DENY, false);
 
         $this->assertFalse($context->didGatesPass());
@@ -288,7 +289,7 @@ class TransitionContextTest extends TestCase
 
     public function testClearPauseStatusWhenPaused(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $context->markAsPaused();
         $this->assertTrue($context->isPaused());
@@ -302,7 +303,7 @@ class TransitionContextTest extends TestCase
 
     public function testClearPauseStatusWhenNotPausedDoesNothing(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $context->markAsCompleted();
         $this->assertTrue($context->isCompleted());
@@ -316,7 +317,7 @@ class TransitionContextTest extends TestCase
 
     public function testGetLockStateReturnsDefaultEmptyState(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $lockState = $context->getLockState();
 
@@ -326,7 +327,7 @@ class TransitionContextTest extends TestCase
 
     public function testSetLockStateUpdatesState(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $lockState = new LockState('order:123', 1234567890.0, 30);
         $context->setLockState($lockState);
@@ -339,14 +340,14 @@ class TransitionContextTest extends TestCase
 
     public function testWasSkippedDueToLockDefaultsToFalse(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $this->assertFalse($context->wasSkippedDueToLock());
     }
 
     public function testMarkAsSkippedDueToLockSetsFlag(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $context->markAsSkippedDueToLock();
 
@@ -355,14 +356,14 @@ class TransitionContextTest extends TestCase
 
     public function testGetStatusMetadataReturnsNullWhenNoActionsExecuted(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $this->assertNull($context->getStatusMetadata());
     }
 
     public function testGetStatusMetadataReturnsNullWhenNoStopOrPauseActions(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $context->addActionResult(ActionResult::continue());
         $context->addActionResult(ActionResult::continue());
 
@@ -371,7 +372,7 @@ class TransitionContextTest extends TestCase
 
     public function testGetStatusMetadataReturnsPauseMetadata(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $metadata = ['reason' => 'waiting for approval', 'approver' => 'manager@example.com'];
 
         $context->addActionResult(ActionResult::continue());
@@ -382,7 +383,7 @@ class TransitionContextTest extends TestCase
 
     public function testGetStatusMetadataReturnsStopMetadata(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $metadata = ['error' => 'Payment failed', 'code' => 'CARD_DECLINED'];
 
         $context->addActionResult(ActionResult::continue());
@@ -393,7 +394,7 @@ class TransitionContextTest extends TestCase
 
     public function testGetStatusMetadataReturnsLastPauseOrStopMetadata(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $metadata1 = ['first' => 'pause'];
         $metadata2 = ['second' => 'stop'];
 
@@ -407,7 +408,7 @@ class TransitionContextTest extends TestCase
 
     public function testGetStatusMetadataReturnsNullWhenMetadataIsNull(): void
     {
-        $context = new TransitionContext($this->mockState, [], $this->mockConfiguration);
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
 
         $context->addActionResult(ActionResult::pause(null, null));
 

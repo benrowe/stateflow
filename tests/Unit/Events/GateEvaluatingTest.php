@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Tests\Unit\Events;
 
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Events\GateEvaluating;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -17,7 +18,7 @@ class GateEvaluatingTest extends TestCase
         $gate = $this->createMock(Gate::class);
         $context = new GateContext(
             $this->createMock(State::class),
-            ['foo' => 'bar']
+            new ArrayDelta(['foo' => 'bar'])
         );
         $isActionGate = false;
 

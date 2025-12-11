@@ -10,6 +10,7 @@ use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\ActionFactory;
 use BenRowe\StateFlow\ActionSkip;
+use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -44,7 +45,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
 
         $serialized = $context->serialize();
 
@@ -58,7 +59,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $serialized = $context->serialize();
 
         $restored = TransitionContext::unserialize(
@@ -70,7 +71,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $this->assertEquals($state->toArray(), $restored->getCurrentState()->toArray());
         $this->assertEquals($state->toArray(), $restored->getInitialState()->toArray());
-        $this->assertSame($delta, $restored->getDesiredDelta());
+        $this->assertSame($delta, $restored->getDesiredDelta()->asArray());
     }
 
     public function testSerializeAndUnserializeWithGates(): void
@@ -80,7 +81,7 @@ class TransitionContextSerializationTest extends TestCase
         $gate = new TestGate();
         $config = new Configuration([$gate], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addGateEvaluation($gate, GateResult::ALLOW, false);
 
         $serialized = $context->serialize();
@@ -106,7 +107,7 @@ class TransitionContextSerializationTest extends TestCase
         $action = new TestAction();
         $config = new Configuration([], [$action]);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $newState = new TestState(['status' => 'published']);
         $context->addActionResult(new ActionResult(ExecutionState::CONTINUE, $newState));
 
@@ -130,7 +131,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->markAsPaused();
 
         $serialized = $context->serialize();
@@ -152,7 +153,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->markAsStopped();
 
         $serialized = $context->serialize();
@@ -174,7 +175,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $lockState = new LockState('order:123', 1234567890.0, 30);
         $context->setLockState($lockState);
 
@@ -200,7 +201,7 @@ class TransitionContextSerializationTest extends TestCase
         $action = new TestAction();
         $config = new Configuration([], [$action]);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionSkip($action, GateResult::DENY);
 
         $serialized = $context->serialize();
@@ -224,7 +225,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $metadata = ['reason' => 'waiting for approval', 'approver' => 'manager@example.com'];
         $context->addActionResult(ActionResult::pause(null, $metadata));
 
@@ -248,7 +249,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->markAsSkippedDueToLock();
 
         $serialized = $context->serialize();
@@ -272,7 +273,7 @@ class TransitionContextSerializationTest extends TestCase
         $action = new TestAction();
         $config = new Configuration([$gate], [$action]);
 
-        $context = new TransitionContext($initialState, $delta, $config);
+        $context = new TransitionContext($initialState, new ArrayDelta($delta), $config);
         $context->updateCurrentState($currentState);
         $context->addGateEvaluation($gate, GateResult::ALLOW, false);
         $context->addActionResult(new ActionResult(ExecutionState::CONTINUE, $currentState));
@@ -292,7 +293,7 @@ class TransitionContextSerializationTest extends TestCase
         // Verify state
         $this->assertEquals($initialState->toArray(), $restored->getInitialState()->toArray());
         $this->assertEquals($currentState->toArray(), $restored->getCurrentState()->toArray());
-        $this->assertSame($delta, $restored->getDesiredDelta());
+        $this->assertSame($delta, $restored->getDesiredDelta()->asArray());
 
         // Verify configuration
         $this->assertCount(1, $restored->getConfiguration()->getTransitionGates());
@@ -330,7 +331,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $serialized = $context->serialize();
 
         // Decode and remove configuration
@@ -362,7 +363,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $serialized = $context->serialize();
 
         // Decode and set configuration to a non-array value
@@ -394,7 +395,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $serialized = $context->serialize();
 
         // Decode and set lockState to null
@@ -425,7 +426,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $serialized = $context->serialize();
 
         // Decode and remove skippedDueToLock
@@ -456,7 +457,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $serialized = $context->serialize();
 
         // Decode and set status to null
@@ -489,7 +490,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->markAsCompleted();
         $serialized = $context->serialize();
 
@@ -524,7 +525,7 @@ class TransitionContextSerializationTest extends TestCase
         $gate = new TestGate();
         $config = new Configuration([$gate], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addGateEvaluation($gate, GateResult::ALLOW, false);
         $serialized = $context->serialize();
 
@@ -558,7 +559,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionResult(new ActionResult(ExecutionState::CONTINUE));
         $serialized = $context->serialize();
 
@@ -593,7 +594,7 @@ class TransitionContextSerializationTest extends TestCase
         $action = new TestAction();
         $config = new Configuration([], [$action]);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionSkip($action, GateResult::DENY);
         $serialized = $context->serialize();
 
@@ -628,7 +629,7 @@ class TransitionContextSerializationTest extends TestCase
         $gate = new TestGate();
         $config = new Configuration([$gate], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addGateEvaluation($gate, GateResult::DENY, false);
 
         $serialized = $context->serialize();
@@ -651,7 +652,7 @@ class TransitionContextSerializationTest extends TestCase
         $gate = new TestGate();
         $config = new Configuration([$gate], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addGateEvaluation($gate, GateResult::SKIP_IDEMPOTENT, false);
 
         $serialized = $context->serialize();
@@ -674,7 +675,7 @@ class TransitionContextSerializationTest extends TestCase
         $action = new TestAction();
         $config = new Configuration([], [$action]);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionSkip($action, GateResult::ALLOW);
 
         $serialized = $context->serialize();
@@ -697,7 +698,7 @@ class TransitionContextSerializationTest extends TestCase
         $action = new TestAction();
         $config = new Configuration([], [$action]);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionSkip($action, GateResult::SKIP_IDEMPOTENT);
 
         $serialized = $context->serialize();
@@ -719,7 +720,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionResult(new ActionResult(ExecutionState::PAUSE));
 
         $serialized = $context->serialize();
@@ -741,7 +742,7 @@ class TransitionContextSerializationTest extends TestCase
         $delta = ['status' => 'published'];
         $config = new Configuration([], []);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionResult(new ActionResult(ExecutionState::STOP));
 
         $serialized = $context->serialize();
@@ -764,7 +765,7 @@ class TransitionContextSerializationTest extends TestCase
         $action = new TestAction();
         $config = new Configuration([], [$action]);
 
-        $context = new TransitionContext($state, $delta, $config);
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->addActionResult(new ActionResult(ExecutionState::CONTINUE, new TestState(['status' => 'published'])));
 
         $serialized = $context->serialize();
