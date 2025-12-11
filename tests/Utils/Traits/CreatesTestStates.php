@@ -10,6 +10,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Trait for creating test State stubs
+ *
+ * @mixin TestCase
  */
 trait CreatesTestStates
 {
@@ -19,7 +21,6 @@ trait CreatesTestStates
      */
     private function createTestState(array $data): State
     {
-        /** @var TestCase $this */
         $state = $this->createStub(State::class);
         $state->method('toArray')->willReturn($data);
         $state->method('with')->willReturnCallback(function (array $changes) use ($data) {
