@@ -342,7 +342,7 @@ class StateWorker
             LockStrategy::SKIP => $this->handleSkip($lockKey),
             LockStrategy::WAIT => $this->handleWait($lockKey),
             // @codeCoverageIgnoreStart
-            LockStrategy::NONE => null, // @phpstan-ignore-line This case is unreachable but needed for match exhaustiveness
+            LockStrategy::NONE => null,
             // @codeCoverageIgnoreEnd
         };
     }

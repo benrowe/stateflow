@@ -1,0 +1,319 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Asserted type array\<BenRowe\\StateFlow\\Action\\Action\> for \$this\-\>actions with type array\<BenRowe\\StateFlow\\Action\\Action\> does not narrow down the type\.$#'
+			identifier: assert.alreadyNarrowedType
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Asserted type array\<BenRowe\\StateFlow\\Gate\\Gate\> for \$this\-\>transitionGates with type array\<BenRowe\\StateFlow\\Gate\\Gate\> does not narrow down the type\.$#'
+			identifier: assert.alreadyNarrowedType
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateActions\(\) will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateGates\(\) will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Instanceof between BenRowe\\StateFlow\\Action\\Action and BenRowe\\StateFlow\\Action\\Action will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Instanceof between BenRowe\\StateFlow\\Gate\\Gate and BenRowe\\StateFlow\\Gate\\Gate will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/Configuration/Configuration.php
+
+		-
+			message: '#^Match arm comparison between BenRowe\\StateFlow\\Locking\\LockStrategy\:\:WAIT and BenRowe\\StateFlow\\Locking\\LockStrategy\:\:WAIT is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: src/StateWorker.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\StateFactory\:\:fromArray\(\) expects array\<string, mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method BenRowe\\StateFlow\\Locking\\LockState\:\:fromArray\(\) expects array\<string, mixed\>, array\<mixed, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#1 \$decoded of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreConfiguration\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#2 \$decoded of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreActionExecutions\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#2 \$decoded of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreActionSkips\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#2 \$decoded of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreGateEvaluations\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#2 \$decoded of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreStatus\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#2 \$desiredDelta of class BenRowe\\StateFlow\\TransitionContext constructor expects array\<string, mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Property BenRowe\\StateFlow\\TransitionContext\:\:\$skippedDueToLock \(bool\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/TransitionContext.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\Configuration\\ConfigurationTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Configuration/ConfigurationTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ActionGuardTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/ActionGuardTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\BasicExecutionTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/BasicExecutionTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ComplexWorkflowTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/ComplexWorkflowTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\DeltaAccessTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/DeltaAccessTest.php
+
+		-
+			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:151\:\:message\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: tests/Integration/StateFlow/ErrorHandlingTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ErrorHandlingTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/ErrorHandlingTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\EventDispatchingTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/EventDispatchingTest.php
+
+		-
+			message: '#^Binary operation "\+" between mixed and 1 results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: tests/Integration/StateFlow/ExecutionControlTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ExecutionControlTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/ExecutionControlTest.php
+
+		-
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:122\:\:\$stateCaptures is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Integration/StateFlow/ExecutionControlTest.php
+
+		-
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:150\:\:\$stateCaptures is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Integration/StateFlow/ExecutionControlTest.php
+
+		-
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:178\:\:\$stateCaptures is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Integration/StateFlow/ExecutionControlTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\LockingTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/LockingTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Integration/StateFlow/SerializationTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\SerializationTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/SerializationTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\StepByStepExecutionTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/StepByStepExecutionTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\TransitionGateTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/TransitionGateTest.php
+
+		-
+			message: '#^Cannot access offset ''version'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Integration/StateFlow/WorkflowResumeTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Integration/StateFlow/WorkflowResumeTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\WorkflowResumeTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/StateFlow/WorkflowResumeTest.php
+
+		-
+			message: '#^Method PHPUnit\\Framework\\MockObject\\Generator\\Generator\:\:testDouble\(\) invoked with named argument \$allowMockingUnknownTypes, but it''s not allowed because of @no\-named\-arguments\.$#'
+			identifier: argument.named
+			count: 1
+			path: tests/Unit/Action/ActionResultTest.php
+
+		-
+			message: '#^Method PHPUnit\\Framework\\MockObject\\Generator\\Generator\:\:testDouble\(\) invoked with named argument \$callOriginalClone, but it''s not allowed because of @no\-named\-arguments\.$#'
+			identifier: argument.named
+			count: 1
+			path: tests/Unit/Action/ActionResultTest.php
+
+		-
+			message: '#^Method PHPUnit\\Framework\\MockObject\\Generator\\Generator\:\:testDouble\(\) invoked with named argument \$callOriginalConstructor, but it''s not allowed because of @no\-named\-arguments\.$#'
+			identifier: argument.named
+			count: 1
+			path: tests/Unit/Action/ActionResultTest.php
+
+		-
+			message: '#^Method PHPUnit\\Framework\\MockObject\\Generator\\Generator\:\:testDouble\(\) invoked with named argument \$cloneArguments, but it''s not allowed because of @no\-named\-arguments\.$#'
+			identifier: argument.named
+			count: 1
+			path: tests/Unit/Action/ActionResultTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Unit\\StateFlowTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/StateFlowTest.php
+
+		-
+			message: '#^Binary operation "\." between ''Unexpected event '' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: tests/Unit/StateWorkerTest.php
+
+		-
+			message: '#^Cannot access constant class on mixed\.$#'
+			identifier: classConstant.nonObject
+			count: 1
+			path: tests/Unit/StateWorkerTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Unit\\StateWorkerTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/StateWorkerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
+			message: '#^Cannot access offset ''actions'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
+			message: '#^Cannot access offset ''executionState'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
+			message: '#^Cannot access offset ''gateResult'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
+			message: '#^Cannot access offset ''result'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
+			message: '#^Cannot access offset 0 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 6
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
+			message: '#^Parameter \#2 \$array of method PHPUnit\\Framework\\Assert\:\:assertArrayHasKey\(\) expects array\|ArrayAccess, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/TransitionContextSerializationTest.php
