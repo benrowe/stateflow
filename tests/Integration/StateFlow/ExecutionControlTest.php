@@ -140,7 +140,7 @@ class ExecutionControlTest extends TestCase
                 $this->stateCaptures['action1_received'] = $context->currentState->toArray();
 
                 // Use state.with(delta) to merge the delta into current state
-                $newState = $context->currentState->with($context->desiredDelta);
+                $newState = $context->currentState->with($context->desiredDelta->asArray());
                 $this->stateCaptures['action1_returned'] = $newState->toArray();
 
                 return ActionResult::continue($newState);

@@ -82,7 +82,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'published'];
+        $delta = new ArrayDelta(['status' => 'published']);
         $finalState = $this->createTestState(['status' => 'published']);
 
         $mockDispatcher
@@ -124,7 +124,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'paused'];
+        $delta = new ArrayDelta(['status' => 'paused']);
 
         $mockDispatcher
             ->expects($this->any())
@@ -164,7 +164,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'stopped'];
+        $delta = new ArrayDelta(['status' => 'stopped']);
 
         $mockDispatcher
             ->expects($this->any())
@@ -204,7 +204,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'review'];
+        $delta = new ArrayDelta(['status' => 'review']);
         $metadata = ['reason' => 'waiting for dependency'];
 
         $mockDispatcher
@@ -246,7 +246,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'stopped'];
+        $delta = new ArrayDelta(['status' => 'stopped']);
         $metadata = ['reason' => 'user cancelled'];
 
         $mockDispatcher
@@ -285,7 +285,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'failed'];
+        $delta = new ArrayDelta(['status' => 'failed']);
         $exception = new \RuntimeException('Test exception');
 
         $mockDispatcher
@@ -334,7 +334,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'published'];
+        $delta = new ArrayDelta(['status' => 'published']);
 
         $mockDispatcher
             ->expects($this->any())
@@ -383,7 +383,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'published'];
+        $delta = new ArrayDelta(['status' => 'published']);
 
         $mockDispatcher
             ->expects($this->any())
@@ -426,7 +426,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'published'];
+        $delta = new ArrayDelta(['status' => 'published']);
 
         $mockDispatcher
             ->expects($this->any())
@@ -469,7 +469,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'published'];
+        $delta = new ArrayDelta(['status' => 'published']);
 
         $mockDispatcher
             ->expects($this->any())
@@ -504,7 +504,7 @@ class EventDispatchingTest extends TestCase
         $dispatchedEvents = [];
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
-        $delta = ['status' => 'published'];
+        $delta = new ArrayDelta(['status' => 'published']);
 
         $mockDispatcher
             ->expects($this->any())

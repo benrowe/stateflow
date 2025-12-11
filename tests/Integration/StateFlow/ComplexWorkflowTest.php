@@ -52,7 +52,7 @@ class ComplexWorkflowTest extends TestCase
             $stateData = $state->toArray();
 
             // Draft -> Published: approval workflow
-            if ($stateData['status'] === 'draft' && isset($delta['status']) && $delta['status'] === 'published') {
+            if ($stateData['status'] === 'draft' && $delta->has('status') && $delta->get('status') === 'published') {
                 return new Configuration([], [$checkApprovalAction, $sendApprovalNotificationAction]);
             }
 
@@ -182,7 +182,7 @@ class ComplexWorkflowTest extends TestCase
 
                 // Create a unique key for this transition
                 $fromStatus = is_string($state['status'] ?? null) ? $state['status'] : 'unknown';
-                $toStatus = is_string($delta['status'] ?? null) ? $delta['status'] : 'unknown';
+                $toStatus = is_string($delta->get('status')) ? $delta->get('status') : 'unknown';
                 $key = sprintf('%s->%s', $fromStatus, $toStatus);
 
                 // Check if we've seen this transition before
