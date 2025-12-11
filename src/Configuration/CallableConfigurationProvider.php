@@ -9,6 +9,9 @@ use Closure;
 
 readonly class CallableConfigurationProvider implements ConfigurationProvider
 {
+    /**
+     * @param Closure(State, array<string, mixed>): Configuration $callable
+     */
     public function __construct(private Closure $callable)
     {
     }

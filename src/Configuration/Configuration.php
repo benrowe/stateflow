@@ -36,6 +36,9 @@ readonly class Configuration
         return $this->actions;
     }
 
+    /**
+     * @phpstan-assert Gate[] $this->transitionGates
+     */
     private function validateGates(): void
     {
         foreach ($this->transitionGates as $index => $gate) {
@@ -52,6 +55,9 @@ readonly class Configuration
         }
     }
 
+    /**
+     * @phpstan-assert Action[] $this->actions
+     */
     private function validateActions(): void
     {
         foreach ($this->actions as $index => $action) {
