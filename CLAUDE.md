@@ -164,6 +164,7 @@ StateFlow uses typed, immutable collections built on Doctrine Collections for ru
 - **ActionSkipCollection** - Collection of ActionSkip objects
 
 **Key Points:**
+
 - Configuration accepts both arrays and collections (backward compatible)
 - Getter methods return typed collections (e.g., `getTransitionGates(): GateCollection`)
 - Collections are immutable - use `with()` to add items (returns new instance)
@@ -171,6 +172,7 @@ StateFlow uses typed, immutable collections built on Doctrine Collections for ru
 - All collections extend Doctrine's `ArrayCollection` providing full Collection API
 
 **Example:**
+
 ```php
 // Configuration accepts arrays (converted to collections internally)
 $config = new Configuration(
