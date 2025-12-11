@@ -9,6 +9,7 @@ use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -75,8 +76,9 @@ class DeltaAccessTest extends TestCase
             ->execute();
 
         // Verify the gate received the delta
-        $this->assertSame($expectedDelta, $deltaCapture, 'Gate should receive the delta');
-        $this->assertSame($expectedDelta, $context->getDesiredDelta(), 'Context should store the delta');
+        $this->assertInstanceOf(Delta::class, $deltaCapture);
+        $this->assertSame($expectedDelta, $deltaCapture->asArray(), 'Gate should receive the delta');
+        $this->assertSame($expectedDelta, $context->getDesiredDelta()->asArray(), 'Context should store the delta');
     }
 
     /**
@@ -117,8 +119,9 @@ class DeltaAccessTest extends TestCase
             ->execute();
 
         // Verify the action received the delta
-        $this->assertSame($expectedDelta, $deltaCapture, 'Action should receive the delta');
-        $this->assertSame($expectedDelta, $context->getDesiredDelta(), 'Context should store the delta');
+        $this->assertInstanceOf(Delta::class, $deltaCapture);
+        $this->assertSame($expectedDelta, $deltaCapture->asArray(), 'Action should receive the delta');
+        $this->assertSame($expectedDelta, $context->getDesiredDelta()->asArray(), 'Context should store the delta');
     }
 
     protected function getLogger(): ExecutionLogger
