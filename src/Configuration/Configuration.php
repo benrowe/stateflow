@@ -24,19 +24,13 @@ readonly class Configuration
         GateCollection|array $transitionGates,
         ActionCollection|array $actions
     ) {
-        if (is_array($transitionGates)) {
-            $this->validateGates($transitionGates);
-            $this->transitionGates = GateCollection::fromArray($transitionGates);
-        } else {
-            $this->transitionGates = $transitionGates;
-        }
+        $this->transitionGates = $transitionGates instanceof GateCollection
+            ? $transitionGates
+            : $this->createGateCollection($transitionGates);
 
-        if (is_array($actions)) {
-            $this->validateActions($actions);
-            $this->actions = ActionCollection::fromArray($actions);
-        } else {
-            $this->actions = $actions;
-        }
+        $this->actions = $actions instanceof ActionCollection
+            ? $actions
+            : $this->createActionCollection($actions);
     }
 
     public function getTransitionGates(): GateCollection
@@ -47,6 +41,26 @@ readonly class Configuration
     public function getActions(): ActionCollection
     {
         return $this->actions;
+    }
+
+    /**
+     * @param Gate[] $gates
+     */
+    private function createGateCollection(array $gates): GateCollection
+    {
+        $this->validateGates($gates);
+
+        return GateCollection::fromArray($gates);
+    }
+
+    /**
+     * @param Action[] $actions
+     */
+    private function createActionCollection(array $actions): ActionCollection
+    {
+        $this->validateActions($actions);
+
+        return ActionCollection::fromArray($actions);
     }
 
     /**
