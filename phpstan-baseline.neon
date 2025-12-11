@@ -85,12 +85,6 @@ parameters:
 			path: src/TransitionContext.php
 
 		-
-			message: '#^Parameter \#2 \$desiredDelta of class BenRowe\\StateFlow\\TransitionContext constructor expects array\<string, mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/TransitionContext.php
-
-		-
 			message: '#^Property BenRowe\\StateFlow\\TransitionContext\:\:\$skippedDueToLock \(bool\) does not accept mixed\.$#'
 			identifier: assign.propertyType
 			count: 1
@@ -127,7 +121,7 @@ parameters:
 			path: tests/Integration/StateFlow/DeltaAccessTest.php
 
 		-
-			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:151\:\:message\(\) never returns null so it can be removed from the return type\.$#'
+			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:152\:\:message\(\) never returns null so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
 			path: tests/Integration/StateFlow/ErrorHandlingTest.php
@@ -157,19 +151,19 @@ parameters:
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
 
 		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:122\:\:\$stateCaptures is never read, only written\.$#'
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:123\:\:\$stateCaptures is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
 
 		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:150\:\:\$stateCaptures is never read, only written\.$#'
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:151\:\:\$stateCaptures is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
 
 		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:178\:\:\$stateCaptures is never read, only written\.$#'
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:179\:\:\$stateCaptures is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
