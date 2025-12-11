@@ -89,7 +89,7 @@ class TransitionContext
 
     public function didGatesPass(): bool
     {
-        $availableGates = count($this->getConfiguration()->getTransitionGates());
+        $availableGates = $this->getConfiguration()->transitionGates->count();
         if ($availableGates === 0) {
             return true;
         }
@@ -207,11 +207,11 @@ class TransitionContext
             'configuration' => [
                 'transitionGates' => array_map(
                     fn ($gate) => get_class($gate),
-                    $this->configuration->getTransitionGates()->toArray()
+                    $this->configuration->transitionGates->toArray()
                 ),
                 'actions' => array_map(
                     fn ($action) => get_class($action),
-                    $this->configuration->getActions()->toArray()
+                    $this->configuration->actions->toArray()
                 ),
             ],
             'gateEvaluations' => array_map(
