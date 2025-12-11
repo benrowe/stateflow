@@ -42,7 +42,6 @@ class ErrorHandlingTest extends TestCase
         $invalidGate = new stdClass();
 
         // This should throw immediately in the Configuration constructor
-        // @phpstan-ignore argument.type
         new Configuration([$invalidGate], []);
     }
 
@@ -54,7 +53,6 @@ class ErrorHandlingTest extends TestCase
         $invalidAction = new stdClass();
 
         // This should throw immediately in the Configuration constructor
-        // @phpstan-ignore argument.type
         new Configuration([], [$invalidAction]);
     }
 
@@ -66,7 +64,6 @@ class ErrorHandlingTest extends TestCase
         $validGate = $this->createStubGate('ValidGate', GateResult::ALLOW);
         $invalidGate = 'not a gate';
 
-        // @phpstan-ignore argument.type
         new Configuration([$validGate, $invalidGate], []);
     }
 
@@ -79,7 +76,6 @@ class ErrorHandlingTest extends TestCase
         $validAction2 = $this->createStubAction('Action2');
         $invalidAction = ['not' => 'an action'];
 
-        // @phpstan-ignore argument.type
         new Configuration([], [$validAction1, $validAction2, $invalidAction]);
     }
 

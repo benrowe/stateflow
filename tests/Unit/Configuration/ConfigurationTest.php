@@ -63,7 +63,6 @@ class ConfigurationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage(sprintf('Gate at index 0 must implement %s, %s given', Gate::class, stdClass::class));
 
-        // @phpstan-ignore argument.type
         new Configuration([new stdClass()], []);
     }
 
@@ -72,7 +71,6 @@ class ConfigurationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage(sprintf('Action at index %d must implement %s, %s given', 0, Action::class, stdClass::class));
 
-        // @phpstan-ignore argument.type
         new Configuration([], [new stdClass()]);
     }
 }
