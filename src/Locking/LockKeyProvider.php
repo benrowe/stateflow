@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Locking;
 
+use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\State;
 
 /**
@@ -15,8 +16,8 @@ interface LockKeyProvider
      * Generate a lock key for the given state and desired delta
      *
      * @param State $state The current state
-     * @param array<string, mixed> $desiredDelta The desired changes
+     * @param Delta $desiredDelta The desired changes
      * @return string The lock key
      */
-    public function getLockKey(State $state, array $desiredDelta): string;
+    public function getLockKey(State $state, Delta $desiredDelta): string;
 }

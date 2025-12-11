@@ -32,10 +32,7 @@ class StateFlow
         $this->eventDispatcher = $eventDispatcher ?? new NullEventDispatcher();
     }
 
-    /**
-     * @param array<string, mixed> $delta
-     */
-    public function transition(State $currentState, array $delta): StateWorker
+    public function transition(State $currentState, Delta $delta): StateWorker
     {
         $this->eventDispatcher->dispatch(new TransitionStarting($currentState, $delta));
 
@@ -75,10 +72,7 @@ class StateFlow
         return $worker;
     }
 
-    /**
-     * @param array<string, mixed> $delta
-     */
-    private function resolveConfig(State $currentState, array $delta): Configuration
+    private function resolveConfig(State $currentState, Delta $delta): Configuration
     {
         return $this
             ->resolveProvider()
