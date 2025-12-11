@@ -1,0 +1,8 @@
+{
+  "globs": [
+    "**/*.md",
+    "!vendor/**",
+    "!node_modules/**",
+    "!coverage/**"
+  ]
+}

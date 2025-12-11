@@ -19,13 +19,13 @@ This project uses Docker for development, so you don't need PHP installed locall
 make init
 ```
 
-2. **View all available commands**:
+1. **View all available commands**:
 
 ```bash
 make help
 ```
 
-3. **Enter the Docker workspace** (interactive shell):
+1. **Enter the Docker workspace** (interactive shell):
 
 ```bash
 make workspace
@@ -38,16 +38,19 @@ Once in the workspace, you have access to all PHP tools (composer, phpunit, phps
 ### Run Tests
 
 **Parallel execution** (4 processes):
+
 ```bash
 make test
 ```
 
 **Single process** (useful for debugging):
+
 ```bash
 make test-single
 ```
 
 **With coverage**:
+
 ```bash
 make test-coverage
 ```
@@ -64,11 +67,13 @@ make test-coverage
 ### Code Style
 
 **Check code style**:
+
 ```bash
 make lint
 ```
 
 **Fix code style issues automatically**:
+
 ```bash
 make lint-fix
 ```
@@ -78,6 +83,7 @@ We use PHP-CS-Fixer with PSR-12 standard and PHP 8.1+ migration rules.
 ### Static Analysis
 
 **Run PHPStan** (level max):
+
 ```bash
 make quality
 ```
@@ -87,6 +93,7 @@ All code must pass static analysis at the maximum level.
 ### Run All Checks
 
 **Run lint, quality, and tests in one command**:
+
 ```bash
 make check
 ```
@@ -105,7 +112,7 @@ This is what CI runs, so make sure this passes before submitting a PR.
 
 ## Project Structure
 
-```
+```text
 stateflow/
 ├── src/              # Source code
 ├── tests/            # Test files

@@ -12,8 +12,6 @@ This document provides comprehensive examples of using StateFlow in various scen
 6. [Error Handling](#error-handling)
 7. [Testing Patterns](#testing-patterns)
 
-
-
 ## Basic Usage
 
 ### Simple State Transition
@@ -77,8 +75,6 @@ if ($context->isCompleted()) {
     $finalState = $context->getCurrentState();
 }
 ```
-
-
 
 ## E-Commerce Order Workflow
 
@@ -307,8 +303,6 @@ try {
 }
 ```
 
-
-
 ## Content Publishing System
 
 ```php
@@ -394,8 +388,6 @@ public function onThumbnailsComplete(string $contentId)
     // Continues to cache invalidation and notifications
 }
 ```
-
-
 
 ## Async Workflow with Pause/Resume
 
@@ -488,8 +480,6 @@ class ProcessWorkflowResume
 }
 ```
 
-
-
 ## Step-Through Execution
 
 ```php
@@ -529,8 +519,6 @@ foreach ($context->getActionExecutions() as $exec) {
     echo "Executed: {$exec['action']} at {$exec['timestamp']}\n";
 }
 ```
-
-
 
 ## Error Handling
 
@@ -621,8 +609,6 @@ try {
     throw $e;
 }
 ```
-
-
 
 ## Testing Patterns
 

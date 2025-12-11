@@ -6,7 +6,7 @@ StateFlow includes built-in mutex locking to prevent race conditions when multip
 
 ## The Problem
 
-```
+```text
 Time →
 
 Process A: transition(state, ['status' => 'published'])
@@ -22,13 +22,11 @@ Process B: transition(state, ['status' => 'published'])
 
 ## The Solution
 
-```
+```text
 Process A: Acquire lock → Execute transition → Release lock
 Process B: Wait for lock → Execute transition → Release lock
            (or fail/skip based on strategy)
 ```
-
-
 
 ## Lock Lifecycle
 
@@ -158,8 +156,6 @@ interface LockKeyProvider
 }
 ```
 
-
-
 ## Lock Strategies
 
 ```php
@@ -196,8 +192,6 @@ enum LockStrategy
 | `WAIT` | Block until lock available | Background jobs where waiting is acceptable |
 | `SKIP` | Return immediately with skip flag | API requests where user shouldn't wait |
 
-
-
 ## Lock Configuration
 
 ```php
@@ -217,6 +211,7 @@ class LockConfiguration
 Lock behavior is configured once on the `StateFlow` constructor. Different use cases require different flow configurations:
 
 **API Request (fail fast):**
+
 ```php
 $stateFlow = new StateFlow(
     configProvider: $config,
@@ -234,6 +229,7 @@ try {
 ```
 
 **Background Job (with longer TTL):**
+
 ```php
 // Configure lock provider with longer TTL for background jobs
 $lockProvider = new RedisLockProvider($redis, ttl: 60);
@@ -249,6 +245,7 @@ $context = $worker->execute();
 ```
 
 **Critical Operation (fail on contention):**
+
 ```php
 $stateFlow = new StateFlow(
     configProvider: $config,
@@ -265,9 +262,7 @@ try {
 }
 ```
 
-
-
-## Lock Lifecycle
+## Lock Lifecycle Details
 
 ### Lock Acquisition Points
 
@@ -310,6 +305,7 @@ $finalContext = $worker->execute(); // Verifies lock still exists
 ### Lock Release Points
 
 Lock is released when:
+
 1. ✅ Transition completes (`isCompleted()`)
 2. ✅ Transition stops (`isStopped()`)
 3. ✅ Manual call to `$worker->releaseLock()`
@@ -370,11 +366,10 @@ $finalContext = $worker->execute();
 ```
 
 **Note:** StateFlow does not provide automatic background lock renewal. You must explicitly call `renew()` when needed, typically:
+
 - In a scheduled job that checks paused workflows
 - When receiving webhook notifications for long-running external processes
 - Before resuming a workflow that may have been paused for an extended period
-
-
 
 ## Lock State
 
@@ -414,8 +409,6 @@ if ($lockState->isLocked()) {
     echo "Expires in: {$remaining}s\n";
 }
 ```
-
-
 
 ## LockProvider Implementations
 
@@ -570,8 +563,6 @@ class InMemoryLockProvider implements LockProvider
 }
 ```
 
-
-
 ## LockKeyProvider Implementations
 
 ### Entity-Based Locking
@@ -637,8 +628,6 @@ class SnapshotLockKeyProvider implements LockKeyProvider
 // Effect: Only exact same state+delta combinations are locked
 //         Different states can transition independently
 ```
-
-
 
 ## Exception Handling
 
@@ -718,8 +707,6 @@ try {
     // 3. Mark workflow as failed
 }
 ```
-
-
 
 ## Best Practices
 
@@ -857,8 +844,6 @@ public function resume(string $contextId)
     }
 }
 ```
-
-
 
 ## Testing with Locks
 

@@ -30,11 +30,13 @@ $stateFlow->transition($orderState, ['status' => 'published', 'author' => 'same'
 ### 3. Two-Tier Validation
 
 **Transition Gates** - Must pass for transition to begin
+
 - Evaluated before any actions execute
 - Failure stops the entire transition
 - Example: "Can this user publish content?"
 
 **Action Gates** - Guard individual actions
+
 - Actions implement `Guardable` interface
 - Failure skips that action, continues to next
 - Example: "Should we send notification email?"
@@ -44,12 +46,14 @@ $stateFlow->transition($orderState, ['status' => 'published', 'author' => 'same'
 The `StateWorker` allows for fine-grained control over the execution flow.
 
 **One-Shot Execution:**
+
 ```php
 $worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute(); // Runs gates and actions
 ```
 
 **Step-Through Execution:**
+
 ```php
 $worker = $stateFlow->transition($state, ['status' => 'published']);
 $gateResult = $worker->runGates();
@@ -60,6 +64,7 @@ $context = $worker->runActions();
 ```
 
 **Async Workflow with Pause/Resume:**
+
 ```php
 // An action can signal a pause
 class GenerateThumbnailsAction implements Action {
@@ -90,12 +95,14 @@ $finalContext = $resumedWorker->execute(); // Continues from where it left off
 ### 5. Observable Orchestration
 
 Every step emits events:
+
 - `TransitionStarting`, `TransitionCompleted`, `TransitionPaused`, `TransitionStopped`, `TransitionFailed`
 - `GateEvaluating`, `GateEvaluated`
 - `ActionExecuting`, `ActionExecuted`, `ActionSkipped`
 - `LockAcquiring`, `LockAcquired`, `LockReleased`, `LockFailed`
 
 **Benefits:**
+
 - Real-time monitoring and debugging
 - Audit trails for compliance
 - Custom behavior injection
@@ -116,6 +123,7 @@ $stateFlow = new StateFlow(
 $worker = $stateFlow->transition($state, ['status' => 'published']);
 $context = $worker->execute();
 ```
+
 - Request A acquires a lock when `execute()` is called.
 - Request B, using the same `StateFlow` instance (and thus the same lock provider), will wait or fail based on the lock provider's behavior.
 - The lock persists through pauses, and can be manually extended via the `LockProvider::renew()` method.
@@ -127,7 +135,7 @@ $context = $worker->execute();
 
 The new architecture separates the setup of a transition from its execution.
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │ User: $stateFlow->transition($state, $delta)         │
 └─────────────────────┬───────────────────────────────┘
@@ -194,6 +202,7 @@ interface State {
     public function with(array $changes): State;
 }
 ```
+
 Users implement their own merge logic in `with()`.
 
 ### Configuration is Lazy-Loaded
@@ -230,6 +239,7 @@ enum ExecutionState {
 ## Extension Points
 
 Users provide implementations for:
+
 1. **State** - State representation and merge strategy
 2. **ConfigurationProvider** - Which gates/actions for which transitions
 3. **Gate** - Validation logic
@@ -241,22 +251,27 @@ Users provide implementations for:
 ## Design Trade-offs
 
 ### Chose: Stateless Machine + StateWorker
+
 **Instead of:** Stateful machine per entity
 **Trade-off:** Slightly more verbose for a single transition (`$stateFlow->transition()->execute()`), but provides a much more flexible and powerful API for complex scenarios and dependency injection.
 
 ### Chose: Delta + Context Object
+
 **Instead of:** Full state transitions
 **Trade-off:** More complex gate evaluation, but much better UX
 
 ### Chose: State interface
+
 **Instead of:** Arrays everywhere
 **Trade-off:** More boilerplate, but user control over merge strategy
 
 ### Chose: Serializable context
+
 **Instead of:** In-memory only
 **Trade-off:** Serialization complexity, but enables async workflows
 
 ### Chose: Factory-Based Serialization
+
 **Instead of:** Standard `serialize()`/`unserialize()`
 **Trade-off:** Requires users to provide factories, but enables reconstruction of custom `State` and `Action` objects without tying the serialized data to a specific class structure.
 

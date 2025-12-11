@@ -1,0 +1,14 @@
+{
+  // Disable line length - documentation needs flexibility for URLs, badges, code examples
+  "MD013": false,
+  // Allow inline HTML for badges and formatting
+  "MD033": {
+    "allowed_elements": ["p", "a", "img", "br", "details", "summary"]
+  },
+  // Allow duplicate headings in documentation (different sections may have same heading)
+  "MD024": {
+    "siblings_only": true
+  },
+  // Allow tables without strict column spacing
+  "MD060": false
+}
