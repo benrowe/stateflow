@@ -27,7 +27,7 @@ final readonly class ArrayDelta implements Delta, JsonSerializable
 
     public function get(string $key, mixed $default = null): mixed
     {
-        return $this->changes[$key] ?? $default;
+        return array_key_exists($key, $this->changes) ? $this->changes[$key] : $default;
     }
 
     public function asArray(): array

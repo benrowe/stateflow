@@ -286,7 +286,9 @@ class TransitionContext
         $configuration = self::restoreConfiguration($decoded, $actionFactory, $gateFactory);
 
         // Create new context
-        $desiredDelta = new ArrayDelta($decoded['desiredDelta'] ?? []);
+        /** @var array<string, mixed> $deltaData */
+        $deltaData = $decoded['desiredDelta'] ?? [];
+        $desiredDelta = new ArrayDelta($deltaData);
         $context = new self($initialState, $desiredDelta, $configuration);
 
         // Restore current state
