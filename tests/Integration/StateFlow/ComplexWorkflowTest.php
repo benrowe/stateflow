@@ -194,7 +194,7 @@ class ComplexWorkflowTest extends TestCase
                 return GateResult::ALLOW;
             }
 
-            public function message(): ?string
+            public function message(): string
             {
                 return 'Idempotency check';
             }
