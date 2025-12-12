@@ -22,6 +22,7 @@ use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Locking\LockConfiguration;
+use BenRowe\StateFlow\Locking\LockContext;
 use BenRowe\StateFlow\Locking\LockKeyProvider;
 use BenRowe\StateFlow\Locking\LockProvider;
 use BenRowe\StateFlow\Locking\LockState;
@@ -78,14 +79,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], []);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -178,14 +178,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking and FAIL_FAST strategy
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([$gate], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -284,14 +283,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking and SKIP strategy
         $lockConfig = new LockConfiguration(LockStrategy::SKIP, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([$gate], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -391,14 +389,13 @@ class LockingTest extends TestCase
             waitTimeout: 5,
             retryInterval: 50
         );
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -499,14 +496,13 @@ class LockingTest extends TestCase
             waitTimeout: 1, // 1 second timeout for faster test
             retryInterval: 50
         );
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -583,14 +579,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], []);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -671,14 +666,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -758,14 +752,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -848,14 +841,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -960,14 +952,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking (30 second TTL)
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action1, $action2]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -1068,14 +1059,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking (30 second TTL)
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action1, $action2]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
@@ -1168,14 +1158,13 @@ class LockingTest extends TestCase
 
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
         $config = new Configuration([], [$action1, $action2]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
             $mockDispatcher,
-            $lockProvider,
-            $lockKeyProvider,
-            $lockConfig
+            $lockContext
         );
 
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
