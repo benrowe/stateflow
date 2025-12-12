@@ -265,12 +265,12 @@ class StateWorker
 
         // Update status if action paused or stopped
         if ($result->executionState === ExecutionState::PAUSE) {
-            $this->context->markAsPaused();
+            $this->context->markAsPaused($result->metadata);
             $this->eventDispatcher->dispatch(new TransitionPaused($this->context->getCurrentState(), $this->context, $result->metadata));
         }
 
         if ($result->executionState === ExecutionState::STOP) {
-            $this->context->markAsStopped();
+            $this->context->markAsStopped($result->metadata);
             $this->eventDispatcher->dispatch(new TransitionStopped($this->context->getCurrentState(), $this->context, $result->metadata));
         }
     }
