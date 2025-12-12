@@ -16,15 +16,9 @@ use JsonException;
 
 class TransitionContext
 {
-    private ActionResultCollection $actions;
-
-    private GateEvaluationCollection $gateEvaluations;
-
-    private ActionSkipCollection $actionSkips;
+    private ExecutionHistory $history;
 
     private ?ExecutionState $status = null;
-
-    private State $currentState;
 
     private LockState $lockState;
 
@@ -35,11 +29,8 @@ class TransitionContext
         private readonly Delta $desiredDelta,
         private readonly Configuration $configuration,
     ) {
-        $this->currentState = $initialState;
+        $this->history = new ExecutionHistory($initialState);
         $this->lockState = new LockState();
-        $this->actions = ActionResultCollection::empty();
-        $this->gateEvaluations = GateEvaluationCollection::empty();
-        $this->actionSkips = ActionSkipCollection::empty();
     }
 
     public function getConfiguration(): Configuration
@@ -49,7 +40,7 @@ class TransitionContext
 
     public function getCurrentState(): State
     {
-        return $this->currentState;
+        return $this->history->getCurrentState();
     }
 
     public function getInitialState(): State
@@ -59,7 +50,7 @@ class TransitionContext
 
     public function updateCurrentState(State $newState): void
     {
-        $this->currentState = $newState;
+        $this->history = $this->history->updateCurrentState($newState);
     }
 
     public function getDesiredDelta(): Delta
@@ -69,22 +60,22 @@ class TransitionContext
 
     public function getActionExecutions(): ActionResultCollection
     {
-        return $this->actions;
+        return $this->history->getActionExecutions();
     }
 
     public function addActionResult(ActionResult $actionResult): void
     {
-        $this->actions = $this->actions->with($actionResult);
+        $this->history = $this->history->recordActionExecution($actionResult);
     }
 
     public function getGateEvaluations(): GateEvaluationCollection
     {
-        return $this->gateEvaluations;
+        return $this->history->getGateEvaluations();
     }
 
     public function addGateEvaluation(Gate $gate, GateResult $result, bool $isActionGate): void
     {
-        $this->gateEvaluations = $this->gateEvaluations->with(new GateEvaluation($gate, $result, $isActionGate));
+        $this->history = $this->history->recordGateEvaluation($gate, $result, $isActionGate);
     }
 
     public function didGatesPass(): bool
@@ -108,12 +99,12 @@ class TransitionContext
 
     public function getActionSkips(): ActionSkipCollection
     {
-        return $this->actionSkips;
+        return $this->history->getActionSkips();
     }
 
     public function addActionSkip(Action $action, GateResult $gateResult): void
     {
-        $this->actionSkips = $this->actionSkips->with(new ActionSkip($action, $gateResult));
+        $this->history = $this->history->recordActionSkip($action, $gateResult);
     }
 
     public function markAsCompleted(): void
@@ -180,16 +171,7 @@ class TransitionContext
      */
     public function getStatusMetadata(): mixed
     {
-        // Find the last action that caused PAUSE or STOP
-        foreach (array_reverse($this->actions->toArray()) as $actionResult) {
-            if ($actionResult->executionState === ExecutionState::PAUSE
-                || $actionResult->executionState === ExecutionState::STOP
-            ) {
-                return $actionResult->metadata;
-            }
-        }
-
-        return null;
+        return $this->history->getStatusMetadata();
     }
 
     /**
@@ -199,7 +181,7 @@ class TransitionContext
     {
         $data = [
             'initialState' => $this->initialState->toArray(),
-            'currentState' => $this->currentState->toArray(),
+            'currentState' => $this->history->getCurrentState()->toArray(),
             'desiredDelta' => $this->desiredDelta->asArray(),
             'status' => $this->status?->name,
             'skippedDueToLock' => $this->skippedDueToLock,
@@ -220,7 +202,7 @@ class TransitionContext
                     'result' => $eval->result->name,
                     'isActionGate' => $eval->isActionGate,
                 ],
-                $this->gateEvaluations->toArray()
+                $this->history->getGateEvaluations()->toArray()
             ),
             'actionExecutions' => array_map(
                 fn (ActionResult $result) => [
@@ -228,14 +210,14 @@ class TransitionContext
                     'newState' => $result->newState?->toArray(),
                     'metadata' => $result->metadata,
                 ],
-                $this->actions->toArray()
+                $this->history->getActionExecutions()->toArray()
             ),
             'actionSkips' => array_map(
                 fn (ActionSkip $skip) => [
                     'action' => get_class($skip->action),
                     'gateResult' => $skip->gateResult->name,
                 ],
-                $this->actionSkips->toArray()
+                $this->history->getActionSkips()->toArray()
             ),
         ];
 
@@ -277,8 +259,18 @@ class TransitionContext
         $desiredDelta = new ArrayDelta($deltaData);
         $context = new self($initialState, $desiredDelta, $configuration);
 
-        // Restore current state
-        $context->currentState = $currentState;
+        // Restore execution history
+        $gateEvaluations = self::restoreGateEvaluationsCollection($decoded, $gateFactory);
+        $actionExecutions = self::restoreActionExecutionsCollection($decoded, $stateFactory);
+        $actionSkips = self::restoreActionSkipsCollection($decoded, $actionFactory);
+
+        $context->history = new ExecutionHistory(
+            $initialState,
+            $gateEvaluations,
+            $actionExecutions,
+            $actionSkips,
+            $currentState
+        );
 
         // Restore status
         self::restoreStatus($context, $decoded);
@@ -287,11 +279,6 @@ class TransitionContext
         $lockStateData = $decoded['lockState'] ?? [];
         $context->lockState = is_array($lockStateData) ? LockState::fromArray($lockStateData) : new LockState();
         $context->skippedDueToLock = $decoded['skippedDueToLock'] ?? false;
-
-        // Restore execution data
-        self::restoreGateEvaluations($context, $decoded, $gateFactory);
-        self::restoreActionExecutions($context, $decoded, $stateFactory);
-        self::restoreActionSkips($context, $decoded, $actionFactory);
 
         return $context;
     }
@@ -341,11 +328,13 @@ class TransitionContext
     /**
      * @param array<string, mixed> $decoded
      */
-    private static function restoreGateEvaluations(self $context, array $decoded, GateFactory $gateFactory): void
+    private static function restoreGateEvaluationsCollection(array $decoded, GateFactory $gateFactory): GateEvaluationCollection
     {
         /** @var array<int, array{gate: string, result: string, isActionGate: bool}> $gateEvaluations */
-        $gateEvaluations = $decoded['gateEvaluations'] ?? [];
-        foreach ($gateEvaluations as $evalData) {
+        $gateEvaluationsData = $decoded['gateEvaluations'] ?? [];
+        $evaluations = [];
+
+        foreach ($gateEvaluationsData as $evalData) {
             $gate = $gateFactory->fromClassName($evalData['gate']);
             $result = match ($evalData['result']) {
                 'ALLOW' => GateResult::ALLOW,
@@ -353,18 +342,22 @@ class TransitionContext
                 'SKIP_IDEMPOTENT' => GateResult::SKIP_IDEMPOTENT,
                 default => GateResult::ALLOW,
             };
-            $context->gateEvaluations = $context->gateEvaluations->with(new GateEvaluation($gate, $result, $evalData['isActionGate']));
+            $evaluations[] = new GateEvaluation($gate, $result, $evalData['isActionGate']);
         }
+
+        return GateEvaluationCollection::fromArray($evaluations);
     }
 
     /**
      * @param array<string, mixed> $decoded
      */
-    private static function restoreActionExecutions(self $context, array $decoded, StateFactory $stateFactory): void
+    private static function restoreActionExecutionsCollection(array $decoded, StateFactory $stateFactory): ActionResultCollection
     {
         /** @var array<int, array{executionState: string, newState: array<string, mixed>|null, metadata: mixed}> $actionExecutions */
-        $actionExecutions = $decoded['actionExecutions'] ?? [];
-        foreach ($actionExecutions as $actionData) {
+        $actionExecutionsData = $decoded['actionExecutions'] ?? [];
+        $results = [];
+
+        foreach ($actionExecutionsData as $actionData) {
             $executionState = match ($actionData['executionState']) {
                 'CONTINUE' => ExecutionState::CONTINUE,
                 'PAUSE' => ExecutionState::PAUSE,
@@ -374,18 +367,22 @@ class TransitionContext
             $newState = $actionData['newState'] !== null
                 ? $stateFactory->fromArray($actionData['newState'])
                 : null;
-            $context->actions = $context->actions->with(new ActionResult($executionState, $newState, $actionData['metadata']));
+            $results[] = new ActionResult($executionState, $newState, $actionData['metadata']);
         }
+
+        return ActionResultCollection::fromArray($results);
     }
 
     /**
      * @param array<string, mixed> $decoded
      */
-    private static function restoreActionSkips(self $context, array $decoded, ActionFactory $actionFactory): void
+    private static function restoreActionSkipsCollection(array $decoded, ActionFactory $actionFactory): ActionSkipCollection
     {
         /** @var array<int, array{action: string, gateResult: string}> $actionSkips */
-        $actionSkips = $decoded['actionSkips'] ?? [];
-        foreach ($actionSkips as $skipData) {
+        $actionSkipsData = $decoded['actionSkips'] ?? [];
+        $skips = [];
+
+        foreach ($actionSkipsData as $skipData) {
             $action = $actionFactory->fromClassName($skipData['action']);
             $gateResult = match ($skipData['gateResult']) {
                 'ALLOW' => GateResult::ALLOW,
@@ -393,7 +390,9 @@ class TransitionContext
                 'SKIP_IDEMPOTENT' => GateResult::SKIP_IDEMPOTENT,
                 default => GateResult::ALLOW,
             };
-            $context->actionSkips = $context->actionSkips->with(new ActionSkip($action, $gateResult));
+            $skips[] = new ActionSkip($action, $gateResult);
         }
+
+        return ActionSkipCollection::fromArray($skips);
     }
 }
