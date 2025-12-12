@@ -970,6 +970,186 @@ class TransitionContextSerializationTest extends TestCase
         $this->assertIsFloat($skips[0]->timestamp, 'Should auto-generate timestamp for old data');
         $this->assertGreaterThan(0, $skips[0]->timestamp);
     }
+
+    public function testUnserializeLegacyFormatWithContinueStatus(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        // Create legacy format manually with "status" field instead of "executionStatus" object
+        $legacyData = [
+            'initialState' => ['status' => 'draft'],
+            'currentState' => ['status' => 'draft'],
+            'desiredDelta' => ['status' => 'published'],
+            'status' => 'CONTINUE',
+            'skippedDueToLock' => false,
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [],
+                'actions' => [],
+            ],
+            'gateEvaluations' => [],
+            'actionExecutions' => [],
+            'actionSkips' => [],
+        ];
+
+        $legacySerialized = json_encode($legacyData);
+        if ($legacySerialized === false) {
+            $this->fail('Failed to encode legacy data');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $legacySerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $this->assertTrue($restored->isCompleted());
+        $this->assertFalse($restored->isPaused());
+        $this->assertFalse($restored->isStopped());
+        $this->assertFalse($restored->wasSkippedDueToLock());
+    }
+
+    public function testUnserializeLegacyFormatWithPauseStatus(): void
+    {
+        $legacyData = [
+            'initialState' => ['status' => 'draft'],
+            'currentState' => ['status' => 'draft'],
+            'desiredDelta' => ['status' => 'published'],
+            'status' => 'PAUSE',
+            'skippedDueToLock' => false,
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [],
+                'actions' => [],
+            ],
+            'gateEvaluations' => [],
+            'actionExecutions' => [],
+            'actionSkips' => [],
+        ];
+
+        $legacySerialized = json_encode($legacyData);
+        if ($legacySerialized === false) {
+            $this->fail('Failed to encode legacy data');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $legacySerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $this->assertFalse($restored->isCompleted());
+        $this->assertTrue($restored->isPaused());
+        $this->assertFalse($restored->isStopped());
+    }
+
+    public function testUnserializeLegacyFormatWithStopStatus(): void
+    {
+        $legacyData = [
+            'initialState' => ['status' => 'draft'],
+            'currentState' => ['status' => 'draft'],
+            'desiredDelta' => ['status' => 'published'],
+            'status' => 'STOP',
+            'skippedDueToLock' => false,
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [],
+                'actions' => [],
+            ],
+            'gateEvaluations' => [],
+            'actionExecutions' => [],
+            'actionSkips' => [],
+        ];
+
+        $legacySerialized = json_encode($legacyData);
+        if ($legacySerialized === false) {
+            $this->fail('Failed to encode legacy data');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $legacySerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $this->assertFalse($restored->isCompleted());
+        $this->assertFalse($restored->isPaused());
+        $this->assertTrue($restored->isStopped());
+    }
+
+    public function testUnserializeLegacyFormatWithSkippedDueToLock(): void
+    {
+        $legacyData = [
+            'initialState' => ['status' => 'draft'],
+            'currentState' => ['status' => 'draft'],
+            'desiredDelta' => ['status' => 'published'],
+            'status' => 'CONTINUE',
+            'skippedDueToLock' => true,
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [],
+                'actions' => [],
+            ],
+            'gateEvaluations' => [],
+            'actionExecutions' => [],
+            'actionSkips' => [],
+        ];
+
+        $legacySerialized = json_encode($legacyData);
+        if ($legacySerialized === false) {
+            $this->fail('Failed to encode legacy data');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $legacySerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $this->assertTrue($restored->wasSkippedDueToLock());
+    }
+
+    public function testUnserializeLegacyFormatWithInvalidStatus(): void
+    {
+        $legacyData = [
+            'initialState' => ['status' => 'draft'],
+            'currentState' => ['status' => 'draft'],
+            'desiredDelta' => ['status' => 'published'],
+            'status' => 'INVALID_STATUS_VALUE',
+            'skippedDueToLock' => false,
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [],
+                'actions' => [],
+            ],
+            'gateEvaluations' => [],
+            'actionExecutions' => [],
+            'actionSkips' => [],
+        ];
+
+        $legacySerialized = json_encode($legacyData);
+        if ($legacySerialized === false) {
+            $this->fail('Failed to encode legacy data');
+        }
+
+        $restored = TransitionContext::unserialize(
+            $legacySerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should have no status when invalid value is provided
+        $this->assertFalse($restored->isCompleted());
+        $this->assertFalse($restored->isPaused());
+        $this->assertFalse($restored->isStopped());
+    }
 }
 
 // Test implementations
