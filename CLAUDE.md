@@ -290,3 +290,7 @@ Comprehensive docs in `docs/` directory:
 Always consult `docs/architecture.md` before making architectural decisions.
 
 - when writing or updating code, make sure there's an associated unit test
+- always build code tdd style. build a simple test, execute (fail) and make the test pass. iterate as necessary
+- always ensure code coverage is 100% before pushing
+- do not create exceptions/update baseline when encountering quality problems. refactor the code to make it work within the existing rules
+- when working from github issues, remember to create a new branch from master follwing the feature|fix/issue-#-desc pattern
