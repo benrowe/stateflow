@@ -9,9 +9,13 @@ use BenRowe\StateFlow\Gate\GateResult;
 
 readonly class ActionSkip
 {
+    public readonly float $timestamp;
+
     public function __construct(
         public Action $action,
         public GateResult $gateResult,
+        float $timestamp = 0.0,
     ) {
+        $this->timestamp = $timestamp === 0.0 ? microtime(true) : $timestamp;
     }
 }
