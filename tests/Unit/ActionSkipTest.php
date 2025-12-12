@@ -29,7 +29,6 @@ class ActionSkipTest extends TestCase
             GateResult::DENY
         );
 
-        $this->assertIsFloat($skip->timestamp);
         $this->assertGreaterThan(0, $skip->timestamp);
     }
 
@@ -44,16 +43,6 @@ class ActionSkipTest extends TestCase
         );
 
         $this->assertSame($explicitTimestamp, $skip->timestamp);
-    }
-
-    public function testTimestampIsFloat(): void
-    {
-        $skip = new ActionSkip(
-            $this->mockAction,
-            GateResult::DENY
-        );
-
-        $this->assertIsFloat($skip->timestamp);
     }
 
     // Timestamp Behavior Tests
@@ -119,7 +108,7 @@ class ActionSkipTest extends TestCase
         // Should be able to read all properties
         $this->assertInstanceOf(Action::class, $skip->action);
         $this->assertSame(GateResult::DENY, $skip->gateResult);
-        $this->assertIsFloat($skip->timestamp);
+        $this->assertGreaterThan(0, $skip->timestamp);
     }
 
     public function testIsReadonlyClass(): void

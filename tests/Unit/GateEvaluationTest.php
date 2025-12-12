@@ -30,7 +30,6 @@ class GateEvaluationTest extends TestCase
             false
         );
 
-        $this->assertIsFloat($evaluation->timestamp);
         $this->assertGreaterThan(0, $evaluation->timestamp);
     }
 
@@ -46,17 +45,6 @@ class GateEvaluationTest extends TestCase
         );
 
         $this->assertSame($explicitTimestamp, $evaluation->timestamp);
-    }
-
-    public function testTimestampIsFloat(): void
-    {
-        $evaluation = new GateEvaluation(
-            $this->mockGate,
-            GateResult::ALLOW,
-            false
-        );
-
-        $this->assertIsFloat($evaluation->timestamp);
     }
 
     // Timestamp Behavior Tests
@@ -128,7 +116,7 @@ class GateEvaluationTest extends TestCase
         $this->assertInstanceOf(Gate::class, $evaluation->gate);
         $this->assertSame(GateResult::ALLOW, $evaluation->result);
         $this->assertFalse($evaluation->isActionGate);
-        $this->assertIsFloat($evaluation->timestamp);
+        $this->assertGreaterThan(0, $evaluation->timestamp);
     }
 
     public function testIsReadonlyClass(): void

@@ -523,6 +523,12 @@ parameters:
 			path: tests/Unit/StateWorkerTest.php
 
 		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsFloat\(\) with float and ''Should auto…'' will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
 			count: 1
@@ -553,19 +559,25 @@ parameters:
 			path: tests/Unit/TransitionContextSerializationTest.php
 
 		-
+			message: '#^Cannot access offset ''timestamp'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: tests/Unit/TransitionContextSerializationTest.php
+
+		-
 			message: '#^Cannot access offset 0 on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 6
+			count: 14
 			path: tests/Unit/TransitionContextSerializationTest.php
 
 		-
 			message: '#^Parameter \#2 \$array of method PHPUnit\\Framework\\Assert\:\:assertArrayHasKey\(\) expects array\|ArrayAccess, mixed given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 4
 			path: tests/Unit/TransitionContextSerializationTest.php
 
 		-
 			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, mixed given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 4
 			path: tests/Unit/TransitionContextSerializationTest.php
