@@ -294,3 +294,7 @@ Always consult `docs/architecture.md` before making architectural decisions.
 - always ensure code coverage is 100% before pushing
 - do not create exceptions/update baseline when encountering quality problems. refactor the code to make it work within the existing rules
 - when working from github issues, remember to create a new branch from master follwing the feature|fix/issue-#-desc pattern
+- unit tests should have 100% coverage. you can execute this with composer test:coverage -- --filter=Unit
+- when making or detecting changes to markdown files, dont forget to lint them
+- you should commit as granular as possible. after every significant change, for example after you've written some tests, some code, fixing lint issues.
+- when working on a github issue, at the end, remember to push the branch, create the pr, reset the local git to master and delete the previous branch
