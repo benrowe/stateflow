@@ -330,7 +330,7 @@ class TransitionContext
      */
     private static function restoreGateEvaluationsCollection(array $decoded, GateFactory $gateFactory): GateEvaluationCollection
     {
-        /** @var array<int, array{gate: string, result: string, isActionGate: bool}> $gateEvaluations */
+        /** @var array<int, array{gate: string, result: string, isActionGate: bool}> $gateEvaluationsData */
         $gateEvaluationsData = $decoded['gateEvaluations'] ?? [];
         $evaluations = [];
 
@@ -353,7 +353,7 @@ class TransitionContext
      */
     private static function restoreActionExecutionsCollection(array $decoded, StateFactory $stateFactory): ActionResultCollection
     {
-        /** @var array<int, array{executionState: string, newState: array<string, mixed>|null, metadata: mixed}> $actionExecutions */
+        /** @var array<int, array{executionState: string, newState: array<string, mixed>|null, metadata: mixed}> $actionExecutionsData */
         $actionExecutionsData = $decoded['actionExecutions'] ?? [];
         $results = [];
 
@@ -378,7 +378,7 @@ class TransitionContext
      */
     private static function restoreActionSkipsCollection(array $decoded, ActionFactory $actionFactory): ActionSkipCollection
     {
-        /** @var array<int, array{action: string, gateResult: string}> $actionSkips */
+        /** @var array<int, array{action: string, gateResult: string}> $actionSkipsData */
         $actionSkipsData = $decoded['actionSkips'] ?? [];
         $skips = [];
 
