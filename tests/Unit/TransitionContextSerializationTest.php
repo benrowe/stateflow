@@ -801,6 +801,170 @@ class TransitionContextSerializationTest extends TestCase
         $this->assertCount(1, $restored->getActionExecutions());
         $this->assertSame(ExecutionState::CONTINUE, $restored->getActionExecutions()->toArray()[0]->executionState);
     }
+
+    public function testSerializeIncludesGateEvaluationTimestamp(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $gate = new TestGate();
+        $config = new Configuration([$gate], []);
+
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
+        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
+
+        $serialized = $context->serialize();
+        $data = json_decode($serialized, true);
+
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('gateEvaluations', $data);
+        $this->assertCount(1, $data['gateEvaluations']);
+        $this->assertArrayHasKey('timestamp', $data['gateEvaluations'][0]);
+        $this->assertIsFloat($data['gateEvaluations'][0]['timestamp']);
+        $this->assertGreaterThan(0, $data['gateEvaluations'][0]['timestamp']);
+    }
+
+    public function testUnserializeRestoresGateEvaluationTimestamp(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $gate = new TestGate();
+        $config = new Configuration([$gate], []);
+
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
+        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
+
+        $serialized = $context->serialize();
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+
+        $originalTimestamp = $data['gateEvaluations'][0]['timestamp'];
+
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $evaluations = $restored->getGateEvaluations()->toArray();
+        $this->assertCount(1, $evaluations);
+        $this->assertSame($originalTimestamp, $evaluations[0]->timestamp, 'Timestamp should be preserved exactly');
+    }
+
+    public function testSerializeIncludesActionSkipTimestamp(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $action = new TestAction();
+        $config = new Configuration([], [$action]);
+
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
+        $context->addActionSkip($action, GateResult::DENY);
+
+        $serialized = $context->serialize();
+        $data = json_decode($serialized, true);
+
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('actionSkips', $data);
+        $this->assertCount(1, $data['actionSkips']);
+        $this->assertArrayHasKey('timestamp', $data['actionSkips'][0]);
+        $this->assertIsFloat($data['actionSkips'][0]['timestamp']);
+        $this->assertGreaterThan(0, $data['actionSkips'][0]['timestamp']);
+    }
+
+    public function testUnserializeRestoresActionSkipTimestamp(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $action = new TestAction();
+        $config = new Configuration([], [$action]);
+
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
+        $context->addActionSkip($action, GateResult::DENY);
+
+        $serialized = $context->serialize();
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+
+        $originalTimestamp = $data['actionSkips'][0]['timestamp'];
+
+        $restored = TransitionContext::unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $skips = $restored->getActionSkips()->toArray();
+        $this->assertCount(1, $skips);
+        $this->assertSame($originalTimestamp, $skips[0]->timestamp, 'Timestamp should be preserved exactly');
+    }
+
+    public function testUnserializeBackwardCompatibleWithMissingTimestamp(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $gate = new TestGate();
+        $action = new TestAction();
+        $config = new Configuration([$gate], [$action]);
+
+        // Create old-style serialized data without timestamps
+        $oldSerializedData = [
+            'initialState' => $state->toArray(),
+            'currentState' => $state->toArray(),
+            'desiredDelta' => $delta,
+            'status' => null,
+            'skippedDueToLock' => false,
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [TestGate::class],
+                'actions' => [TestAction::class],
+            ],
+            'gateEvaluations' => [
+                [
+                    'gate' => TestGate::class,
+                    'result' => 'ALLOW',
+                    'isActionGate' => false,
+                    // NO timestamp field - old format
+                ],
+            ],
+            'actionExecutions' => [],
+            'actionSkips' => [
+                [
+                    'action' => TestAction::class,
+                    'gateResult' => 'DENY',
+                    // NO timestamp field - old format
+                ],
+            ],
+        ];
+
+        $oldSerialized = json_encode($oldSerializedData);
+        if ($oldSerialized === false) {
+            $this->fail('Failed to encode old format JSON');
+        }
+
+        // Should unserialize successfully and auto-generate timestamps
+        $restored = TransitionContext::unserialize(
+            $oldSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $evaluations = $restored->getGateEvaluations()->toArray();
+        $this->assertCount(1, $evaluations);
+        $this->assertIsFloat($evaluations[0]->timestamp, 'Should auto-generate timestamp for old data');
+        $this->assertGreaterThan(0, $evaluations[0]->timestamp);
+
+        $skips = $restored->getActionSkips()->toArray();
+        $this->assertCount(1, $skips);
+        $this->assertIsFloat($skips[0]->timestamp, 'Should auto-generate timestamp for old data');
+        $this->assertGreaterThan(0, $skips[0]->timestamp);
+    }
 }
 
 // Test implementations
