@@ -18,11 +18,9 @@ class TransitionContext
 {
     private ExecutionHistory $history;
 
-    private ?ExecutionState $status = null;
+    private ExecutionStatus $executionStatus;
 
     private LockState $lockState;
-
-    private bool $skippedDueToLock = false;
 
     public function __construct(
         private readonly State $initialState,
@@ -30,6 +28,7 @@ class TransitionContext
         private readonly Configuration $configuration,
     ) {
         $this->history = new ExecutionHistory($initialState);
+        $this->executionStatus = new ExecutionStatus();
         $this->lockState = new LockState();
     }
 
@@ -109,39 +108,37 @@ class TransitionContext
 
     public function markAsCompleted(): void
     {
-        $this->status = ExecutionState::CONTINUE;
+        $this->executionStatus->markCompleted();
     }
 
-    public function markAsPaused(): void
+    public function markAsPaused(mixed $metadata = null): void
     {
-        $this->status = ExecutionState::PAUSE;
+        $this->executionStatus->markPaused($metadata);
     }
 
-    public function markAsStopped(): void
+    public function markAsStopped(mixed $metadata = null): void
     {
-        $this->status = ExecutionState::STOP;
+        $this->executionStatus->markStopped($metadata);
     }
 
     public function clearPauseStatus(): void
     {
-        if ($this->status === ExecutionState::PAUSE) {
-            $this->status = null;
-        }
+        $this->executionStatus->clearPauseStatus();
     }
 
     public function isPaused(): bool
     {
-        return $this->status === ExecutionState::PAUSE;
+        return $this->executionStatus->isPaused();
     }
 
     public function isCompleted(): bool
     {
-        return $this->status === ExecutionState::CONTINUE;
+        return $this->executionStatus->isCompleted();
     }
 
     public function isStopped(): bool
     {
-        return $this->status === ExecutionState::STOP;
+        return $this->executionStatus->isStopped();
     }
 
     public function getLockState(): LockState
@@ -156,21 +153,28 @@ class TransitionContext
 
     public function markAsSkippedDueToLock(): void
     {
-        $this->skippedDueToLock = true;
+        $this->executionStatus->markSkippedDueToLock();
     }
 
     public function wasSkippedDueToLock(): bool
     {
-        return $this->skippedDueToLock;
+        return $this->executionStatus->wasSkippedDueToLock();
     }
 
     /**
-     * Get metadata from the last PAUSE or STOP action.
+     * Get metadata from the current execution status.
      *
-     * Returns null if no PAUSE/STOP action has been executed or if the action had no metadata.
+     * Returns the metadata provided when marking as paused or stopped.
+     * If no metadata was provided to ExecutionStatus, falls back to history.
      */
     public function getStatusMetadata(): mixed
     {
+        $statusMetadata = $this->executionStatus->getMetadata();
+        if ($statusMetadata !== null) {
+            return $statusMetadata;
+        }
+
+        // Fallback to history for backward compatibility
         return $this->history->getStatusMetadata();
     }
 
@@ -183,8 +187,13 @@ class TransitionContext
             'initialState' => $this->initialState->toArray(),
             'currentState' => $this->history->getCurrentState()->toArray(),
             'desiredDelta' => $this->desiredDelta->asArray(),
-            'status' => $this->status?->name,
-            'skippedDueToLock' => $this->skippedDueToLock,
+            'executionStatus' => [
+                'completed' => $this->executionStatus->isCompleted(),
+                'paused' => $this->executionStatus->isPaused(),
+                'stopped' => $this->executionStatus->isStopped(),
+                'skippedDueToLock' => $this->executionStatus->wasSkippedDueToLock(),
+                'metadata' => $this->executionStatus->getMetadata(),
+            ],
             'lockState' => $this->lockState->toArray(),
             'configuration' => [
                 'transitionGates' => array_map(
@@ -274,13 +283,12 @@ class TransitionContext
             $currentState
         );
 
-        // Restore status
-        self::restoreStatus($context, $decoded);
+        // Restore execution status
+        self::restoreExecutionStatus($context, $decoded);
 
         // Restore lock state
         $lockStateData = $decoded['lockState'] ?? [];
         $context->lockState = is_array($lockStateData) ? LockState::fromArray($lockStateData) : new LockState();
-        $context->skippedDueToLock = $decoded['skippedDueToLock'] ?? false;
 
         return $context;
     }
@@ -315,15 +323,53 @@ class TransitionContext
     /**
      * @param array<string, mixed> $decoded
      */
-    private static function restoreStatus(self $context, array $decoded): void
+    private static function restoreExecutionStatus(self $context, array $decoded): void
     {
+        if (isset($decoded['executionStatus']) && is_array($decoded['executionStatus'])) {
+            self::restoreNewFormatExecutionStatus($context, $decoded['executionStatus']);
+
+            return;
+        }
+
         if (isset($decoded['status']) && is_string($decoded['status'])) {
-            $context->status = match ($decoded['status']) {
-                'CONTINUE' => ExecutionState::CONTINUE,
-                'PAUSE' => ExecutionState::PAUSE,
-                'STOP' => ExecutionState::STOP,
-                default => null,
-            };
+            self::restoreLegacyFormatExecutionStatus($context, $decoded);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $statusData
+     */
+    private static function restoreNewFormatExecutionStatus(self $context, array $statusData): void
+    {
+        $metadata = $statusData['metadata'] ?? null;
+
+        if ($statusData['completed'] ?? false) {
+            $context->executionStatus->markCompleted();
+        } elseif ($statusData['paused'] ?? false) {
+            $context->executionStatus->markPaused($metadata);
+        } elseif ($statusData['stopped'] ?? false) {
+            $context->executionStatus->markStopped($metadata);
+        }
+
+        if ($statusData['skippedDueToLock'] ?? false) {
+            $context->executionStatus->markSkippedDueToLock();
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $decoded
+     */
+    private static function restoreLegacyFormatExecutionStatus(self $context, array $decoded): void
+    {
+        match ($decoded['status']) {
+            'CONTINUE' => $context->executionStatus->markCompleted(),
+            'PAUSE' => $context->executionStatus->markPaused(),
+            'STOP' => $context->executionStatus->markStopped(),
+            default => null,
+        };
+
+        if ($decoded['skippedDueToLock'] ?? false) {
+            $context->executionStatus->markSkippedDueToLock();
         }
     }
 
