@@ -7,7 +7,6 @@ namespace BenRowe\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ActionResultCollection;
-use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -179,60 +178,21 @@ class TransitionContext
     }
 
     /**
+     * Set the execution history (used during deserialization)
+     *
+     * @internal
+     */
+    public function setExecutionHistory(ExecutionHistory $history): void
+    {
+        $this->history = $history;
+    }
+
+    /**
      * Serialize the context to a JSON string for persistence.
      */
     public function serialize(): string
     {
-        $data = [
-            'initialState' => $this->initialState->toArray(),
-            'currentState' => $this->history->getCurrentState()->toArray(),
-            'desiredDelta' => $this->desiredDelta->asArray(),
-            'executionStatus' => [
-                'completed' => $this->executionStatus->isCompleted(),
-                'paused' => $this->executionStatus->isPaused(),
-                'stopped' => $this->executionStatus->isStopped(),
-                'skippedDueToLock' => $this->executionStatus->wasSkippedDueToLock(),
-                'metadata' => $this->executionStatus->getMetadata(),
-            ],
-            'lockState' => $this->lockState->toArray(),
-            'configuration' => [
-                'transitionGates' => array_map(
-                    fn ($gate) => get_class($gate),
-                    $this->configuration->transitionGates->toArray()
-                ),
-                'actions' => array_map(
-                    fn ($action) => get_class($action),
-                    $this->configuration->actions->toArray()
-                ),
-            ],
-            'gateEvaluations' => array_map(
-                fn (GateEvaluation $eval) => [
-                    'gate' => get_class($eval->gate),
-                    'result' => $eval->result->name,
-                    'isActionGate' => $eval->isActionGate,
-                    'timestamp' => $eval->timestamp,
-                ],
-                $this->history->getGateEvaluations()->toArray()
-            ),
-            'actionExecutions' => array_map(
-                fn (ActionResult $result) => [
-                    'executionState' => $result->executionState->name,
-                    'newState' => $result->newState?->toArray(),
-                    'metadata' => $result->metadata,
-                ],
-                $this->history->getActionExecutions()->toArray()
-            ),
-            'actionSkips' => array_map(
-                fn (ActionSkip $skip) => [
-                    'action' => get_class($skip->action),
-                    'gateResult' => $skip->gateResult->name,
-                    'timestamp' => $skip->timestamp,
-                ],
-                $this->history->getActionSkips()->toArray()
-            ),
-        ];
-
-        return json_encode($data, JSON_THROW_ON_ERROR);
+        return (new TransitionContextSerializer())->serialize($this);
     }
 
     /**
@@ -251,198 +211,6 @@ class TransitionContext
         ActionFactory $actionFactory,
         GateFactory $gateFactory
     ): self {
-        $decoded = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
-
-        if (!is_array($decoded)) {
-            throw new JsonException('Invalid JSON data: expected object');
-        }
-
-        // Reconstruct states
-        $initialState = $stateFactory->fromArray($decoded['initialState'] ?? []);
-        $currentState = $stateFactory->fromArray($decoded['currentState'] ?? []);
-
-        // Reconstruct configuration
-        $configuration = self::restoreConfiguration($decoded, $actionFactory, $gateFactory);
-
-        // Create new context
-        /** @var array<string, mixed> $deltaData */
-        $deltaData = $decoded['desiredDelta'] ?? [];
-        $desiredDelta = new ArrayDelta($deltaData);
-        $context = new self($initialState, $desiredDelta, $configuration);
-
-        // Restore execution history
-        $gateEvaluations = self::restoreGateEvaluationsCollection($decoded, $gateFactory);
-        $actionExecutions = self::restoreActionExecutionsCollection($decoded, $stateFactory);
-        $actionSkips = self::restoreActionSkipsCollection($decoded, $actionFactory);
-
-        $context->history = new ExecutionHistory(
-            $initialState,
-            $gateEvaluations,
-            $actionExecutions,
-            $actionSkips,
-            $currentState
-        );
-
-        // Restore execution status
-        self::restoreExecutionStatus($context, $decoded);
-
-        // Restore lock state
-        $lockStateData = $decoded['lockState'] ?? [];
-        $context->lockState = is_array($lockStateData) ? LockState::fromArray($lockStateData) : new LockState();
-
-        return $context;
-    }
-
-    /**
-     * @param array<string, mixed> $decoded
-     */
-    private static function restoreConfiguration(
-        array $decoded,
-        ActionFactory $actionFactory,
-        GateFactory $gateFactory
-    ): Configuration {
-        $configData = $decoded['configuration'] ?? [];
-
-        /** @var array<int, string> $gateClassNames */
-        $gateClassNames = is_array($configData) ? ($configData['transitionGates'] ?? []) : [];
-        $transitionGates = array_map(
-            fn (string $className) => $gateFactory->fromClassName($className),
-            $gateClassNames
-        );
-
-        /** @var array<int, string> $actionClassNames */
-        $actionClassNames = is_array($configData) ? ($configData['actions'] ?? []) : [];
-        $actions = array_map(
-            fn (string $className) => $actionFactory->fromClassName($className),
-            $actionClassNames
-        );
-
-        return new Configuration($transitionGates, $actions);
-    }
-
-    /**
-     * @param array<string, mixed> $decoded
-     */
-    private static function restoreExecutionStatus(self $context, array $decoded): void
-    {
-        if (isset($decoded['executionStatus']) && is_array($decoded['executionStatus'])) {
-            self::restoreNewFormatExecutionStatus($context, $decoded['executionStatus']);
-
-            return;
-        }
-
-        if (isset($decoded['status']) && is_string($decoded['status'])) {
-            self::restoreLegacyFormatExecutionStatus($context, $decoded);
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $statusData
-     */
-    private static function restoreNewFormatExecutionStatus(self $context, array $statusData): void
-    {
-        $metadata = $statusData['metadata'] ?? null;
-
-        if ($statusData['completed'] ?? false) {
-            $context->executionStatus->markCompleted();
-        } elseif ($statusData['paused'] ?? false) {
-            $context->executionStatus->markPaused($metadata);
-        } elseif ($statusData['stopped'] ?? false) {
-            $context->executionStatus->markStopped($metadata);
-        }
-
-        if ($statusData['skippedDueToLock'] ?? false) {
-            $context->executionStatus->markSkippedDueToLock();
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $decoded
-     */
-    private static function restoreLegacyFormatExecutionStatus(self $context, array $decoded): void
-    {
-        match ($decoded['status']) {
-            'CONTINUE' => $context->executionStatus->markCompleted(),
-            'PAUSE' => $context->executionStatus->markPaused(),
-            'STOP' => $context->executionStatus->markStopped(),
-            default => null,
-        };
-
-        if ($decoded['skippedDueToLock'] ?? false) {
-            $context->executionStatus->markSkippedDueToLock();
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $decoded
-     */
-    private static function restoreGateEvaluationsCollection(array $decoded, GateFactory $gateFactory): GateEvaluationCollection
-    {
-        /** @var array<int, array{gate: string, result: string, isActionGate: bool, timestamp?: float}> $gateEvaluationsData */
-        $gateEvaluationsData = $decoded['gateEvaluations'] ?? [];
-        $evaluations = [];
-
-        foreach ($gateEvaluationsData as $evalData) {
-            $gate = $gateFactory->fromClassName($evalData['gate']);
-            $result = match ($evalData['result']) {
-                'ALLOW' => GateResult::ALLOW,
-                'DENY' => GateResult::DENY,
-                'SKIP_IDEMPOTENT' => GateResult::SKIP_IDEMPOTENT,
-                default => GateResult::ALLOW,
-            };
-            $timestamp = $evalData['timestamp'] ?? 0.0;
-            $evaluations[] = new GateEvaluation($gate, $result, $evalData['isActionGate'], $timestamp);
-        }
-
-        return GateEvaluationCollection::fromArray($evaluations);
-    }
-
-    /**
-     * @param array<string, mixed> $decoded
-     */
-    private static function restoreActionExecutionsCollection(array $decoded, StateFactory $stateFactory): ActionResultCollection
-    {
-        /** @var array<int, array{executionState: string, newState: array<string, mixed>|null, metadata: mixed}> $actionExecutionsData */
-        $actionExecutionsData = $decoded['actionExecutions'] ?? [];
-        $results = [];
-
-        foreach ($actionExecutionsData as $actionData) {
-            $executionState = match ($actionData['executionState']) {
-                'CONTINUE' => ExecutionState::CONTINUE,
-                'PAUSE' => ExecutionState::PAUSE,
-                'STOP' => ExecutionState::STOP,
-                default => ExecutionState::CONTINUE,
-            };
-            $newState = $actionData['newState'] !== null
-                ? $stateFactory->fromArray($actionData['newState'])
-                : null;
-            $results[] = new ActionResult($executionState, $newState, $actionData['metadata']);
-        }
-
-        return ActionResultCollection::fromArray($results);
-    }
-
-    /**
-     * @param array<string, mixed> $decoded
-     */
-    private static function restoreActionSkipsCollection(array $decoded, ActionFactory $actionFactory): ActionSkipCollection
-    {
-        /** @var array<int, array{action: string, gateResult: string, timestamp?: float}> $actionSkipsData */
-        $actionSkipsData = $decoded['actionSkips'] ?? [];
-        $skips = [];
-
-        foreach ($actionSkipsData as $skipData) {
-            $action = $actionFactory->fromClassName($skipData['action']);
-            $gateResult = match ($skipData['gateResult']) {
-                'ALLOW' => GateResult::ALLOW,
-                'DENY' => GateResult::DENY,
-                'SKIP_IDEMPOTENT' => GateResult::SKIP_IDEMPOTENT,
-                default => GateResult::ALLOW,
-            };
-            $timestamp = $skipData['timestamp'] ?? 0.0;
-            $skips[] = new ActionSkip($action, $gateResult, $timestamp);
-        }
-
-        return ActionSkipCollection::fromArray($skips);
+        return (new TransitionContextSerializer())->unserialize($data, $stateFactory, $actionFactory, $gateFactory);
     }
 }
