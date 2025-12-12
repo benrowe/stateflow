@@ -211,14 +211,14 @@ parameters:
 			path: src/TransitionContext.php
 
 		-
-			message: '#^Parameter \#2 \$decoded of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreStatus\(\) expects array\<string, mixed\>, array given\.$#'
+			message: '#^Parameter \#2 \$decoded of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreExecutionStatus\(\) expects array\<string, mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/TransitionContext.php
 
 		-
-			message: '#^Property BenRowe\\StateFlow\\TransitionContext\:\:\$skippedDueToLock \(bool\) does not accept mixed\.$#'
-			identifier: assign.propertyType
+			message: '#^Parameter \#2 \$statusData of static method BenRowe\\StateFlow\\TransitionContext\:\:restoreNewFormatExecutionStatus\(\) expects array\<string, mixed\>, array\<mixed, mixed\> given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/TransitionContext.php
 

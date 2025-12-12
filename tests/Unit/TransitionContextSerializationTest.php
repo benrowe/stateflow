@@ -496,12 +496,17 @@ class TransitionContextSerializationTest extends TestCase
         $context->markAsCompleted();
         $serialized = $context->serialize();
 
-        // Decode and set invalid status
+        // Decode and modify executionStatus to have all flags false (simulating invalid/corrupted state)
         $data = json_decode($serialized, true);
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
         }
-        $data['status'] = 'INVALID_STATUS';
+        if (!isset($data['executionStatus']) || !is_array($data['executionStatus'])) {
+            $this->fail('executionStatus not found in serialized data');
+        }
+        $data['executionStatus']['completed'] = false;
+        $data['executionStatus']['paused'] = false;
+        $data['executionStatus']['stopped'] = false;
         $modifiedSerialized = json_encode($data);
         if ($modifiedSerialized === false) {
             $this->fail('Failed to encode JSON');
@@ -514,7 +519,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        // Should have no status (default case returns null)
+        // Should have no status (all flags false)
         $this->assertFalse($restored->isCompleted());
         $this->assertFalse($restored->isPaused());
         $this->assertFalse($restored->isStopped());
