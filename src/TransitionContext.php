@@ -201,6 +201,7 @@ class TransitionContext
                     'gate' => get_class($eval->gate),
                     'result' => $eval->result->name,
                     'isActionGate' => $eval->isActionGate,
+                    'timestamp' => $eval->timestamp,
                 ],
                 $this->history->getGateEvaluations()->toArray()
             ),
@@ -216,6 +217,7 @@ class TransitionContext
                 fn (ActionSkip $skip) => [
                     'action' => get_class($skip->action),
                     'gateResult' => $skip->gateResult->name,
+                    'timestamp' => $skip->timestamp,
                 ],
                 $this->history->getActionSkips()->toArray()
             ),
@@ -330,7 +332,7 @@ class TransitionContext
      */
     private static function restoreGateEvaluationsCollection(array $decoded, GateFactory $gateFactory): GateEvaluationCollection
     {
-        /** @var array<int, array{gate: string, result: string, isActionGate: bool}> $gateEvaluationsData */
+        /** @var array<int, array{gate: string, result: string, isActionGate: bool, timestamp?: float}> $gateEvaluationsData */
         $gateEvaluationsData = $decoded['gateEvaluations'] ?? [];
         $evaluations = [];
 
@@ -342,7 +344,8 @@ class TransitionContext
                 'SKIP_IDEMPOTENT' => GateResult::SKIP_IDEMPOTENT,
                 default => GateResult::ALLOW,
             };
-            $evaluations[] = new GateEvaluation($gate, $result, $evalData['isActionGate']);
+            $timestamp = $evalData['timestamp'] ?? 0.0;
+            $evaluations[] = new GateEvaluation($gate, $result, $evalData['isActionGate'], $timestamp);
         }
 
         return GateEvaluationCollection::fromArray($evaluations);
@@ -378,7 +381,7 @@ class TransitionContext
      */
     private static function restoreActionSkipsCollection(array $decoded, ActionFactory $actionFactory): ActionSkipCollection
     {
-        /** @var array<int, array{action: string, gateResult: string}> $actionSkipsData */
+        /** @var array<int, array{action: string, gateResult: string, timestamp?: float}> $actionSkipsData */
         $actionSkipsData = $decoded['actionSkips'] ?? [];
         $skips = [];
 
@@ -390,7 +393,8 @@ class TransitionContext
                 'SKIP_IDEMPOTENT' => GateResult::SKIP_IDEMPOTENT,
                 default => GateResult::ALLOW,
             };
-            $skips[] = new ActionSkip($action, $gateResult);
+            $timestamp = $skipData['timestamp'] ?? 0.0;
+            $skips[] = new ActionSkip($action, $gateResult, $timestamp);
         }
 
         return ActionSkipCollection::fromArray($skips);
