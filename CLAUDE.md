@@ -298,3 +298,4 @@ Always consult `docs/architecture.md` before making architectural decisions.
 - when making or detecting changes to markdown files, dont forget to lint them
 - you should commit as granular as possible. after every significant change, for example after you've written some tests, some code, fixing lint issues.
 - when working on a github issue, at the end, remember to push the branch, create the pr, reset the local git to master and delete the previous branch
+- git commit messages should be single line, terse. they should tell a story
