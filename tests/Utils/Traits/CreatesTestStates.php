@@ -23,9 +23,12 @@ trait CreatesTestStates
     {
         $state = $this->createStub(State::class);
         $state->method('toArray')->willReturn($data);
-        $state->method('with')->willReturnCallback(function (array $changes) use ($data) {
+        $state->method('with')->willReturnCallback(function (array $changes) use ($data): State {
+            /** @var array<string, mixed> $mergedData */
+            $mergedData = array_merge($data, $changes);
+
             /** @phpstan-ignore method.notFound */
-            return $this->createTestState(array_merge($data, $changes));
+            return $this->createTestState($mergedData);
         });
 
         return $state;

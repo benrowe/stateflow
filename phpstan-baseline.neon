@@ -223,40 +223,10 @@ parameters:
 			path: src/TransitionContextSerializer.php
 
 		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\Configuration\\ConfigurationTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/Configuration/ConfigurationTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ActionGuardTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/ActionGuardTest.php
-
-		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with BenRowe\\StateFlow\\Action\\ActionResult will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Integration/StateFlow/BasicExecutionTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\BasicExecutionTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/BasicExecutionTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ComplexWorkflowTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/ComplexWorkflowTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\DeltaAccessTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/DeltaAccessTest.php
 
 		-
 			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:148\:\:message\(\) never returns null so it can be removed from the return type\.$#'
@@ -265,26 +235,8 @@ parameters:
 			path: tests/Integration/StateFlow/ErrorHandlingTest.php
 
 		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ErrorHandlingTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/ErrorHandlingTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\EventDispatchingTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/EventDispatchingTest.php
-
-		-
 			message: '#^Binary operation "\+" between mixed and 1 results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 1
-			path: tests/Integration/StateFlow/ExecutionControlTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ExecutionControlTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
 
@@ -307,30 +259,6 @@ parameters:
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
 
 		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\LockingTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/LockingTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\SerializationTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/SerializationTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\StepByStepExecutionTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/StepByStepExecutionTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\TransitionGateTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Integration/StateFlow/TransitionGateTest.php
-
-		-
 			message: '#^Cannot access offset ''version'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -339,12 +267,6 @@ parameters:
 		-
 			message: '#^Cannot call method toArray\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: tests/Integration/StateFlow/WorkflowResumeTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\WorkflowResumeTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Integration/StateFlow/WorkflowResumeTest.php
 
@@ -433,12 +355,6 @@ parameters:
 			path: tests/Unit/GateEvaluationCollectionTest.php
 
 		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Unit\\StateFlowTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Unit/StateFlowTest.php
-
-		-
 			message: '#^Binary operation "\." between ''Unexpected event '' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -447,12 +363,6 @@ parameters:
 		-
 			message: '#^Cannot access constant class on mixed\.$#'
 			identifier: classConstant.nonObject
-			count: 1
-			path: tests/Unit/StateWorkerTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Unit\\StateWorkerTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Unit/StateWorkerTest.php
 
@@ -503,9 +413,3 @@ parameters:
 			identifier: argument.type
 			count: 4
 			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Unit\\TransitionContextSerializerTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Unit/TransitionContextSerializerTest.php
