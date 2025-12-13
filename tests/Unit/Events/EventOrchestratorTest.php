@@ -20,9 +20,15 @@ use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStopped;
+use BenRowe\StateFlow\Events\LockAcquired;
+use BenRowe\StateFlow\Events\LockFailed;
+use BenRowe\StateFlow\Events\LockReleased;
+use BenRowe\StateFlow\Events\LockRestored;
+use BenRowe\StateFlow\Events\LockLost;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
+use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\TransitionContext;
 use Exception;
@@ -228,5 +234,91 @@ class EventOrchestratorTest extends TestCase
 
         $orchestrator = new EventOrchestrator($dispatcher);
         $orchestrator->transitionStopped($state, $context, $metadata);
+    }
+
+    public function testLockAcquiredDispatchesCorrectEvent(): void
+    {
+        $lockState = new LockState('test-key', 1234567.89, 30);
+        $dispatcher = $this->createMock(EventDispatcher::class);
+
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($event) use ($lockState) {
+                return $event instanceof LockAcquired
+                    && $event->lockKey === 'test-key'
+                    && $event->lockState === $lockState;
+            }));
+
+        $orchestrator = new EventOrchestrator($dispatcher);
+        $orchestrator->lockAcquired('test-key', $lockState);
+    }
+
+    public function testLockFailedDispatchesCorrectEvent(): void
+    {
+        $state = $this->createMock(State::class);
+        $dispatcher = $this->createMock(EventDispatcher::class);
+
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($event) use ($state) {
+                return $event instanceof LockFailed
+                    && $event->lockKey === 'test-key'
+                    && $event->state === $state
+                    && $event->reason === 'Lock already held';
+            }));
+
+        $orchestrator = new EventOrchestrator($dispatcher);
+        $orchestrator->lockFailed('test-key', $state, 'Lock already held');
+    }
+
+    public function testLockReleasedDispatchesCorrectEvent(): void
+    {
+        $state = $this->createMock(State::class);
+        $dispatcher = $this->createMock(EventDispatcher::class);
+
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($event) use ($state) {
+                return $event instanceof LockReleased
+                    && $event->lockKey === 'test-key'
+                    && $event->state === $state;
+            }));
+
+        $orchestrator = new EventOrchestrator($dispatcher);
+        $orchestrator->lockReleased('test-key', $state);
+    }
+
+    public function testLockRestoredDispatchesCorrectEvent(): void
+    {
+        $state = $this->createMock(State::class);
+        $dispatcher = $this->createMock(EventDispatcher::class);
+
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($event) use ($state) {
+                return $event instanceof LockRestored
+                    && $event->lockKey === 'test-key'
+                    && $event->state === $state;
+            }));
+
+        $orchestrator = new EventOrchestrator($dispatcher);
+        $orchestrator->lockRestored('test-key', $state);
+    }
+
+    public function testLockLostDispatchesCorrectEvent(): void
+    {
+        $state = $this->createMock(State::class);
+        $dispatcher = $this->createMock(EventDispatcher::class);
+
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($event) use ($state) {
+                return $event instanceof LockLost
+                    && $event->lockKey === 'test-key'
+                    && $event->state === $state;
+            }));
+
+        $orchestrator = new EventOrchestrator($dispatcher);
+        $orchestrator->lockLost('test-key', $state);
     }
 }
