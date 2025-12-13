@@ -16,6 +16,8 @@ use Throwable;
 
 /**
  * Centralizes event creation and dispatching for StateWorker
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Orchestrator pattern requires knowledge of all event types (20 dependencies, threshold 13)
  */
 class EventOrchestrator
 {

@@ -10,7 +10,6 @@ use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Locking\LockState;
-use JsonException;
 
 class TransitionContext
 {
