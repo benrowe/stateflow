@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Locking;
 
-use BenRowe\StateFlow\Events\EventDispatcher;
-use BenRowe\StateFlow\Events\LockAcquired;
-use BenRowe\StateFlow\Events\LockFailed;
-use BenRowe\StateFlow\Events\LockLost;
-use BenRowe\StateFlow\Events\LockReleased;
-use BenRowe\StateFlow\Events\LockRestored;
+use BenRowe\StateFlow\Events\EventOrchestrator;
 use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
 use BenRowe\StateFlow\Exceptions\LockLostException;
 use BenRowe\StateFlow\TransitionContext;
@@ -28,7 +23,7 @@ class LockManager
         private readonly ?LockKeyProvider $lockKeyProvider,
         private readonly ?LockConfiguration $lockConfiguration,
         private readonly TransitionContext $context,
-        private readonly EventDispatcher $eventDispatcher,
+        private readonly EventOrchestrator $eventOrchestrator,
     ) {
     }
 
@@ -59,12 +54,7 @@ class LockManager
         $acquired = $this->lockProvider->acquire($lockKey, $this->lockConfiguration->ttl);
 
         if ($acquired) {
-            // Store lock state in context
-            $lockState = new LockState($lockKey, microtime(true), $this->lockConfiguration->ttl);
-            $this->context->setLockState($lockState);
-
-            // Dispatch LockAcquired event
-            $this->eventDispatcher->dispatch(new LockAcquired($lockKey, $lockState));
+            $this->recordLockAcquisition($lockKey);
 
             return $lockKey;
         }
@@ -107,9 +97,7 @@ class LockManager
         $this->lockProvider->release($lockKey);
 
         // Dispatch LockReleased event
-        $this->eventDispatcher->dispatch(
-            new LockReleased($lockKey, $this->context->getCurrentState())
-        );
+        $this->eventOrchestrator->lockReleased($lockKey, $this->context->getCurrentState());
     }
 
     /**
@@ -152,9 +140,7 @@ class LockManager
                 $this->context->setLockState($newLockState);
 
                 // Dispatch LockRestored event
-                $this->eventDispatcher->dispatch(
-                    new LockRestored($lockKey, $this->context->getCurrentState())
-                );
+                $this->eventOrchestrator->lockRestored($lockKey, $this->context->getCurrentState());
             }
         }
     }
@@ -182,9 +168,7 @@ class LockManager
 
         if (!$lockExists) {
             // Dispatch LockLost event
-            $this->eventDispatcher->dispatch(
-                new LockLost($lockKey, $this->context->getCurrentState())
-            );
+            $this->eventOrchestrator->lockLost($lockKey, $this->context->getCurrentState());
 
             // Throw exception to stop execution
             throw new LockLostException(
@@ -196,13 +180,7 @@ class LockManager
     private function handleFailFast(string $lockKey): void
     {
         // Dispatch LockFailed event
-        $this->eventDispatcher->dispatch(
-            new LockFailed(
-                $lockKey,
-                $this->context->getCurrentState(),
-                'Lock is already held by another process'
-            )
-        );
+        $this->dispatchLockFailed($lockKey, 'Lock is already held by another process');
 
         // Throw exception to stop execution
         throw new LockAcquisitionException(
@@ -213,13 +191,7 @@ class LockManager
     private function handleSkip(string $lockKey): void
     {
         // Dispatch LockFailed event
-        $this->eventDispatcher->dispatch(
-            new LockFailed(
-                $lockKey,
-                $this->context->getCurrentState(),
-                'Lock is already held by another process'
-            )
-        );
+        $this->dispatchLockFailed($lockKey, 'Lock is already held by another process');
 
         // Mark context as skipped due to lock
         $this->context->executionStatus()->markSkippedDueToLock();
@@ -240,12 +212,9 @@ class LockManager
             $elapsed = microtime(true) - $startTime;
             if ($elapsed >= $timeoutSeconds) {
                 // Dispatch LockFailed event
-                $this->eventDispatcher->dispatch(
-                    new LockFailed(
-                        $lockKey,
-                        $this->context->getCurrentState(),
-                        sprintf('Failed to acquire lock after %.2f seconds', $elapsed)
-                    )
+                $this->dispatchLockFailed(
+                    $lockKey,
+                    sprintf('Failed to acquire lock after %.2f seconds', $elapsed)
                 );
 
                 throw new LockAcquisitionException(
@@ -260,15 +229,32 @@ class LockManager
             $acquired = $this->lockProvider->acquire($lockKey, $this->lockConfiguration->ttl);
 
             if ($acquired) {
-                // Store lock state in context
-                $lockState = new LockState($lockKey, microtime(true), $this->lockConfiguration->ttl);
-                $this->context->setLockState($lockState);
-
-                // Dispatch LockAcquired event
-                $this->eventDispatcher->dispatch(new LockAcquired($lockKey, $lockState));
+                $this->recordLockAcquisition($lockKey);
 
                 return;
             }
         }
+    }
+
+    /**
+     * Record successful lock acquisition in context and dispatch event
+     */
+    private function recordLockAcquisition(string $lockKey): void
+    {
+        $lockState = new LockState($lockKey, microtime(true), $this->lockConfiguration->ttl);
+        $this->context->setLockState($lockState);
+        $this->eventOrchestrator->lockAcquired($lockKey, $lockState);
+    }
+
+    /**
+     * Dispatch lock failed event
+     */
+    private function dispatchLockFailed(string $lockKey, string $reason): void
+    {
+        $this->eventOrchestrator->lockFailed(
+            $lockKey,
+            $this->context->getCurrentState(),
+            $reason
+        );
     }
 }
