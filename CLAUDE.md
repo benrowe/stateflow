@@ -300,3 +300,4 @@ Always consult `docs/architecture.md` before making architectural decisions.
 - when working on a github issue, at the end, remember to push the branch, create the pr, reset the local git to master and delete the previous branch
 - git commit messages should be single line, terse. they should tell a story
 - dont work around lint/quality issues by adding docblocks/comments to the code to get around the issue.
+- when we make changes to code interfaces, dont forget to update the documentation

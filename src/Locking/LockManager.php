@@ -18,6 +18,8 @@ use BenRowe\StateFlow\TransitionContext;
  * Manages distributed locking for transitions
  *
  * Handles lock acquisition, release, renewal, and strategy execution
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Lock management requires event dispatching and strategy handling (14 dependencies, threshold 13)
  */
 class LockManager
 {

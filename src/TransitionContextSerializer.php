@@ -14,6 +14,8 @@ use JsonException;
 
 /**
  * Handles serialization and deserialization of TransitionContext
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Serializer must know all domain objects and factories (17 dependencies, threshold 13)
  */
 class TransitionContextSerializer
 {
