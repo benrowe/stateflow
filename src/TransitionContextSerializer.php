@@ -15,7 +15,9 @@ use JsonException;
 /**
  * Handles serialization and deserialization of TransitionContext
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Serializer must know all domain objects and factories (17 dependencies, threshold 13)
+ * Serializer must know all domain objects and factories (17 dependencies, threshold 13)
+ *
+ * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
 class TransitionContextSerializer
 {
@@ -113,14 +115,14 @@ class TransitionContextSerializer
     private function serializeConfiguration(Configuration $configuration): array
     {
         return [
-            'transitionGates' => array_map(
+            'transitionGates' => array_values(array_map(
                 fn ($gate) => get_class($gate),
                 $configuration->transitionGates->toArray()
-            ),
-            'actions' => array_map(
+            )),
+            'actions' => array_values(array_map(
                 fn ($action) => get_class($action),
                 $configuration->actions->toArray()
-            ),
+            )),
         ];
     }
 
@@ -129,7 +131,7 @@ class TransitionContextSerializer
      */
     private function serializeGateEvaluations(TransitionContext $context): array
     {
-        return array_map(
+        return array_values(array_map(
             fn (GateEvaluation $eval) => [
                 'gate' => get_class($eval->gate),
                 'result' => $eval->result->name,
@@ -137,7 +139,7 @@ class TransitionContextSerializer
                 'timestamp' => $eval->timestamp,
             ],
             $context->executionHistory()->getGateEvaluations()->toArray()
-        );
+        ));
     }
 
     /**
@@ -145,14 +147,14 @@ class TransitionContextSerializer
      */
     private function serializeActionExecutions(TransitionContext $context): array
     {
-        return array_map(
+        return array_values(array_map(
             fn (ActionResult $result) => [
                 'executionState' => $result->executionState->name,
                 'newState' => $result->newState?->toArray(),
                 'metadata' => $result->metadata,
             ],
             $context->executionHistory()->getActionExecutions()->toArray()
-        );
+        ));
     }
 
     /**
@@ -160,14 +162,14 @@ class TransitionContextSerializer
      */
     private function serializeActionSkips(TransitionContext $context): array
     {
-        return array_map(
+        return array_values(array_map(
             fn (ActionSkip $skip) => [
                 'action' => get_class($skip->action),
                 'gateResult' => $skip->gateResult->name,
                 'timestamp' => $skip->timestamp,
             ],
             $context->executionHistory()->getActionSkips()->toArray()
-        );
+        ));
     }
 
     /**
