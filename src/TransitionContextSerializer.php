@@ -27,7 +27,7 @@ class TransitionContextSerializer
             'currentState' => $context->getCurrentState()->toArray(),
             'desiredDelta' => $context->getDesiredDelta()->asArray(),
             'executionStatus' => $this->serializeExecutionStatus($context),
-            'lockState' => $context->getLockState()->toArray(),
+            'lockState' => $context->lockState()->toArray(),
             'configuration' => $this->serializeConfiguration($context->getConfiguration()),
             'gateEvaluations' => $this->serializeGateEvaluations($context),
             'actionExecutions' => $this->serializeActionExecutions($context),
@@ -97,10 +97,10 @@ class TransitionContextSerializer
     private function serializeExecutionStatus(TransitionContext $context): array
     {
         return [
-            'completed' => $context->isCompleted(),
-            'paused' => $context->isPaused(),
-            'stopped' => $context->isStopped(),
-            'skippedDueToLock' => $context->wasSkippedDueToLock(),
+            'completed' => $context->executionStatus()->isCompleted(),
+            'paused' => $context->executionStatus()->isPaused(),
+            'stopped' => $context->executionStatus()->isStopped(),
+            'skippedDueToLock' => $context->executionStatus()->wasSkippedDueToLock(),
             'metadata' => $context->getStatusMetadata(),
         ];
     }
@@ -134,7 +134,7 @@ class TransitionContextSerializer
                 'isActionGate' => $eval->isActionGate,
                 'timestamp' => $eval->timestamp,
             ],
-            $context->getGateEvaluations()->toArray()
+            $context->executionHistory()->getGateEvaluations()->toArray()
         );
     }
 
@@ -149,7 +149,7 @@ class TransitionContextSerializer
                 'newState' => $result->newState?->toArray(),
                 'metadata' => $result->metadata,
             ],
-            $context->getActionExecutions()->toArray()
+            $context->executionHistory()->getActionExecutions()->toArray()
         );
     }
 
@@ -164,7 +164,7 @@ class TransitionContextSerializer
                 'gateResult' => $skip->gateResult->name,
                 'timestamp' => $skip->timestamp,
             ],
-            $context->getActionSkips()->toArray()
+            $context->executionHistory()->getActionSkips()->toArray()
         );
     }
 
@@ -219,15 +219,15 @@ class TransitionContextSerializer
         $metadata = $statusData['metadata'] ?? null;
 
         if ($statusData['completed'] ?? false) {
-            $context->markAsCompleted();
+            $context->executionStatus()->markCompleted();
         } elseif ($statusData['paused'] ?? false) {
-            $context->markAsPaused($metadata);
+            $context->executionStatus()->markPaused($metadata);
         } elseif ($statusData['stopped'] ?? false) {
-            $context->markAsStopped($metadata);
+            $context->executionStatus()->markStopped($metadata);
         }
 
         if ($statusData['skippedDueToLock'] ?? false) {
-            $context->markAsSkippedDueToLock();
+            $context->executionStatus()->markSkippedDueToLock();
         }
     }
 
@@ -237,14 +237,14 @@ class TransitionContextSerializer
     private function restoreLegacyFormatExecutionStatus(TransitionContext $context, array $decoded): void
     {
         match ($decoded['status']) {
-            'CONTINUE' => $context->markAsCompleted(),
-            'PAUSE' => $context->markAsPaused(),
-            'STOP' => $context->markAsStopped(),
+            'CONTINUE' => $context->executionStatus()->markCompleted(),
+            'PAUSE' => $context->executionStatus()->markPaused(),
+            'STOP' => $context->executionStatus()->markStopped(),
             default => null,
         };
 
         if ($decoded['skippedDueToLock'] ?? false) {
-            $context->markAsSkippedDueToLock();
+            $context->executionStatus()->markSkippedDueToLock();
         }
     }
 

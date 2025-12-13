@@ -70,9 +70,9 @@ class SerializationTest extends TestCase
         $pausedContext = $worker1->execute();
 
         // Verify workflow paused
-        $this->assertTrue($pausedContext->isPaused());
-        $this->assertFalse($pausedContext->isCompleted());
-        $this->assertCount(2, $pausedContext->getActionExecutions());
+        $this->assertTrue($pausedContext->executionStatus()->isPaused());
+        $this->assertFalse($pausedContext->executionStatus()->isCompleted());
+        $this->assertCount(2, $pausedContext->executionHistory()->getActionExecutions());
 
         // Verify metadata was captured
         $this->assertEquals(
@@ -100,8 +100,8 @@ class SerializationTest extends TestCase
         );
 
         // Verify context was restored correctly
-        $this->assertTrue($restoredContext->isPaused());
-        $this->assertCount(2, $restoredContext->getActionExecutions());
+        $this->assertTrue($restoredContext->executionStatus()->isPaused());
+        $this->assertCount(2, $restoredContext->executionHistory()->getActionExecutions());
         $this->assertEquals(
             ['awaiting' => 'manager'],
             $restoredContext->getStatusMetadata()
@@ -113,9 +113,9 @@ class SerializationTest extends TestCase
         $completedContext = $worker2->execute();
 
         // Verify workflow completed
-        $this->assertTrue($completedContext->isCompleted());
-        $this->assertFalse($completedContext->isPaused());
-        $this->assertCount(3, $completedContext->getActionExecutions());
+        $this->assertTrue($completedContext->executionStatus()->isCompleted());
+        $this->assertFalse($completedContext->executionStatus()->isPaused());
+        $this->assertCount(3, $completedContext->executionHistory()->getActionExecutions());
 
         // Verify action 3 executed
         $this->assertContains('Action:PublishDocument', $this->logger->log);
@@ -155,7 +155,7 @@ class SerializationTest extends TestCase
         );
 
         // Verify gate evaluations were preserved
-        $evaluations = $restored->getGateEvaluations()->toArray();
+        $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertInstanceOf(SimpleGate::class, $evaluations[0]->gate);
         $this->assertSame(GateResult::ALLOW, $evaluations[0]->result);
@@ -186,8 +186,8 @@ class SerializationTest extends TestCase
         $context = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'completed']))->execute();
 
         // Verify workflow stopped
-        $this->assertTrue($context->isStopped());
-        $this->assertCount(2, $context->getActionExecutions());
+        $this->assertTrue($context->executionStatus()->isStopped());
+        $this->assertCount(2, $context->executionHistory()->getActionExecutions());
 
         // Serialize
         $serialized = $context->serialize();
@@ -199,7 +199,7 @@ class SerializationTest extends TestCase
         );
 
         // Verify stopped status and metadata preserved
-        $this->assertTrue($restored->isStopped());
+        $this->assertTrue($restored->executionStatus()->isStopped());
         $this->assertEquals(
             ['error' => 'Card declined', 'code' => 'INSUFFICIENT_FUNDS'],
             $restored->getStatusMetadata()

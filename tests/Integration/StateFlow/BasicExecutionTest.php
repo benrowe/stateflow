@@ -53,8 +53,8 @@ class BasicExecutionTest extends TestCase
             ->transition($this->createMock(State::class), new ArrayDelta([]))
             ->execute();
         $this->assertInstanceOf(TransitionContext::class, $context);
-        $this->assertCount(1, $context->getActionExecutions());
-        $action = $context->getActionExecutions()->toArray()[0];
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
+        $action = $context->executionHistory()->getActionExecutions()->toArray()[0];
         $this->assertInstanceOf(ActionResult::class, $action);
         $this->assertSame(ExecutionState::CONTINUE, $action->executionState);
     }
@@ -103,15 +103,15 @@ class BasicExecutionTest extends TestCase
         $this->assertInstanceOf(TransitionContext::class, $context);
 
         // Verify all gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations();
         $this->assertCount(3, $gateEvaluations, 'All 3 gates should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[1]->result);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[2]->result);
 
         // Verify all actions were executed
-        $this->assertCount(3, $context->getActionExecutions());
-        $actionResults = $context->getActionExecutions();
+        $this->assertCount(3, $context->executionHistory()->getActionExecutions());
+        $actionResults = $context->executionHistory()->getActionExecutions();
         $this->assertSame(ExecutionState::CONTINUE, $actionResults[0]->executionState);
         $this->assertSame(ExecutionState::CONTINUE, $actionResults[1]->executionState);
         $this->assertSame(ExecutionState::CONTINUE, $actionResults[2]->executionState);
@@ -160,8 +160,8 @@ class BasicExecutionTest extends TestCase
             ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
-        $this->assertCount(1, $context->getActionExecutions());
-        $this->assertSame($newState, $context->getActionExecutions()->toArray()[0]->newState);
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
+        $this->assertSame($newState, $context->executionHistory()->getActionExecutions()->toArray()[0]->newState);
         $this->assertContains('Action:PublishAction', $this->logger->log);
     }
 

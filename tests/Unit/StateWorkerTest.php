@@ -94,16 +94,16 @@ class StateWorkerTest extends TestCase
         $resultContext = $worker->execute();
 
         // Verify workflow is marked as completed
-        $this->assertTrue($resultContext->isCompleted(), 'Workflow should be marked as completed for SKIP_IDEMPOTENT');
-        $this->assertFalse($resultContext->isPaused());
-        $this->assertFalse($resultContext->isStopped());
+        $this->assertTrue($resultContext->executionStatus()->isCompleted(), 'Workflow should be marked as completed for SKIP_IDEMPOTENT');
+        $this->assertFalse($resultContext->executionStatus()->isPaused());
+        $this->assertFalse($resultContext->executionStatus()->isStopped());
 
         // Verify action was skipped
-        $this->assertCount(0, $resultContext->getActionExecutions(), 'No actions should execute');
-        $this->assertCount(1, $resultContext->getActionSkips(), 'Action should be skipped');
+        $this->assertCount(0, $resultContext->executionHistory()->getActionExecutions(), 'No actions should execute');
+        $this->assertCount(1, $resultContext->executionHistory()->getActionSkips(), 'Action should be skipped');
 
         // Verify the skip reason
-        $skips = $resultContext->getActionSkips()->toArray();
+        $skips = $resultContext->executionHistory()->getActionSkips()->toArray();
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skips[0]->gateResult);
 
         // Verify TransitionCompleted event was dispatched
@@ -158,16 +158,16 @@ class StateWorkerTest extends TestCase
         $resultContext = $worker->execute();
 
         // Verify workflow is NOT marked as completed
-        $this->assertFalse($resultContext->isCompleted(), 'Workflow should NOT be completed for DENY');
-        $this->assertFalse($resultContext->isPaused());
-        $this->assertFalse($resultContext->isStopped());
+        $this->assertFalse($resultContext->executionStatus()->isCompleted(), 'Workflow should NOT be completed for DENY');
+        $this->assertFalse($resultContext->executionStatus()->isPaused());
+        $this->assertFalse($resultContext->executionStatus()->isStopped());
 
         // Verify action was skipped
-        $this->assertCount(0, $resultContext->getActionExecutions(), 'No actions should execute');
-        $this->assertCount(1, $resultContext->getActionSkips(), 'Action should be skipped');
+        $this->assertCount(0, $resultContext->executionHistory()->getActionExecutions(), 'No actions should execute');
+        $this->assertCount(1, $resultContext->executionHistory()->getActionSkips(), 'Action should be skipped');
 
         // Verify the skip reason
-        $skips = $resultContext->getActionSkips()->toArray();
+        $skips = $resultContext->executionHistory()->getActionSkips()->toArray();
         $this->assertSame(GateResult::DENY, $skips[0]->gateResult);
     }
 
@@ -216,13 +216,13 @@ class StateWorkerTest extends TestCase
         $resultContext = $worker->execute();
 
         // Verify workflow is marked as completed
-        $this->assertTrue($resultContext->isCompleted(), 'Workflow should be completed after successful execution');
-        $this->assertFalse($resultContext->isPaused());
-        $this->assertFalse($resultContext->isStopped());
+        $this->assertTrue($resultContext->executionStatus()->isCompleted(), 'Workflow should be completed after successful execution');
+        $this->assertFalse($resultContext->executionStatus()->isPaused());
+        $this->assertFalse($resultContext->executionStatus()->isStopped());
 
         // Verify action executed
-        $this->assertCount(1, $resultContext->getActionExecutions(), 'Action should execute');
-        $this->assertCount(0, $resultContext->getActionSkips(), 'No actions should be skipped');
+        $this->assertCount(1, $resultContext->executionHistory()->getActionExecutions(), 'Action should execute');
+        $this->assertCount(0, $resultContext->executionHistory()->getActionSkips(), 'No actions should be skipped');
 
         // Verify TransitionCompleted event was dispatched
         $this->assertTrue($completedEventDispatched, 'TransitionCompleted event should be dispatched');
@@ -255,8 +255,8 @@ class StateWorkerTest extends TestCase
         $worker = new StateWorker($context, $mockDispatcher);
         $worker->runGates();
 
-        $this->assertCount(2, $context->getGateEvaluations());
-        $this->assertSame(['first gate', 'second gate'], array_map(fn (GateEvaluation $eval) => $eval->gate->message(), $context->getGateEvaluations()->toArray()));
+        $this->assertCount(2, $context->executionHistory()->getGateEvaluations());
+        $this->assertSame(['first gate', 'second gate'], array_map(fn (GateEvaluation $eval) => $eval->gate->message(), $context->executionHistory()->getGateEvaluations()->toArray()));
 
     }
 
@@ -326,8 +326,8 @@ class StateWorkerTest extends TestCase
         $resultContext = $worker->runNextAction();
 
         // Verify action was executed
-        $this->assertCount(1, $resultContext->getActionExecutions());
-        $this->assertCount(0, $resultContext->getActionSkips());
+        $this->assertCount(1, $resultContext->executionHistory()->getActionExecutions());
+        $this->assertCount(0, $resultContext->executionHistory()->getActionSkips());
     }
 
     public function testRunNextActionReturnsContextImmediatelyWhenNoMoreActions(): void
@@ -342,7 +342,7 @@ class StateWorkerTest extends TestCase
         $resultContext = $worker->runNextAction();
 
         // Should return context without executing anything
-        $this->assertCount(0, $resultContext->getActionExecutions());
+        $this->assertCount(0, $resultContext->executionHistory()->getActionExecutions());
         $this->assertSame($context, $resultContext);
     }
 
@@ -353,7 +353,7 @@ class StateWorkerTest extends TestCase
         $config = new Configuration([], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
-        $context->markAsStopped(); // Mark as stopped
+        $context->executionStatus()->markStopped(); // Mark as stopped
 
         $mockDispatcher = new NullEventDispatcher();
 
@@ -361,8 +361,8 @@ class StateWorkerTest extends TestCase
         $resultContext = $worker->runNextAction();
 
         // Action should not execute because workflow is stopped
-        $this->assertCount(0, $resultContext->getActionExecutions());
-        $this->assertTrue($resultContext->isStopped());
+        $this->assertCount(0, $resultContext->executionHistory()->getActionExecutions());
+        $this->assertTrue($resultContext->executionStatus()->isStopped());
     }
 
     public function testExecuteActionsStopsWhenActionReturnsPause(): void
@@ -385,8 +385,8 @@ class StateWorkerTest extends TestCase
         $worker->runActions();
 
         // Only first action should execute, second should not
-        $this->assertCount(1, $context->getActionExecutions());
-        $this->assertTrue($context->isPaused());
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
+        $this->assertTrue($context->executionStatus()->isPaused());
     }
 
     public function testExecuteActionsStopsWhenActionReturnsStop(): void
@@ -409,8 +409,8 @@ class StateWorkerTest extends TestCase
         $worker->runActions();
 
         // Only first action should execute, second should not
-        $this->assertCount(1, $context->getActionExecutions());
-        $this->assertTrue($context->isStopped());
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
+        $this->assertTrue($context->executionStatus()->isStopped());
     }
 
     public function testEvaluateGateThrowsInvalidGateResultExceptionOnTypeError(): void
@@ -470,9 +470,9 @@ class StateWorkerTest extends TestCase
         $worker->runActions();
 
         // Action should be skipped because guard denied
-        $this->assertCount(0, $context->getActionExecutions());
-        $this->assertCount(1, $context->getActionSkips());
-        $this->assertSame(GateResult::DENY, $context->getActionSkips()->toArray()[0]->gateResult);
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions());
+        $this->assertCount(1, $context->executionHistory()->getActionSkips());
+        $this->assertSame(GateResult::DENY, $context->executionHistory()->getActionSkips()->toArray()[0]->gateResult);
     }
 
     public function testActionWithGuardThatReturnsSkipIdempotentSkipsAction(): void
@@ -505,9 +505,9 @@ class StateWorkerTest extends TestCase
         $worker->runActions();
 
         // Action should be skipped because guard returned SKIP_IDEMPOTENT
-        $this->assertCount(0, $context->getActionExecutions());
-        $this->assertCount(1, $context->getActionSkips());
-        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $context->getActionSkips()->toArray()[0]->gateResult);
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions());
+        $this->assertCount(1, $context->executionHistory()->getActionSkips());
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $context->executionHistory()->getActionSkips()->toArray()[0]->gateResult);
     }
 
     public function testSetNextActionIndexAllowsJumpingToSpecificAction(): void
@@ -532,13 +532,13 @@ class StateWorkerTest extends TestCase
         $worker->runNextAction();
 
         // Verify only action3 executed
-        $this->assertCount(1, $context->getActionExecutions());
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
 
         // Execute next action again (should execute nothing since we're at the end)
         $worker->runNextAction();
 
         // Still only 1 action executed
-        $this->assertCount(1, $context->getActionExecutions());
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
     }
 
     protected function getLogger(): ExecutionLogger

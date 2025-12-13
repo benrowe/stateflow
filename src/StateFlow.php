@@ -50,7 +50,7 @@ class StateFlow
     public function fromContext(TransitionContext $context): StateWorker
     {
         // Clear pause status to allow resumption (STOP cannot be resumed)
-        $context->clearPauseStatus();
+        $context->executionStatus()->clearPauseStatus();
 
         // Create worker with existing context and set starting action index
         $worker = new StateWorker(
@@ -62,7 +62,7 @@ class StateFlow
         );
 
         // Resume from where we left off - count already executed actions
-        $executedActionCount = count($context->getActionExecutions());
+        $executedActionCount = count($context->executionHistory()->getActionExecutions());
         $worker->setNextActionIndex($executedActionCount);
 
         return $worker;

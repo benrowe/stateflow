@@ -90,13 +90,13 @@ class LockManager
         if (
             $this->lockProvider === null
             || $this->lockKeyProvider === null
-            || !$this->context->getLockState()->isLocked()
+            || !$this->context->lockState()->isLocked()
         ) {
             return;
         }
         // @codeCoverageIgnoreEnd
 
-        $lockState = $this->context->getLockState();
+        $lockState = $this->context->lockState();
         $lockKey = $lockState->lockKey;
 
         assert($lockKey !== null);
@@ -119,12 +119,12 @@ class LockManager
         if (
             $this->lockProvider === null
             || $this->lockConfiguration === null
-            || !$this->context->getLockState()->isLocked()
+            || !$this->context->lockState()->isLocked()
         ) {
             return;
         }
 
-        $lockState = $this->context->getLockState();
+        $lockState = $this->context->lockState();
         $acquiredAt = $lockState->acquiredAt;
         $ttl = $lockState->ttl;
 
@@ -165,12 +165,12 @@ class LockManager
         // Skip if no locking configured or no lock was acquired
         if (
             $this->lockProvider === null
-            || !$this->context->getLockState()->isLocked()
+            || !$this->context->lockState()->isLocked()
         ) {
             return;
         }
 
-        $lockState = $this->context->getLockState();
+        $lockState = $this->context->lockState();
         $lockKey = $lockState->lockKey;
 
         assert($lockKey !== null);
@@ -220,7 +220,7 @@ class LockManager
         );
 
         // Mark context as skipped due to lock
-        $this->context->markAsSkippedDueToLock();
+        $this->context->executionStatus()->markSkippedDueToLock();
     }
 
     private function handleWait(string $lockKey): void

@@ -37,7 +37,7 @@ class GateEvaluationService
             $result = $this->evaluate($gate, $gateContext);
 
             $this->events->gateEvaluated($gate, $gateContext, $result, false);
-            $context->addGateEvaluation($gate, $result, false);
+            $context->recordGateEvaluation($gate, $result, false);
 
             if ($result->shouldSkipAction()) {
                 return $result;
@@ -65,7 +65,7 @@ class GateEvaluationService
         $result = $this->evaluate($gate, $gateContext);
 
         $this->events->gateEvaluated($gate, $gateContext, $result, true);
-        $context->addGateEvaluation($gate, $result, true);
+        $context->recordGateEvaluation($gate, $result, true);
 
         return $result->shouldSkipAction() ? $result : null;
     }

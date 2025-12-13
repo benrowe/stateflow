@@ -11,6 +11,7 @@ use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Events\EventOrchestrator;
+use BenRowe\StateFlow\ExecutionStatus;
 use BenRowe\StateFlow\Gate\GateEvaluationService;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
@@ -42,7 +43,7 @@ class ActionExecutionServiceTest extends TestCase
 
         $action->method('execute')->willReturn($result);
 
-        $context->expects($this->once())->method('addActionResult')->with($result);
+        $context->expects($this->once())->method('recordActionExecution')->with($result);
 
         $events->expects($this->once())->method('actionExecuting');
         $events->expects($this->once())->method('actionExecuted');
@@ -60,6 +61,7 @@ class ActionExecutionServiceTest extends TestCase
 
         $action = $this->createMock(Action::class);
         $context = $this->createMock(TransitionContext::class);
+        $executionStatus = new ExecutionStatus();
         $state = $this->createMock(State::class);
         $delta = new ArrayDelta([]);
         $metadata = ['reason' => 'waiting'];
@@ -67,11 +69,11 @@ class ActionExecutionServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
+        $context->method('executionStatus')->willReturn($executionStatus);
 
         $action->method('execute')->willReturn($result);
 
-        $context->expects($this->once())->method('addActionResult')->with($result);
-        $context->expects($this->once())->method('markAsPaused')->with($metadata);
+        $context->expects($this->once())->method('recordActionExecution')->with($result);
 
         $events->expects($this->once())->method('actionExecuting');
         $events->expects($this->once())->method('actionExecuted');
@@ -80,6 +82,7 @@ class ActionExecutionServiceTest extends TestCase
         $returnedState = $service->executeAction($action, $context);
 
         $this->assertSame(ExecutionState::PAUSE, $returnedState);
+        $this->assertTrue($executionStatus->isPaused());
     }
 
     public function testExecuteActionWithStopState(): void
@@ -90,6 +93,7 @@ class ActionExecutionServiceTest extends TestCase
 
         $action = $this->createMock(Action::class);
         $context = $this->createMock(TransitionContext::class);
+        $executionStatus = new ExecutionStatus();
         $state = $this->createMock(State::class);
         $delta = new ArrayDelta([]);
         $metadata = ['reason' => 'cancelled'];
@@ -97,11 +101,11 @@ class ActionExecutionServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
+        $context->method('executionStatus')->willReturn($executionStatus);
 
         $action->method('execute')->willReturn($result);
 
-        $context->expects($this->once())->method('addActionResult')->with($result);
-        $context->expects($this->once())->method('markAsStopped')->with($metadata);
+        $context->expects($this->once())->method('recordActionExecution')->with($result);
 
         $events->expects($this->once())->method('actionExecuting');
         $events->expects($this->once())->method('actionExecuted');
@@ -110,6 +114,7 @@ class ActionExecutionServiceTest extends TestCase
         $returnedState = $service->executeAction($action, $context);
 
         $this->assertSame(ExecutionState::STOP, $returnedState);
+        $this->assertTrue($executionStatus->isStopped());
     }
 
     public function testExecuteActionUpdatesStateWhenActionReturnsNewState(): void
@@ -147,7 +152,7 @@ class ActionExecutionServiceTest extends TestCase
 
         $gateEvaluator->method('evaluateActionGuard')->with($action, $context)->willReturn(GateResult::DENY);
 
-        $context->expects($this->once())->method('addActionSkip')->with($action, GateResult::DENY);
+        $context->expects($this->once())->method('recordActionSkip')->with($action, GateResult::DENY);
         $events->expects($this->once())->method('actionSkipped')->with($action, GateResult::DENY);
 
         // Action should not be executed
@@ -178,7 +183,7 @@ class ActionExecutionServiceTest extends TestCase
 
         $action->method('execute')->willReturn($result);
 
-        $context->expects($this->once())->method('addActionResult')->with($result);
+        $context->expects($this->once())->method('recordActionExecution')->with($result);
 
         $returnedState = $service->executeAction($action, $context);
 
@@ -222,7 +227,7 @@ class ActionExecutionServiceTest extends TestCase
         $actions = new ActionCollection($action1, $action2);
         $context = $this->createMock(TransitionContext::class);
 
-        $context->expects($this->exactly(2))->method('addActionSkip');
+        $context->expects($this->exactly(2))->method('recordActionSkip');
         $events->expects($this->exactly(2))->method('actionSkipped');
 
         $service->skipAllActions($actions, GateResult::DENY, $context);
