@@ -18,8 +18,11 @@ use Throwable;
 /**
  * Centralizes event creation and dispatching for StateWorker
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Orchestrator pattern requires knowledge of all event types (26 dependencies, threshold 13)
- * @SuppressWarnings(PHPMD.TooManyPublicMethods) Orchestrator pattern requires one public method per event type (15 methods, threshold 10)
+ * Orchestrator pattern requires knowledge of all event types (26 dependencies, threshold 13)
+ * Orchestrator pattern requires one public method per event type (15 methods, threshold 10)
+ *
+ * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
+ * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
 class EventOrchestrator
 {
