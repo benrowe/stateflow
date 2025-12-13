@@ -4,31 +4,17 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow;
 
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ExecutionState;
+use BenRowe\StateFlow\Action\ActionExecutionService;
 use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Events\ActionExecuted;
-use BenRowe\StateFlow\Events\ActionExecuting;
-use BenRowe\StateFlow\Events\ActionSkipped;
 use BenRowe\StateFlow\Events\EventDispatcher;
-use BenRowe\StateFlow\Events\GateEvaluated;
-use BenRowe\StateFlow\Events\GateEvaluating;
-use BenRowe\StateFlow\Events\TransitionCompleted;
-use BenRowe\StateFlow\Events\TransitionFailed;
-use BenRowe\StateFlow\Events\TransitionPaused;
-use BenRowe\StateFlow\Events\TransitionStopped;
-use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
+use BenRowe\StateFlow\Events\EventOrchestrator;
 use BenRowe\StateFlow\Exceptions\TransitionException;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
+use BenRowe\StateFlow\Gate\GateEvaluationService;
 use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Gate\Guardable;
 use BenRowe\StateFlow\Locking\LockConfiguration;
 use BenRowe\StateFlow\Locking\LockKeyProvider;
 use BenRowe\StateFlow\Locking\LockManager;
 use BenRowe\StateFlow\Locking\LockProvider;
-use Throwable;
-use TypeError;
 
 class StateWorker
 {
@@ -38,6 +24,12 @@ class StateWorker
 
     private readonly LockManager $lockManager;
 
+    private readonly EventOrchestrator $eventOrchestrator;
+
+    private readonly GateEvaluationService $gateEvaluator;
+
+    private readonly ActionExecutionService $actionExecutor;
+
     public function __construct(
         private readonly TransitionContext $context,
         private readonly EventDispatcher $eventDispatcher,
@@ -46,6 +38,11 @@ class StateWorker
         private readonly ?LockConfiguration $lockConfiguration = null,
     ) {
         $this->configuration = $this->context->getConfiguration();
+
+        // Create event orchestrator
+        $this->eventOrchestrator = new EventOrchestrator($this->eventDispatcher);
+
+        // Create lock manager
         $this->lockManager = new LockManager(
             $this->lockProvider,
             $this->lockKeyProvider,
@@ -53,6 +50,12 @@ class StateWorker
             $this->context,
             $this->eventDispatcher
         );
+
+        // Create gate evaluator
+        $this->gateEvaluator = new GateEvaluationService($this->eventOrchestrator);
+
+        // Create action executor
+        $this->actionExecutor = new ActionExecutionService($this->eventOrchestrator, $this->gateEvaluator);
     }
 
     public function getContext(): TransitionContext
@@ -67,7 +70,10 @@ class StateWorker
 
     public function runGates(): GateResult
     {
-        return $this->evaluateGates();
+        return $this->gateEvaluator->evaluateTransitionGates(
+            $this->configuration->transitionGates,
+            $this->context
+        );
     }
 
     public function runActions(): TransitionContext
@@ -106,16 +112,26 @@ class StateWorker
 
         try {
             // Run transition gates first
-            $gateResult = $this->evaluateGates();
+            $gateResult = $this->gateEvaluator->evaluateTransitionGates(
+                $this->configuration->transitionGates,
+                $this->context
+            );
 
             // Skip actions if gates denied or returned SKIP_IDEMPOTENT
             if ($gateResult->shouldSkipAction()) {
-                $this->skipAllActions($gateResult);
+                $this->actionExecutor->skipAllActions(
+                    $this->configuration->actions,
+                    $gateResult,
+                    $this->context
+                );
 
                 // SKIP_IDEMPOTENT should complete successfully (idempotent transitions are considered complete)
                 if ($gateResult === GateResult::SKIP_IDEMPOTENT) {
                     $this->context->markAsCompleted();
-                    $this->eventDispatcher->dispatch(new TransitionCompleted($this->context->getCurrentState(), $this->context));
+                    $this->eventOrchestrator->transitionCompleted(
+                        $this->context->getCurrentState(),
+                        $this->context
+                    );
                 }
 
                 return $this->context;
@@ -127,7 +143,10 @@ class StateWorker
             // Mark as completed if we got through all actions
             if (!$this->context->isPaused() && !$this->context->isStopped()) {
                 $this->context->markAsCompleted();
-                $this->eventDispatcher->dispatch(new TransitionCompleted($this->context->getCurrentState(), $this->context));
+                $this->eventOrchestrator->transitionCompleted(
+                    $this->context->getCurrentState(),
+                    $this->context
+                );
             }
 
             return $this->context;
@@ -138,34 +157,6 @@ class StateWorker
                 $this->lockManager->releaseLock();
             }
         }
-    }
-
-    private function evaluateGates(): GateResult
-    {
-        $gateContext = new GateContext(
-            $this->context->getCurrentState(),
-            $this->context->getDesiredDelta()
-        );
-
-        foreach ($this->configuration->transitionGates->toArray() as $gate) {
-            // Dispatch GateEvaluating event
-            $this->eventDispatcher->dispatch(new GateEvaluating($gate, $gateContext, false));
-
-            $result = $this->evaluateGate($gate, $gateContext);
-
-            // Dispatch GateEvaluated event
-            $this->eventDispatcher->dispatch(new GateEvaluated($gate, $gateContext, $result, false));
-
-            // Track the gate evaluation
-            $this->context->addGateEvaluation($gate, $result, false);
-
-            // Short-circuit if gate denies or skips
-            if ($result->shouldSkipAction()) {
-                return $result;
-            }
-        }
-
-        return GateResult::ALLOW;
     }
 
     private function executeActions(): void
@@ -207,100 +198,6 @@ class StateWorker
         $action = $actions[$this->nextActionIndex];
         $this->nextActionIndex++;
 
-        // Check if action has a gate (implements Guardable)
-        if ($action instanceof Guardable) {
-            $gate = $action->gate();
-            $gateContext = new GateContext(
-                $this->context->getCurrentState(),
-                $this->context->getDesiredDelta()
-            );
-
-            // Dispatch GateEvaluating event (isActionGate=true)
-            $this->eventDispatcher->dispatch(new GateEvaluating($gate, $gateContext, true));
-
-            $gateResult = $this->evaluateGate($gate, $gateContext);
-
-            // Dispatch GateEvaluated event (isActionGate=true)
-            $this->eventDispatcher->dispatch(new GateEvaluated($gate, $gateContext, $gateResult, true));
-
-            // Track the gate evaluation with isActionGate=true
-            $this->context->addGateEvaluation($gate, $gateResult, true);
-
-            // Skip action if gate denies or returns SKIP_IDEMPOTENT
-            if ($gateResult->shouldSkipAction()) {
-                $this->context->addActionSkip($action, $gateResult);
-                // Dispatch ActionSkipped event
-                $this->eventDispatcher->dispatch(new ActionSkipped($action, $gateResult));
-
-                return;
-            }
-        }
-
-        // Execute the action
-        $context = new ActionContext(
-            $this->context->getCurrentState(),
-            $this->context->getDesiredDelta(),
-            $this->context
-        );
-
-        // Dispatch ActionExecuting event
-        $this->eventDispatcher->dispatch(new ActionExecuting($action, $context));
-
-        try {
-            $result = $action->execute($context);
-        } catch (Throwable $exception) {
-            // Dispatch TransitionFailed event
-            $this->eventDispatcher->dispatch(new TransitionFailed($this->context->getCurrentState(), $exception, $this->context));
-            throw $exception;
-        }
-
-        // Dispatch ActionExecuted event
-        $this->eventDispatcher->dispatch(new ActionExecuted($action, $context, $result));
-
-        $this->context->addActionResult($result);
-
-        // Update current state if action returned a new state
-        if ($result->newState !== null) {
-            $this->context->updateCurrentState($result->newState);
-        }
-
-        // Update status if action paused or stopped
-        if ($result->executionState === ExecutionState::PAUSE) {
-            $this->context->markAsPaused($result->metadata);
-            $this->eventDispatcher->dispatch(new TransitionPaused($this->context->getCurrentState(), $this->context, $result->metadata));
-        }
-
-        if ($result->executionState === ExecutionState::STOP) {
-            $this->context->markAsStopped($result->metadata);
-            $this->eventDispatcher->dispatch(new TransitionStopped($this->context->getCurrentState(), $this->context, $result->metadata));
-        }
-    }
-
-    private function skipAllActions(GateResult $reason): void
-    {
-        foreach ($this->configuration->actions->toArray() as $action) {
-            $this->context->addActionSkip($action, $reason);
-            // Dispatch ActionSkipped event
-            $this->eventDispatcher->dispatch(new ActionSkipped($action, $reason));
-        }
-    }
-
-    private function evaluateGate(Gate $gate, GateContext $context): GateResult
-    {
-        try {
-            $result = $gate->evaluate($context);
-        } catch (TypeError $exception) {
-            throw new InvalidGateResultException(
-                sprintf(
-                    'Gate %s must return a %s, invalid return type encountered',
-                    get_debug_type($gate),
-                    GateResult::class
-                ),
-                0,
-                $exception
-            );
-        }
-
-        return $result;
+        $this->actionExecutor->executeAction($action, $this->context);
     }
 }
