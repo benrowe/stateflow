@@ -55,17 +55,17 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify all 3 gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations()->toArray();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(3, $gateEvaluations, 'All 3 gates should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[1]->result);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[2]->result);
 
         // Verify all actions were executed
-        $this->assertCount(2, $context->getActionExecutions(), 'All 2 actions should execute');
+        $this->assertCount(2, $context->executionHistory()->getActionExecutions(), 'All 2 actions should execute');
 
         // Verify no actions were skipped
-        $this->assertCount(0, $context->getActionSkips(), 'No actions should be skipped');
+        $this->assertCount(0, $context->executionHistory()->getActionSkips(), 'No actions should be skipped');
 
         // Verify execution order: gates first, then actions
         $this->assertContains('Gate:Gate1', $this->logger->log);
@@ -113,15 +113,15 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify ONLY first gate was evaluated (short-circuit)
-        $gateEvaluations = $context->getGateEvaluations()->toArray();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $gateEvaluations, 'Only first gate should be evaluated (short-circuit)');
         $this->assertSame(GateResult::DENY, $gateEvaluations[0]->result);
 
         // Verify no actions were executed
-        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate denies');
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'No actions should execute when gate denies');
 
         // Verify both actions were skipped
-        $actionSkips = $context->getActionSkips();
+        $actionSkips = $context->executionHistory()->getActionSkips();
         $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
 
         // Verify execution log shows short-circuit behavior
@@ -157,15 +157,15 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify the gate was evaluated
-        $gateEvaluations = $context->getGateEvaluations()->toArray();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $gateEvaluations, 'Gate should be evaluated');
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $gateEvaluations[0]->result);
 
         // Verify no actions were executed
-        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate returns SKIP_IDEMPOTENT');
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'No actions should execute when gate returns SKIP_IDEMPOTENT');
 
         // Verify both actions were skipped with SKIP_IDEMPOTENT reason
-        $actionSkips = $context->getActionSkips()->toArray();
+        $actionSkips = $context->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $actionSkips[0]->gateResult);
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $actionSkips[1]->gateResult);
@@ -203,16 +203,16 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify gates 1 and 2 were evaluated, but NOT gate 3 (short-circuit)
-        $gateEvaluations = $context->getGateEvaluations()->toArray();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(2, $gateEvaluations, 'Gates 1 and 2 should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::DENY, $gateEvaluations[1]->result);
 
         // Verify no actions were executed
-        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate denies');
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'No actions should execute when gate denies');
 
         // Verify both actions were skipped
-        $actionSkips = $context->getActionSkips();
+        $actionSkips = $context->executionHistory()->getActionSkips();
         $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
 
         // Verify execution log shows short-circuit behavior
@@ -250,16 +250,16 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations()->toArray();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(2, $gateEvaluations);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::DENY, $gateEvaluations[1]->result);
 
         // Verify no actions were executed (because gate denied)
-        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate denies');
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'No actions should execute when gate denies');
 
         // Verify actions were skipped
-        $actionSkips = $context->getActionSkips();
+        $actionSkips = $context->executionHistory()->getActionSkips();
         $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
 
         // Verify gates were evaluated but actions were not run
@@ -296,17 +296,17 @@ class TransitionGateTest extends TestCase
             ->execute();
 
         // Verify all 3 gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations()->toArray();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(3, $gateEvaluations, 'All 3 gates should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[1]->result);
         $this->assertSame(GateResult::DENY, $gateEvaluations[2]->result);
 
         // Verify no actions were executed
-        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute when gate denies');
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'No actions should execute when gate denies');
 
         // Verify both actions were skipped
-        $actionSkips = $context->getActionSkips();
+        $actionSkips = $context->executionHistory()->getActionSkips();
         $this->assertCount(2, $actionSkips, 'Both actions should be skipped');
 
         // Verify execution log shows all gates evaluated but no actions

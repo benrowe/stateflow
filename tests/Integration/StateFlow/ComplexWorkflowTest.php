@@ -71,7 +71,7 @@ class ComplexWorkflowTest extends TestCase
         $worker = $stateFlow->transition($draftState, new ArrayDelta(['status' => 'published']));
         $context = $worker->execute();
 
-        $this->assertTrue($context->isCompleted());
+        $this->assertTrue($context->executionStatus()->isCompleted());
         $this->assertSame(['CheckApproval', 'SendApprovalNotification'], $executionLog);
 
         // Reset log
@@ -82,7 +82,7 @@ class ComplexWorkflowTest extends TestCase
         $worker = $stateFlow->transition($publishedState, new ArrayDelta(['title' => 'Updated Document']));
         $context = $worker->execute();
 
-        $this->assertTrue($context->isCompleted());
+        $this->assertTrue($context->executionStatus()->isCompleted());
         $this->assertSame(['SendPublishedNotification'], $executionLog);
     }
 
@@ -131,24 +131,24 @@ class ComplexWorkflowTest extends TestCase
         $context = $worker->execute();
 
         // Verify workflow paused
-        $this->assertTrue($context->isPaused());
-        $this->assertFalse($context->isCompleted());
+        $this->assertTrue($context->executionStatus()->isPaused());
+        $this->assertFalse($context->executionStatus()->isCompleted());
         $this->assertSame(['CreateApprovalRequest', 'WaitForApproval'], $executionLog);
 
         // Verify we have 2 action executions (step 2 and step 3)
-        $this->assertCount(2, $context->getActionExecutions());
+        $this->assertCount(2, $context->executionHistory()->getActionExecutions());
 
         // Resume the workflow - step 4 should execute
         $resumedWorker = $stateFlow->fromContext($context);
         $finalContext = $resumedWorker->execute();
 
         // Verify workflow completed
-        $this->assertTrue($finalContext->isCompleted());
-        $this->assertFalse($finalContext->isPaused());
+        $this->assertTrue($finalContext->executionStatus()->isCompleted());
+        $this->assertFalse($finalContext->executionStatus()->isPaused());
         $this->assertSame(['CreateApprovalRequest', 'WaitForApproval', 'SendNotification'], $executionLog);
 
         // Verify all 3 actions executed
-        $this->assertCount(3, $finalContext->getActionExecutions());
+        $this->assertCount(3, $finalContext->executionHistory()->getActionExecutions());
     }
 
     /**
@@ -213,10 +213,10 @@ class ComplexWorkflowTest extends TestCase
         $context = $worker->execute();
 
         // Should complete successfully
-        $this->assertTrue($context->isCompleted());
+        $this->assertTrue($context->executionStatus()->isCompleted());
         $this->assertSame(['ProcessTransition'], $executionLog);
-        $this->assertCount(1, $context->getActionExecutions());
-        $this->assertCount(0, $context->getActionSkips());
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
+        $this->assertCount(0, $context->executionHistory()->getActionSkips());
 
         // Reset log
         $executionLog = [];
@@ -227,13 +227,13 @@ class ComplexWorkflowTest extends TestCase
         $context2 = $worker2->execute();
 
         // Should complete but skip actions due to idempotency
-        $this->assertTrue($context2->isCompleted());
+        $this->assertTrue($context2->executionStatus()->isCompleted());
         $this->assertSame([], $executionLog); // No actions executed
-        $this->assertCount(0, $context2->getActionExecutions());
-        $this->assertCount(1, $context2->getActionSkips()); // Action was skipped
+        $this->assertCount(0, $context2->executionHistory()->getActionExecutions());
+        $this->assertCount(1, $context2->executionHistory()->getActionSkips()); // Action was skipped
 
         // Verify the skip reason is SKIP_IDEMPOTENT
-        $skips = $context2->getActionSkips();
+        $skips = $context2->executionHistory()->getActionSkips();
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skips[0]->gateResult);
     }
 

@@ -36,7 +36,7 @@ class ActionExecutionService
             $guardResult = $this->gateEvaluator->evaluateActionGuard($action, $context);
 
             if ($guardResult !== null) {
-                $context->addActionSkip($action, $guardResult);
+                $context->recordActionSkip($action, $guardResult);
                 $this->events->actionSkipped($action, $guardResult);
 
                 return ExecutionState::CONTINUE;
@@ -69,7 +69,7 @@ class ActionExecutionService
         $this->events->actionExecuted($action, $actionContext, $result);
 
         // Record result
-        $context->addActionResult($result);
+        $context->recordActionExecution($result);
 
         // Update state if action returned new state
         if ($result->newState !== null) {
@@ -78,14 +78,14 @@ class ActionExecutionService
 
         // Handle pause/stop
         if ($result->executionState === ExecutionState::PAUSE) {
-            $context->markAsPaused($result->metadata);
+            $context->executionStatus()->markPaused($result->metadata);
             $this->events->transitionPaused(
                 $context->getCurrentState(),
                 $context,
                 $result->metadata
             );
         } elseif ($result->executionState === ExecutionState::STOP) {
-            $context->markAsStopped($result->metadata);
+            $context->executionStatus()->markStopped($result->metadata);
             $this->events->transitionStopped(
                 $context->getCurrentState(),
                 $context,
@@ -105,7 +105,7 @@ class ActionExecutionService
         TransitionContext $context
     ): void {
         foreach ($actions->toArray() as $action) {
-            $context->addActionSkip($action, $reason);
+            $context->recordActionSkip($action, $reason);
             $this->events->actionSkipped($action, $reason);
         }
     }

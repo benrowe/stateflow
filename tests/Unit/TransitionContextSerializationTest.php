@@ -84,7 +84,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([$gate], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
+        $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -94,7 +94,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations()->toArray();
+        $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertInstanceOf(GateEvaluation::class, $evaluations[0]);
         $this->assertInstanceOf(TestGate::class, $evaluations[0]->gate);
@@ -111,7 +111,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $newState = new TestState(['status' => 'published']);
-        $context->addActionResult(new ActionResult(ExecutionState::CONTINUE, $newState));
+        $context->recordActionExecution(new ActionResult(ExecutionState::CONTINUE, $newState));
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -121,7 +121,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions()->toArray();
+        $executions = $restored->executionHistory()->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::CONTINUE, $executions[0]->executionState);
         $this->assertEquals($newState->toArray(), $executions[0]->newState?->toArray());
@@ -134,7 +134,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->markAsPaused();
+        $context->executionStatus()->markPaused();
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -144,9 +144,9 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertTrue($restored->isPaused());
-        $this->assertFalse($restored->isCompleted());
-        $this->assertFalse($restored->isStopped());
+        $this->assertTrue($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isStopped());
     }
 
     public function testSerializeAndUnserializeWithStoppedStatus(): void
@@ -156,7 +156,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->markAsStopped();
+        $context->executionStatus()->markStopped();
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -166,9 +166,9 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertTrue($restored->isStopped());
-        $this->assertFalse($restored->isPaused());
-        $this->assertFalse($restored->isCompleted());
+        $this->assertTrue($restored->executionStatus()->isStopped());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isCompleted());
     }
 
     public function testSerializeAndUnserializeWithLockState(): void
@@ -189,7 +189,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $restoredLock = $restored->getLockState();
+        $restoredLock = $restored->lockState();
         $this->assertTrue($restoredLock->isLocked());
         $this->assertSame('order:123', $restoredLock->lockKey);
         $this->assertSame(1234567890.0, $restoredLock->acquiredAt);
@@ -204,7 +204,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], [$action]);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionSkip($action, GateResult::DENY);
+        $context->recordActionSkip($action, GateResult::DENY);
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -214,7 +214,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $skips = $restored->getActionSkips()->toArray();
+        $skips = $restored->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertInstanceOf(ActionSkip::class, $skips[0]);
         $this->assertInstanceOf(TestAction::class, $skips[0]->action);
@@ -229,7 +229,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $metadata = ['reason' => 'waiting for approval', 'approver' => 'manager@example.com'];
-        $context->addActionResult(ActionResult::pause(null, $metadata));
+        $context->recordActionExecution(ActionResult::pause(null, $metadata));
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -239,7 +239,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions()->toArray();
+        $executions = $restored->executionHistory()->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame($metadata, $executions[0]->metadata);
         $this->assertSame($metadata, $restored->getStatusMetadata());
@@ -252,7 +252,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->markAsSkippedDueToLock();
+        $context->executionStatus()->markSkippedDueToLock();
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -262,7 +262,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertTrue($restored->wasSkippedDueToLock());
+        $this->assertTrue($restored->executionStatus()->wasSkippedDueToLock());
     }
 
     public function testSerializeAndUnserializeCompleteWorkflow(): void
@@ -277,9 +277,9 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($initialState, new ArrayDelta($delta), $config);
         $context->updateCurrentState($currentState);
-        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
-        $context->addActionResult(new ActionResult(ExecutionState::CONTINUE, $currentState));
-        $context->markAsCompleted();
+        $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
+        $context->recordActionExecution(new ActionResult(ExecutionState::CONTINUE, $currentState));
+        $context->executionStatus()->markCompleted();
 
         $lockState = new LockState('order:123', 1234567890.0, 30);
         $context->setLockState($lockState);
@@ -302,16 +302,16 @@ class TransitionContextSerializationTest extends TestCase
         $this->assertCount(1, $restored->getConfiguration()->actions);
 
         // Verify gate evaluations
-        $this->assertCount(1, $restored->getGateEvaluations());
+        $this->assertCount(1, $restored->executionHistory()->getGateEvaluations());
 
         // Verify action executions
-        $this->assertCount(1, $restored->getActionExecutions());
+        $this->assertCount(1, $restored->executionHistory()->getActionExecutions());
 
         // Verify status
-        $this->assertTrue($restored->isCompleted());
+        $this->assertTrue($restored->executionStatus()->isCompleted());
 
         // Verify lock state
-        $this->assertTrue($restored->getLockState()->isLocked());
+        $this->assertTrue($restored->lockState()->isLocked());
     }
 
     public function testUnserializeWithInvalidJsonThrowsException(): void
@@ -419,7 +419,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should have empty lock state
-        $this->assertFalse($restored->getLockState()->isLocked());
+        $this->assertFalse($restored->lockState()->isLocked());
     }
 
     public function testUnserializeWithMissingSkippedDueToLock(): void
@@ -450,7 +450,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should default to false
-        $this->assertFalse($restored->wasSkippedDueToLock());
+        $this->assertFalse($restored->executionStatus()->wasSkippedDueToLock());
     }
 
     public function testUnserializeWithNullStatus(): void
@@ -481,9 +481,9 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should have no status
-        $this->assertFalse($restored->isCompleted());
-        $this->assertFalse($restored->isPaused());
-        $this->assertFalse($restored->isStopped());
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isStopped());
     }
 
     public function testUnserializeWithInvalidStatusUsesDefault(): void
@@ -493,7 +493,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->markAsCompleted();
+        $context->executionStatus()->markCompleted();
         $serialized = $context->serialize();
 
         // Decode and modify executionStatus to have all flags false (simulating invalid/corrupted state)
@@ -520,9 +520,9 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should have no status (all flags false)
-        $this->assertFalse($restored->isCompleted());
-        $this->assertFalse($restored->isPaused());
-        $this->assertFalse($restored->isStopped());
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isStopped());
     }
 
     public function testUnserializeWithInvalidGateResultUsesDefault(): void
@@ -533,7 +533,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([$gate], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
+        $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
         $serialized = $context->serialize();
 
         // Decode and set invalid gate result
@@ -555,7 +555,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should use default ALLOW
-        $evaluations = $restored->getGateEvaluations()->toArray();
+        $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertSame(GateResult::ALLOW, $evaluations[0]->result);
     }
@@ -567,7 +567,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionResult(new ActionResult(ExecutionState::CONTINUE));
+        $context->recordActionExecution(new ActionResult(ExecutionState::CONTINUE));
         $serialized = $context->serialize();
 
         // Decode and set invalid execution state
@@ -589,7 +589,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should use default CONTINUE
-        $executions = $restored->getActionExecutions()->toArray();
+        $executions = $restored->executionHistory()->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::CONTINUE, $executions[0]->executionState);
     }
@@ -602,7 +602,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], [$action]);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionSkip($action, GateResult::DENY);
+        $context->recordActionSkip($action, GateResult::DENY);
         $serialized = $context->serialize();
 
         // Decode and set invalid gate result
@@ -624,7 +624,7 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should use default ALLOW
-        $skips = $restored->getActionSkips()->toArray();
+        $skips = $restored->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertSame(GateResult::ALLOW, $skips[0]->gateResult);
     }
@@ -637,7 +637,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([$gate], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addGateEvaluation($gate, GateResult::DENY, false);
+        $context->recordGateEvaluation($gate, GateResult::DENY, false);
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -647,7 +647,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations()->toArray();
+        $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertSame(GateResult::DENY, $evaluations[0]->result);
     }
@@ -660,7 +660,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([$gate], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addGateEvaluation($gate, GateResult::SKIP_IDEMPOTENT, false);
+        $context->recordGateEvaluation($gate, GateResult::SKIP_IDEMPOTENT, false);
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -670,7 +670,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations()->toArray();
+        $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $evaluations[0]->result);
     }
@@ -683,7 +683,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], [$action]);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionSkip($action, GateResult::ALLOW);
+        $context->recordActionSkip($action, GateResult::ALLOW);
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -693,7 +693,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $skips = $restored->getActionSkips()->toArray();
+        $skips = $restored->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertSame(GateResult::ALLOW, $skips[0]->gateResult);
     }
@@ -706,7 +706,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], [$action]);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionSkip($action, GateResult::SKIP_IDEMPOTENT);
+        $context->recordActionSkip($action, GateResult::SKIP_IDEMPOTENT);
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -716,7 +716,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $skips = $restored->getActionSkips()->toArray();
+        $skips = $restored->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skips[0]->gateResult);
     }
@@ -728,7 +728,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionResult(new ActionResult(ExecutionState::PAUSE));
+        $context->recordActionExecution(new ActionResult(ExecutionState::PAUSE));
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -738,7 +738,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions()->toArray();
+        $executions = $restored->executionHistory()->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::PAUSE, $executions[0]->executionState);
     }
@@ -750,7 +750,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionResult(new ActionResult(ExecutionState::STOP));
+        $context->recordActionExecution(new ActionResult(ExecutionState::STOP));
 
         $serialized = $context->serialize();
         $restored = TransitionContext::unserialize(
@@ -760,7 +760,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $executions = $restored->getActionExecutions()->toArray();
+        $executions = $restored->executionHistory()->getActionExecutions()->toArray();
         $this->assertCount(1, $executions);
         $this->assertSame(ExecutionState::STOP, $executions[0]->executionState);
     }
@@ -773,7 +773,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], [$action]);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionResult(new ActionResult(ExecutionState::CONTINUE, new TestState(['status' => 'published'])));
+        $context->recordActionExecution(new ActionResult(ExecutionState::CONTINUE, new TestState(['status' => 'published'])));
 
         $serialized = $context->serialize();
         $data = json_decode($serialized, true);
@@ -803,8 +803,8 @@ class TransitionContextSerializationTest extends TestCase
 
         $this->assertCount(1, $restored->getConfiguration()->actions);
         $this->assertInstanceOf(TestAction::class, $restored->getConfiguration()->actions->toArray()[0]);
-        $this->assertCount(1, $restored->getActionExecutions());
-        $this->assertSame(ExecutionState::CONTINUE, $restored->getActionExecutions()->toArray()[0]->executionState);
+        $this->assertCount(1, $restored->executionHistory()->getActionExecutions());
+        $this->assertSame(ExecutionState::CONTINUE, $restored->executionHistory()->getActionExecutions()->toArray()[0]->executionState);
     }
 
     public function testSerializeIncludesGateEvaluationTimestamp(): void
@@ -815,7 +815,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([$gate], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
+        $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
 
         $serialized = $context->serialize();
         $data = json_decode($serialized, true);
@@ -836,7 +836,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([$gate], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addGateEvaluation($gate, GateResult::ALLOW, false);
+        $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
 
         $serialized = $context->serialize();
         $data = json_decode($serialized, true);
@@ -853,7 +853,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations()->toArray();
+        $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertSame($originalTimestamp, $evaluations[0]->timestamp, 'Timestamp should be preserved exactly');
     }
@@ -866,7 +866,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], [$action]);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionSkip($action, GateResult::DENY);
+        $context->recordActionSkip($action, GateResult::DENY);
 
         $serialized = $context->serialize();
         $data = json_decode($serialized, true);
@@ -887,7 +887,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], [$action]);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $context->addActionSkip($action, GateResult::DENY);
+        $context->recordActionSkip($action, GateResult::DENY);
 
         $serialized = $context->serialize();
         $data = json_decode($serialized, true);
@@ -904,7 +904,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $skips = $restored->getActionSkips()->toArray();
+        $skips = $restored->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertSame($originalTimestamp, $skips[0]->timestamp, 'Timestamp should be preserved exactly');
     }
@@ -960,12 +960,12 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $evaluations = $restored->getGateEvaluations()->toArray();
+        $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
         $this->assertIsFloat($evaluations[0]->timestamp, 'Should auto-generate timestamp for old data');
         $this->assertGreaterThan(0, $evaluations[0]->timestamp);
 
-        $skips = $restored->getActionSkips()->toArray();
+        $skips = $restored->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
         $this->assertIsFloat($skips[0]->timestamp, 'Should auto-generate timestamp for old data');
         $this->assertGreaterThan(0, $skips[0]->timestamp);
@@ -1006,10 +1006,10 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertTrue($restored->isCompleted());
-        $this->assertFalse($restored->isPaused());
-        $this->assertFalse($restored->isStopped());
-        $this->assertFalse($restored->wasSkippedDueToLock());
+        $this->assertTrue($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isStopped());
+        $this->assertFalse($restored->executionStatus()->wasSkippedDueToLock());
     }
 
     public function testUnserializeLegacyFormatWithPauseStatus(): void
@@ -1042,9 +1042,9 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertFalse($restored->isCompleted());
-        $this->assertTrue($restored->isPaused());
-        $this->assertFalse($restored->isStopped());
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertTrue($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isStopped());
     }
 
     public function testUnserializeLegacyFormatWithStopStatus(): void
@@ -1077,9 +1077,9 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertFalse($restored->isCompleted());
-        $this->assertFalse($restored->isPaused());
-        $this->assertTrue($restored->isStopped());
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertTrue($restored->executionStatus()->isStopped());
     }
 
     public function testUnserializeLegacyFormatWithSkippedDueToLock(): void
@@ -1112,7 +1112,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->gateFactory
         );
 
-        $this->assertTrue($restored->wasSkippedDueToLock());
+        $this->assertTrue($restored->executionStatus()->wasSkippedDueToLock());
     }
 
     public function testUnserializeLegacyFormatWithInvalidStatus(): void
@@ -1146,9 +1146,9 @@ class TransitionContextSerializationTest extends TestCase
         );
 
         // Should have no status when invalid value is provided
-        $this->assertFalse($restored->isCompleted());
-        $this->assertFalse($restored->isPaused());
-        $this->assertFalse($restored->isStopped());
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isStopped());
     }
 }
 

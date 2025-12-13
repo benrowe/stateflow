@@ -36,7 +36,7 @@ class GateEvaluationServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
-        $context->expects($this->exactly(2))->method('addGateEvaluation');
+        $context->expects($this->exactly(2))->method('recordGateEvaluation');
 
         $eventOrchestrator->expects($this->exactly(2))->method('gateEvaluating');
         $eventOrchestrator->expects($this->exactly(2))->method('gateEvaluated');
@@ -63,7 +63,7 @@ class GateEvaluationServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
-        $context->expects($this->once())->method('addGateEvaluation');
+        $context->expects($this->once())->method('recordGateEvaluation');
 
         $eventOrchestrator->expects($this->once())->method('gateEvaluating');
         $eventOrchestrator->expects($this->once())->method('gateEvaluated');
@@ -90,7 +90,7 @@ class GateEvaluationServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
-        $context->expects($this->once())->method('addGateEvaluation');
+        $context->expects($this->once())->method('recordGateEvaluation');
 
         $eventOrchestrator->expects($this->once())->method('gateEvaluating');
         $eventOrchestrator->expects($this->once())->method('gateEvaluated');
@@ -117,7 +117,7 @@ class GateEvaluationServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
-        $context->expects($this->once())->method('addGateEvaluation');
+        $context->expects($this->once())->method('recordGateEvaluation');
 
         $eventOrchestrator->expects($this->once())->method('gateEvaluating');
         $eventOrchestrator->expects($this->once())->method('gateEvaluated');
@@ -144,7 +144,7 @@ class GateEvaluationServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
-        $context->expects($this->once())->method('addGateEvaluation');
+        $context->expects($this->once())->method('recordGateEvaluation');
 
         $eventOrchestrator->expects($this->once())->method('gateEvaluating');
         $eventOrchestrator->expects($this->once())->method('gateEvaluated');

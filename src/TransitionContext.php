@@ -6,7 +6,6 @@ namespace BenRowe\StateFlow;
 
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ActionResultCollection;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -56,26 +55,39 @@ class TransitionContext
         return $this->desiredDelta;
     }
 
-    public function getActionExecutions(): ActionResultCollection
+    /**
+     * Get the execution history for reading action executions, gate evaluations, and skips.
+     */
+    public function executionHistory(): ExecutionHistory
     {
-        return $this->history->getActionExecutions();
+        return $this->history;
     }
 
-    public function addActionResult(ActionResult $actionResult): void
+    /**
+     * Record an action execution result.
+     *
+     * This is a mutation wrapper that handles ExecutionHistory's immutability internally.
+     */
+    public function recordActionExecution(ActionResult $actionResult): void
     {
         $this->history = $this->history->recordActionExecution($actionResult);
     }
 
-    public function getGateEvaluations(): GateEvaluationCollection
-    {
-        return $this->history->getGateEvaluations();
-    }
-
-    public function addGateEvaluation(Gate $gate, GateResult $result, bool $isActionGate): void
+    /**
+     * Record a gate evaluation result.
+     *
+     * This is a mutation wrapper that handles ExecutionHistory's immutability internally.
+     */
+    public function recordGateEvaluation(Gate $gate, GateResult $result, bool $isActionGate): void
     {
         $this->history = $this->history->recordGateEvaluation($gate, $result, $isActionGate);
     }
 
+    /**
+     * Check if all transition gates passed.
+     *
+     * Returns true if there are no gates, or if all gates evaluated to ALLOW.
+     */
     public function didGatesPass(): bool
     {
         $availableGates = $this->getConfiguration()->transitionGates->count();
@@ -83,10 +95,10 @@ class TransitionContext
             return true;
         }
 
-        if ($availableGates !== count($this->getGateEvaluations())) {
+        if ($availableGates !== count($this->history->getGateEvaluations())) {
             return false;
         }
-        foreach ($this->getGateEvaluations()->toArray() as $gateEvaluation) {
+        foreach ($this->history->getGateEvaluations()->toArray() as $gateEvaluation) {
             if ($gateEvaluation->result !== GateResult::ALLOW) {
                 return false;
             }
@@ -95,69 +107,40 @@ class TransitionContext
         return true;
     }
 
-    public function getActionSkips(): ActionSkipCollection
-    {
-        return $this->history->getActionSkips();
-    }
-
-    public function addActionSkip(Action $action, GateResult $gateResult): void
+    /**
+     * Record an action skip.
+     *
+     * This is a mutation wrapper that handles ExecutionHistory's immutability internally.
+     */
+    public function recordActionSkip(Action $action, GateResult $gateResult): void
     {
         $this->history = $this->history->recordActionSkip($action, $gateResult);
     }
 
-    public function markAsCompleted(): void
+    /**
+     * Get the execution status for checking and mutating workflow state.
+     */
+    public function executionStatus(): ExecutionStatus
     {
-        $this->executionStatus->markCompleted();
+        return $this->executionStatus;
     }
 
-    public function markAsPaused(mixed $metadata = null): void
-    {
-        $this->executionStatus->markPaused($metadata);
-    }
-
-    public function markAsStopped(mixed $metadata = null): void
-    {
-        $this->executionStatus->markStopped($metadata);
-    }
-
-    public function clearPauseStatus(): void
-    {
-        $this->executionStatus->clearPauseStatus();
-    }
-
-    public function isPaused(): bool
-    {
-        return $this->executionStatus->isPaused();
-    }
-
-    public function isCompleted(): bool
-    {
-        return $this->executionStatus->isCompleted();
-    }
-
-    public function isStopped(): bool
-    {
-        return $this->executionStatus->isStopped();
-    }
-
-    public function getLockState(): LockState
+    /**
+     * Get the lock state.
+     */
+    public function lockState(): LockState
     {
         return $this->lockState;
     }
 
+    /**
+     * Set the lock state.
+     *
+     * @internal Used by LockManager
+     */
     public function setLockState(LockState $lockState): void
     {
         $this->lockState = $lockState;
-    }
-
-    public function markAsSkippedDueToLock(): void
-    {
-        $this->executionStatus->markSkippedDueToLock();
-    }
-
-    public function wasSkippedDueToLock(): bool
-    {
-        return $this->executionStatus->wasSkippedDueToLock();
     }
 
     /**
@@ -168,13 +151,13 @@ class TransitionContext
      */
     public function getStatusMetadata(): mixed
     {
-        $statusMetadata = $this->executionStatus->getMetadata();
+        $statusMetadata = $this->executionStatus()->getMetadata();
         if ($statusMetadata !== null) {
             return $statusMetadata;
         }
 
         // Fallback to history for backward compatibility
-        return $this->history->getStatusMetadata();
+        return $this->executionHistory()->getStatusMetadata();
     }
 
     /**

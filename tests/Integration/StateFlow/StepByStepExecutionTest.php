@@ -61,13 +61,13 @@ class StepByStepExecutionTest extends TestCase
 
         // Verify all gates were evaluated
         $context = $worker->getContext();
-        $this->assertCount(3, $context->getGateEvaluations(), 'All gates should be evaluated');
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[0]->result);
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[1]->result);
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[2]->result);
+        $this->assertCount(3, $context->executionHistory()->getGateEvaluations(), 'All gates should be evaluated');
+        $this->assertSame(GateResult::ALLOW, $context->executionHistory()->getGateEvaluations()->toArray()[0]->result);
+        $this->assertSame(GateResult::ALLOW, $context->executionHistory()->getGateEvaluations()->toArray()[1]->result);
+        $this->assertSame(GateResult::ALLOW, $context->executionHistory()->getGateEvaluations()->toArray()[2]->result);
 
         // Verify NO actions were executed
-        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute');
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'No actions should execute');
 
         // Verify gates were evaluated in log
         $this->assertContains('Gate:Gate1', $this->logger->log);
@@ -107,12 +107,12 @@ class StepByStepExecutionTest extends TestCase
 
         // Verify only gates 1 and 2 were evaluated (short-circuit)
         $context = $worker->getContext();
-        $this->assertCount(2, $context->getGateEvaluations(), 'Only 2 gates should be evaluated (short-circuit)');
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[0]->result);
-        $this->assertSame(GateResult::DENY, $context->getGateEvaluations()->toArray()[1]->result);
+        $this->assertCount(2, $context->executionHistory()->getGateEvaluations(), 'Only 2 gates should be evaluated (short-circuit)');
+        $this->assertSame(GateResult::ALLOW, $context->executionHistory()->getGateEvaluations()->toArray()[0]->result);
+        $this->assertSame(GateResult::DENY, $context->executionHistory()->getGateEvaluations()->toArray()[1]->result);
 
         // Verify NO actions were executed
-        $this->assertCount(0, $context->getActionExecutions());
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions());
     }
 
     /**
@@ -143,14 +143,14 @@ class StepByStepExecutionTest extends TestCase
 
         // Verify gates were evaluated
         $context = $worker->getContext();
-        $this->assertCount(2, $context->getGateEvaluations());
-        $this->assertCount(0, $context->getActionExecutions(), 'No actions should execute yet');
+        $this->assertCount(2, $context->executionHistory()->getGateEvaluations());
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'No actions should execute yet');
 
         // Step 2: Run actions
         $actionContext = $worker->runActions();
 
         // Verify all actions were executed
-        $this->assertCount(3, $actionContext->getActionExecutions(), 'All actions should execute');
+        $this->assertCount(3, $actionContext->executionHistory()->getActionExecutions(), 'All actions should execute');
         $this->assertContains('Action:Action1', $this->logger->log);
         $this->assertContains('Action:Action2', $this->logger->log);
         $this->assertContains('Action:Action3', $this->logger->log);
@@ -182,25 +182,25 @@ class StepByStepExecutionTest extends TestCase
 
         // First call: execute action 1
         $context1 = $worker->runNextAction();
-        $this->assertCount(1, $context1->getActionExecutions(), 'Action 1 should execute');
+        $this->assertCount(1, $context1->executionHistory()->getActionExecutions(), 'Action 1 should execute');
         $this->assertContains('Action:Action1', $this->logger->log);
         $this->assertNotContains('Action:Action2', $this->logger->log);
         $this->assertNotContains('Action:Action3', $this->logger->log);
 
         // Second call: execute action 2
         $context2 = $worker->runNextAction();
-        $this->assertCount(2, $context2->getActionExecutions(), 'Actions 1 and 2 should be executed');
+        $this->assertCount(2, $context2->executionHistory()->getActionExecutions(), 'Actions 1 and 2 should be executed');
         $this->assertContains('Action:Action2', $this->logger->log);
         $this->assertNotContains('Action:Action3', $this->logger->log);
 
         // Third call: execute action 3
         $context3 = $worker->runNextAction();
-        $this->assertCount(3, $context3->getActionExecutions(), 'All 3 actions should be executed');
+        $this->assertCount(3, $context3->executionHistory()->getActionExecutions(), 'All 3 actions should be executed');
         $this->assertContains('Action:Action3', $this->logger->log);
 
         // Fourth call: no more actions (should return same context)
         $context4 = $worker->runNextAction();
-        $this->assertCount(3, $context4->getActionExecutions(), 'Still only 3 actions');
+        $this->assertCount(3, $context4->executionHistory()->getActionExecutions(), 'Still only 3 actions');
         $this->assertSame($context3, $context4, 'Should return same context when no more actions');
     }
 
@@ -222,18 +222,18 @@ class StepByStepExecutionTest extends TestCase
 
         // Action 1: gate allows, should execute
         $context1 = $worker->runNextAction();
-        $this->assertCount(1, $context1->getActionExecutions(), 'Action 1 should execute');
-        $this->assertCount(0, $context1->getActionSkips(), 'No skips yet');
+        $this->assertCount(1, $context1->executionHistory()->getActionExecutions(), 'Action 1 should execute');
+        $this->assertCount(0, $context1->executionHistory()->getActionSkips(), 'No skips yet');
 
         // Action 2: gate denies, should skip
         $context2 = $worker->runNextAction();
-        $this->assertCount(1, $context2->getActionExecutions(), 'Still only 1 action executed');
-        $this->assertCount(1, $context2->getActionSkips(), 'Action 2 should be skipped');
+        $this->assertCount(1, $context2->executionHistory()->getActionExecutions(), 'Still only 1 action executed');
+        $this->assertCount(1, $context2->executionHistory()->getActionSkips(), 'Action 2 should be skipped');
 
         // Action 3: gate allows, should execute
         $context3 = $worker->runNextAction();
-        $this->assertCount(2, $context3->getActionExecutions(), 'Actions 1 and 3 executed');
-        $this->assertCount(1, $context3->getActionSkips(), 'Action 2 skipped');
+        $this->assertCount(2, $context3->executionHistory()->getActionExecutions(), 'Actions 1 and 3 executed');
+        $this->assertCount(1, $context3->executionHistory()->getActionSkips(), 'Action 2 skipped');
     }
 
     /**
@@ -274,21 +274,21 @@ class StepByStepExecutionTest extends TestCase
 
         // Verify both approaches produce the same results
         $this->assertCount(
-            count($stepByStepContext->getGateEvaluations()),
-            $executeContext->getGateEvaluations(),
+            count($stepByStepContext->executionHistory()->getGateEvaluations()),
+            $executeContext->executionHistory()->getGateEvaluations(),
             'Same number of gate evaluations'
         );
 
         $this->assertCount(
-            count($stepByStepContext->getActionExecutions()),
-            $executeContext->getActionExecutions(),
+            count($stepByStepContext->executionHistory()->getActionExecutions()),
+            $executeContext->executionHistory()->getActionExecutions(),
             'Same number of action executions'
         );
 
         // Verify context is fully populated with execute()
-        $this->assertCount(2, $executeContext->getGateEvaluations());
-        $this->assertCount(2, $executeContext->getActionExecutions());
-        $this->assertTrue($executeContext->isCompleted());
+        $this->assertCount(2, $executeContext->executionHistory()->getGateEvaluations());
+        $this->assertCount(2, $executeContext->executionHistory()->getActionExecutions());
+        $this->assertTrue($executeContext->executionStatus()->isCompleted());
     }
 
     /**
@@ -314,15 +314,15 @@ class StepByStepExecutionTest extends TestCase
             ->execute();
 
         // Verify gates were evaluated
-        $this->assertCount(2, $context->getGateEvaluations());
-        $this->assertSame(GateResult::ALLOW, $context->getGateEvaluations()->toArray()[0]->result);
-        $this->assertSame(GateResult::DENY, $context->getGateEvaluations()->toArray()[1]->result);
+        $this->assertCount(2, $context->executionHistory()->getGateEvaluations());
+        $this->assertSame(GateResult::ALLOW, $context->executionHistory()->getGateEvaluations()->toArray()[0]->result);
+        $this->assertSame(GateResult::DENY, $context->executionHistory()->getGateEvaluations()->toArray()[1]->result);
 
         // Verify no actions executed
-        $this->assertCount(0, $context->getActionExecutions());
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions());
 
         // Verify action was skipped
-        $this->assertCount(1, $context->getActionSkips());
+        $this->assertCount(1, $context->executionHistory()->getActionSkips());
     }
 
     /**
@@ -347,8 +347,8 @@ class StepByStepExecutionTest extends TestCase
         $context1 = $worker->execute();
 
         // Verify only actions 1 and 2 executed
-        $this->assertCount(2, $context1->getActionExecutions(), 'Execute should run actions 1-2 and pause');
-        $this->assertTrue($context1->isPaused(), 'Context should be paused');
+        $this->assertCount(2, $context1->executionHistory()->getActionExecutions(), 'Execute should run actions 1-2 and pause');
+        $this->assertTrue($context1->executionStatus()->isPaused(), 'Context should be paused');
         $this->assertContains('Action:Action1', $this->logger->log);
         $this->assertContains('Action:Action2', $this->logger->log);
         $this->assertNotContains('Action:Action3', $this->logger->log, 'Action 3 should not execute yet');
@@ -357,7 +357,7 @@ class StepByStepExecutionTest extends TestCase
         $context2 = $worker->runNextAction();
 
         // Verify action 3 executed
-        $this->assertCount(3, $context2->getActionExecutions(), 'After runNextAction, should have 3 actions executed');
+        $this->assertCount(3, $context2->executionHistory()->getActionExecutions(), 'After runNextAction, should have 3 actions executed');
         $this->assertContains('Action:Action3', $this->logger->log, 'Action 3 should execute');
 
         // Verify all actions are accounted for
@@ -385,14 +385,14 @@ class StepByStepExecutionTest extends TestCase
         $context1 = $worker->execute();
 
         // Verify only actions 1 and 2 executed
-        $this->assertCount(2, $context1->getActionExecutions(), 'Execute should run actions 1-2 and stop');
-        $this->assertTrue($context1->isStopped(), 'Context should be stopped');
+        $this->assertCount(2, $context1->executionHistory()->getActionExecutions(), 'Execute should run actions 1-2 and stop');
+        $this->assertTrue($context1->executionStatus()->isStopped(), 'Context should be stopped');
 
         // Call runNextAction - should NOT execute action 3 (workflow is stopped)
         $context2 = $worker->runNextAction();
 
         // Verify action 3 did NOT execute
-        $this->assertCount(2, $context2->getActionExecutions(), 'runNextAction should not execute when stopped');
+        $this->assertCount(2, $context2->executionHistory()->getActionExecutions(), 'runNextAction should not execute when stopped');
         $this->assertNotContains('Action:Action3', $this->logger->log, 'Action 3 should not execute when stopped');
     }
 

@@ -58,9 +58,9 @@ class WorkflowResumeTest extends TestCase
         $pausedContext = $worker1->execute();
 
         // Verify the workflow paused
-        $this->assertTrue($pausedContext->isPaused(), 'Workflow should be paused');
-        $this->assertFalse($pausedContext->isCompleted(), 'Workflow should not be completed');
-        $this->assertCount(2, $pausedContext->getActionExecutions(), 'Actions 1 and 2 should have executed');
+        $this->assertTrue($pausedContext->executionStatus()->isPaused(), 'Workflow should be paused');
+        $this->assertFalse($pausedContext->executionStatus()->isCompleted(), 'Workflow should not be completed');
+        $this->assertCount(2, $pausedContext->executionHistory()->getActionExecutions(), 'Actions 1 and 2 should have executed');
 
         // Verify execution log shows actions 1 and 2
         $this->assertContains('Action:Action1', $this->logger->log, 'Action 1 should have executed');
@@ -83,9 +83,9 @@ class WorkflowResumeTest extends TestCase
         $this->assertContains('Action:Action3', $this->logger->log, 'Action 3 should execute on resume');
 
         // Verify workflow is now completed
-        $this->assertTrue($completedContext->isCompleted(), 'Workflow should be completed after resume');
-        $this->assertFalse($completedContext->isPaused(), 'Workflow should not be paused');
-        $this->assertCount(3, $completedContext->getActionExecutions(), 'All 3 actions should be executed');
+        $this->assertTrue($completedContext->executionStatus()->isCompleted(), 'Workflow should be completed after resume');
+        $this->assertFalse($completedContext->executionStatus()->isPaused(), 'Workflow should not be paused');
+        $this->assertCount(3, $completedContext->executionHistory()->getActionExecutions(), 'All 3 actions should be executed');
 
         // Verify same context instance
         $this->assertSame($pausedContext, $completedContext, 'Should return the same context instance');
@@ -158,8 +158,8 @@ class WorkflowResumeTest extends TestCase
             ->transition($initialState, new ArrayDelta(['status' => 'published']))
             ->execute();
 
-        $this->assertTrue($completedContext->isCompleted());
-        $this->assertCount(2, $completedContext->getActionExecutions());
+        $this->assertTrue($completedContext->executionStatus()->isCompleted());
+        $this->assertCount(2, $completedContext->executionHistory()->getActionExecutions());
 
         // Count executions before resume
         $action1CountBefore = count(array_keys($this->logger->log, 'Action:Action1', true));
@@ -177,7 +177,7 @@ class WorkflowResumeTest extends TestCase
 
         $this->assertSame($action1CountBefore, $action1CountAfter, 'Action 1 should not execute again');
         $this->assertSame($action2CountBefore, $action2CountAfter, 'Action 2 should not execute again');
-        $this->assertTrue($resumedContext->isCompleted());
+        $this->assertTrue($resumedContext->executionStatus()->isCompleted());
         $this->assertSame($completedContext, $resumedContext);
     }
 
@@ -201,8 +201,8 @@ class WorkflowResumeTest extends TestCase
             ->transition($initialState, new ArrayDelta(['status' => 'failed']))
             ->execute();
 
-        $this->assertTrue($stoppedContext->isStopped());
-        $this->assertCount(2, $stoppedContext->getActionExecutions());
+        $this->assertTrue($stoppedContext->executionStatus()->isStopped());
+        $this->assertCount(2, $stoppedContext->executionHistory()->getActionExecutions());
         $this->assertNotContains('Action:Action3', $this->logger->log);
 
         // Try to resume stopped workflow
@@ -213,8 +213,8 @@ class WorkflowResumeTest extends TestCase
 
         // Verify action 3 did NOT execute
         $this->assertNotContains('Action:Action3', $this->logger->log, 'Action 3 should not execute on stopped workflow');
-        $this->assertTrue($resumedContext->isStopped(), 'Should remain stopped');
-        $this->assertCount(2, $resumedContext->getActionExecutions(), 'Should still have only 2 actions');
+        $this->assertTrue($resumedContext->executionStatus()->isStopped(), 'Should remain stopped');
+        $this->assertCount(2, $resumedContext->executionHistory()->getActionExecutions(), 'Should still have only 2 actions');
     }
 
     public function testResumedWorkflowUsesOriginalConfiguration(): void
@@ -241,7 +241,7 @@ class WorkflowResumeTest extends TestCase
         $stateFlow1 = new StateFlow($configProvider);
         $pausedContext = $stateFlow1->transition($initialState, new ArrayDelta([]))->execute();
 
-        $this->assertTrue($pausedContext->isPaused());
+        $this->assertTrue($pausedContext->executionStatus()->isPaused());
         $this->assertContains('Action:ActionA', $this->logger->log);
         $this->assertNotContains('Action:ActionB', $this->logger->log);
 
@@ -260,7 +260,7 @@ class WorkflowResumeTest extends TestCase
         $completedContext = $stateFlow2->fromContext($pausedContext)->execute();
 
         // Assert that the original workflow (V1) completed
-        $this->assertTrue($completedContext->isCompleted());
+        $this->assertTrue($completedContext->executionStatus()->isCompleted());
         $this->assertContains('Action:ActionB', $this->logger->log, 'ActionB from original config should have run');
 
         // Assert that the new workflow (V2) did NOT run

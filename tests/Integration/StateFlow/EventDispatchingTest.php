@@ -103,7 +103,7 @@ class EventDispatchingTest extends TestCase
         $completedContext = $worker->execute();
 
         // Ensure the context was indeed completed and the final state is as expected
-        $this->assertTrue($completedContext->isCompleted());
+        $this->assertTrue($completedContext->executionStatus()->isCompleted());
         $this->assertEquals($finalState, $completedContext->getCurrentState());
 
         // Assert correct events were dispatched in order
@@ -138,8 +138,8 @@ class EventDispatchingTest extends TestCase
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $pausedContext = $stateFlow->transition($initialState, $delta)->execute();
 
-        $this->assertTrue($pausedContext->isPaused());
-        $this->assertFalse($pausedContext->isCompleted());
+        $this->assertTrue($pausedContext->executionStatus()->isPaused());
+        $this->assertFalse($pausedContext->executionStatus()->isCompleted());
 
         // Assert correct events were dispatched
         $this->assertCount(4, $dispatchedEvents);
@@ -178,8 +178,8 @@ class EventDispatchingTest extends TestCase
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stoppedContext = $stateFlow->transition($initialState, $delta)->execute();
 
-        $this->assertTrue($stoppedContext->isStopped());
-        $this->assertFalse($stoppedContext->isCompleted());
+        $this->assertTrue($stoppedContext->executionStatus()->isStopped());
+        $this->assertFalse($stoppedContext->executionStatus()->isCompleted());
 
         // Assert correct events were dispatched
         $this->assertCount(4, $dispatchedEvents);
@@ -219,7 +219,7 @@ class EventDispatchingTest extends TestCase
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $pausedContext = $stateFlow->transition($initialState, $delta)->execute();
 
-        $this->assertTrue($pausedContext->isPaused());
+        $this->assertTrue($pausedContext->executionStatus()->isPaused());
 
         // Assert correct events were dispatched
         $this->assertCount(4, $dispatchedEvents);
@@ -261,7 +261,7 @@ class EventDispatchingTest extends TestCase
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stoppedContext = $stateFlow->transition($initialState, $delta)->execute();
 
-        $this->assertTrue($stoppedContext->isStopped());
+        $this->assertTrue($stoppedContext->executionStatus()->isStopped());
 
         // Assert TransitionStopped event was dispatched
         $this->assertCount(4, $dispatchedEvents);

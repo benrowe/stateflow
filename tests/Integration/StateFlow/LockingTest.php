@@ -98,7 +98,7 @@ class LockingTest extends TestCase
         $this->assertCount(1, $lockAcquiredEvents, 'LockAcquired event should be dispatched');
 
         // Verify lock state
-        $lockState = $context->getLockState();
+        $lockState = $context->lockState();
         $this->assertTrue($lockState->isLocked(), 'Lock should be acquired');
         $this->assertSame('order:123', $lockState->lockKey);
     }
@@ -303,14 +303,14 @@ class LockingTest extends TestCase
         $this->assertCount(1, $lockFailedEvents, 'LockFailed event should be dispatched');
 
         // Verify the transition was skipped due to lock
-        $this->assertTrue($context->wasSkippedDueToLock(), 'Transition should be marked as skipped due to lock');
+        $this->assertTrue($context->executionStatus()->wasSkippedDueToLock(), 'Transition should be marked as skipped due to lock');
 
         // Verify gate and action were NOT executed
         $this->assertFalse($gateExecuted, 'Gate should not execute when lock cannot be acquired with SKIP strategy');
         $this->assertFalse($actionExecuted, 'Action should not execute when lock cannot be acquired with SKIP strategy');
 
         // Verify the context is not completed (it was skipped)
-        $this->assertFalse($context->isCompleted(), 'Skipped transition should not be marked as completed');
+        $this->assertFalse($context->executionStatus()->isCompleted(), 'Skipped transition should not be marked as completed');
     }
 
     /**
@@ -407,7 +407,7 @@ class LockingTest extends TestCase
         $duration = $endTime - $startTime;
 
         // Verify lock was eventually acquired
-        $lockState = $context->getLockState();
+        $lockState = $context->lockState();
         $this->assertTrue($lockState->isLocked(), 'Lock should be acquired after waiting');
 
         // Verify it took some time (at least 200ms) but less than timeout (5 seconds)
@@ -421,7 +421,7 @@ class LockingTest extends TestCase
         $this->assertTrue($actionExecuted, 'Action should execute after lock acquired');
 
         // Verify transition completed successfully
-        $this->assertTrue($context->isCompleted(), 'Transition should complete successfully');
+        $this->assertTrue($context->executionStatus()->isCompleted(), 'Transition should complete successfully');
 
         // Verify LockAcquired event was dispatched
         $lockAcquiredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockAcquired);
@@ -594,10 +594,10 @@ class LockingTest extends TestCase
         $context = $worker->execute();
 
         // Verify lock was acquired
-        $this->assertTrue($context->getLockState()->isLocked());
+        $this->assertTrue($context->lockState()->isLocked());
 
         // Verify transition completed
-        $this->assertTrue($context->isCompleted());
+        $this->assertTrue($context->executionStatus()->isCompleted());
 
         // Verify LockReleased event was dispatched
         $lockReleasedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockReleased);
@@ -767,11 +767,11 @@ class LockingTest extends TestCase
         $context = $worker->execute();
 
         // Verify lock is still held
-        $this->assertTrue($context->getLockState()->isLocked(), 'Lock should remain held when paused');
-        $this->assertSame('order:123', $context->getLockState()->lockKey);
+        $this->assertTrue($context->lockState()->isLocked(), 'Lock should remain held when paused');
+        $this->assertSame('order:123', $context->lockState()->lockKey);
 
         // Verify transition is paused
-        $this->assertTrue($context->isPaused(), 'Transition should be paused');
+        $this->assertTrue($context->executionStatus()->isPaused(), 'Transition should be paused');
 
         // Verify NO LockReleased event was dispatched
         $lockReleasedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockReleased);
@@ -856,7 +856,7 @@ class LockingTest extends TestCase
         $context = $worker->execute();
 
         // Verify transition is stopped
-        $this->assertTrue($context->isStopped(), 'Transition should be stopped');
+        $this->assertTrue($context->executionStatus()->isStopped(), 'Transition should be stopped');
 
         // Verify LockReleased event was dispatched
         $lockReleasedEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockReleased);
@@ -929,7 +929,7 @@ class LockingTest extends TestCase
             {
                 // Simulate time passing - manipulate lock state to appear old
                 $transitionContext = $context->executionContext;
-                $currentLockState = $transitionContext->getLockState();
+                $currentLockState = $transitionContext->lockState();
 
                 // Create new lock state with old acquired time (25 seconds ago)
                 $oldLockState = new LockState(
@@ -967,7 +967,7 @@ class LockingTest extends TestCase
         $context = $worker->execute();
 
         // Verify transition completed
-        $this->assertTrue($context->isCompleted(), 'Transition should complete successfully');
+        $this->assertTrue($context->executionStatus()->isCompleted(), 'Transition should complete successfully');
 
         // Verify LockRestored event was dispatched (lock was renewed)
         $lockRestoredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockRestored);
@@ -1036,7 +1036,7 @@ class LockingTest extends TestCase
             {
                 // Simulate time passing - manipulate lock state to appear old
                 $transitionContext = $context->executionContext;
-                $currentLockState = $transitionContext->getLockState();
+                $currentLockState = $transitionContext->lockState();
 
                 // Create new lock state with old acquired time (25 seconds ago)
                 $oldLockState = new LockState(
@@ -1074,7 +1074,7 @@ class LockingTest extends TestCase
         $context = $worker->execute();
 
         // Verify transition completed despite failed renewal
-        $this->assertTrue($context->isCompleted(), 'Transition should complete even if renewal fails');
+        $this->assertTrue($context->executionStatus()->isCompleted(), 'Transition should complete even if renewal fails');
 
         // Verify NO LockRestored event was dispatched (because renewal failed)
         $lockRestoredEvents = array_filter($dispatchedEvents, fn ($e) => $e instanceof LockRestored);

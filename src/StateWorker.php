@@ -85,8 +85,8 @@ class StateWorker
         $this->executeActions();
 
         // Mark as completed if we got through all actions
-        if (!$this->context->isPaused() && !$this->context->isStopped()) {
-            $this->context->markAsCompleted();
+        if (!$this->context->executionStatus()->isPaused() && !$this->context->executionStatus()->isStopped()) {
+            $this->context->executionStatus()->markCompleted();
         }
 
         return $this->context;
@@ -106,7 +106,7 @@ class StateWorker
         $this->lockManager->acquireLock();
 
         // If transition was skipped due to lock, return early
-        if ($this->context->wasSkippedDueToLock()) {
+        if ($this->context->executionStatus()->wasSkippedDueToLock()) {
             return $this->context;
         }
 
@@ -127,7 +127,7 @@ class StateWorker
 
                 // SKIP_IDEMPOTENT should complete successfully (idempotent transitions are considered complete)
                 if ($gateResult === GateResult::SKIP_IDEMPOTENT) {
-                    $this->context->markAsCompleted();
+                    $this->context->executionStatus()->markCompleted();
                     $this->eventOrchestrator->transitionCompleted(
                         $this->context->getCurrentState(),
                         $this->context
@@ -141,8 +141,8 @@ class StateWorker
             $this->executeActions();
 
             // Mark as completed if we got through all actions
-            if (!$this->context->isPaused() && !$this->context->isStopped()) {
-                $this->context->markAsCompleted();
+            if (!$this->context->executionStatus()->isPaused() && !$this->context->executionStatus()->isStopped()) {
+                $this->context->executionStatus()->markCompleted();
                 $this->eventOrchestrator->transitionCompleted(
                     $this->context->getCurrentState(),
                     $this->context
@@ -153,7 +153,7 @@ class StateWorker
         } finally {
             // Always release lock if it was acquired (including on exception or pause/stop)
             // Only keep lock if paused (scenario 9.8) - but we haven't implemented that yet
-            if ($this->context->getLockState()->isLocked() && !$this->context->isPaused()) {
+            if ($this->context->lockState()->isLocked() && !$this->context->executionStatus()->isPaused()) {
                 $this->lockManager->releaseLock();
             }
         }
@@ -169,7 +169,7 @@ class StateWorker
             $this->executeNextAction();
 
             // Stop if workflow is paused or stopped
-            if ($this->context->isPaused() || $this->context->isStopped()) {
+            if ($this->context->executionStatus()->isPaused() || $this->context->executionStatus()->isStopped()) {
                 break;
             }
         }
@@ -178,7 +178,7 @@ class StateWorker
     private function executeNextAction(): void
     {
         // Don't execute if workflow is stopped (PAUSE can be resumed)
-        if ($this->context->isStopped()) {
+        if ($this->context->executionStatus()->isStopped()) {
             return;
         }
 

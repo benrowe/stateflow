@@ -45,17 +45,17 @@ class ActionGuardTest extends TestCase
             ->execute();
 
         // Verify the action's gate was evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations();
         $this->assertCount(1, $gateEvaluations, 'Action gate should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertTrue($gateEvaluations[0]->isActionGate, 'Gate should be marked as action gate');
 
         // Verify the action executed
-        $this->assertCount(1, $context->getActionExecutions(), 'Action should execute');
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions(), 'Action should execute');
         $this->assertContains('Action:GuardedAction', $this->logger->log);
 
         // Verify no actions were skipped
-        $this->assertCount(0, $context->getActionSkips(), 'No actions should be skipped');
+        $this->assertCount(0, $context->executionHistory()->getActionSkips(), 'No actions should be skipped');
     }
 
     /**
@@ -75,17 +75,17 @@ class ActionGuardTest extends TestCase
             ->execute();
 
         // Verify the action's gate was evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations();
         $this->assertCount(1, $gateEvaluations, 'Action gate should be evaluated');
         $this->assertSame(GateResult::DENY, $gateEvaluations[0]->result);
         $this->assertTrue($gateEvaluations[0]->isActionGate, 'Gate should be marked as action gate');
 
         // Verify the action did NOT execute
-        $this->assertCount(0, $context->getActionExecutions(), 'Action should not execute');
+        $this->assertCount(0, $context->executionHistory()->getActionExecutions(), 'Action should not execute');
         $this->assertNotContains('Action:GuardedAction', $this->logger->log);
 
         // Verify action was skipped
-        $actionSkips = $context->getActionSkips();
+        $actionSkips = $context->executionHistory()->getActionSkips();
         $this->assertCount(1, $actionSkips, 'Action should be skipped');
         $this->assertSame(GateResult::DENY, $actionSkips[0]->gateResult);
     }
@@ -109,7 +109,7 @@ class ActionGuardTest extends TestCase
             ->execute();
 
         // Verify all 3 action gates were evaluated
-        $gateEvaluations = $context->getGateEvaluations();
+        $gateEvaluations = $context->executionHistory()->getGateEvaluations();
         $this->assertCount(3, $gateEvaluations, 'All 3 action gates should be evaluated');
         $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
         $this->assertTrue($gateEvaluations[0]->isActionGate);
@@ -119,13 +119,13 @@ class ActionGuardTest extends TestCase
         $this->assertTrue($gateEvaluations[2]->isActionGate);
 
         // Verify actions 1 and 3 executed, action 2 did not
-        $this->assertCount(2, $context->getActionExecutions(), 'Actions 1 and 3 should execute');
+        $this->assertCount(2, $context->executionHistory()->getActionExecutions(), 'Actions 1 and 3 should execute');
         $this->assertContains('Action:Action1', $this->logger->log);
         $this->assertNotContains('Action:Action2', $this->logger->log, 'Action 2 should not execute');
         $this->assertContains('Action:Action3', $this->logger->log);
 
         // Verify action 2 was skipped
-        $actionSkips = $context->getActionSkips();
+        $actionSkips = $context->executionHistory()->getActionSkips();
         $this->assertCount(1, $actionSkips, 'Action 2 should be skipped');
     }
 
