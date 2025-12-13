@@ -102,7 +102,6 @@ class ActionSkipCollectionTest extends TestCase
         $collection = new ActionSkipCollection($skip1, $skip2);
         $array = $collection->toArray();
 
-        $this->assertIsArray($array);
         $this->assertCount(2, $array);
         $this->assertSame($skip1, $array[0]);
         $this->assertSame($skip2, $array[1]);

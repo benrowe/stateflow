@@ -87,7 +87,6 @@ class ActionResultCollectionTest extends TestCase
         $collection = new ActionResultCollection($result1, $result2);
         $array = $collection->toArray();
 
-        $this->assertIsArray($array);
         $this->assertCount(2, $array);
         $this->assertSame($result1, $array[0]);
         $this->assertSame($result2, $array[1]);
