@@ -127,7 +127,13 @@ parameters:
 			path: src/Events/Event.php
 
 		-
-			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.CouplingBetweenObjects\) Orchestrator pattern requires knowledge of all event types \(20 dependencies, threshold 13\)\)\: Unexpected token "\.CouplingBetweenObjects\)", expected ''\)'' at offset 95 on line 4$#'
+			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.CouplingBetweenObjects\) Orchestrator pattern requires knowledge of all event types \(26 dependencies, threshold 13\)\)\: Unexpected token "\.CouplingBetweenObjects\)", expected ''\)'' at offset 95 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/Events/EventOrchestrator.php
+
+		-
+			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.TooManyPublicMethods\) Orchestrator pattern requires one public method per event type \(15 methods, threshold 10\)\)\: Unexpected token "\.TooManyPublicMethods\)", expected ''\)'' at offset 237 on line 5$#'
 			identifier: phpDoc.parseError
 			count: 1
 			path: src/Events/EventOrchestrator.php
