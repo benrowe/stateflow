@@ -48,7 +48,7 @@ class StateWorker
             $this->lockKeyProvider,
             $this->lockConfiguration,
             $this->context,
-            $this->eventDispatcher
+            $this->eventOrchestrator
         );
 
         // Create gate evaluator

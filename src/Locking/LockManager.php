@@ -241,6 +241,8 @@ class LockManager
      */
     private function recordLockAcquisition(string $lockKey): void
     {
+        assert($this->lockConfiguration !== null);
+
         $lockState = new LockState($lockKey, microtime(true), $this->lockConfiguration->ttl);
         $this->context->setLockState($lockState);
         $this->eventOrchestrator->lockAcquired($lockKey, $lockState);
