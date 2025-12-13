@@ -301,3 +301,4 @@ Always consult `docs/architecture.md` before making architectural decisions.
 - git commit messages should be single line, terse. they should tell a story
 - dont work around lint/quality issues by adding docblocks/comments to the code to get around the issue.
 - when we make changes to code interfaces, dont forget to update the documentation
+- when there are infractions with cs-fixer, use composer lint:fix to automatically fix the problem
