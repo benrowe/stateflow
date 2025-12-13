@@ -28,7 +28,6 @@ final class TransitionContextSerializerTest extends TestCase
         $serializer = new TransitionContextSerializer();
         $serialized = $serializer->serialize($context);
 
-        $this->assertIsString($serialized);
         $this->assertJson($serialized);
     }
 

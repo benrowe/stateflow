@@ -87,7 +87,6 @@ class GateCollectionTest extends TestCase
         $collection = new GateCollection($gate1, $gate2);
         $array = $collection->toArray();
 
-        $this->assertIsArray($array);
         $this->assertCount(2, $array);
         $this->assertSame($gate1, $array[0]);
         $this->assertSame($gate2, $array[1]);

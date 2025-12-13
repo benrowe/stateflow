@@ -52,7 +52,6 @@ class TransitionContextSerializationTest extends TestCase
 
         $serialized = (new TransitionContextSerializer())->serialize($context);
 
-        $this->assertIsString($serialized);
         $this->assertJson($serialized);
     }
 
@@ -963,13 +962,11 @@ class TransitionContextSerializationTest extends TestCase
 
         $evaluations = $restored->executionHistory()->getGateEvaluations()->toArray();
         $this->assertCount(1, $evaluations);
-        $this->assertIsFloat($evaluations[0]->timestamp, 'Should auto-generate timestamp for old data');
-        $this->assertGreaterThan(0, $evaluations[0]->timestamp);
+        $this->assertGreaterThan(0, $evaluations[0]->timestamp, 'Should auto-generate timestamp for old data');
 
         $skips = $restored->executionHistory()->getActionSkips()->toArray();
         $this->assertCount(1, $skips);
-        $this->assertIsFloat($skips[0]->timestamp, 'Should auto-generate timestamp for old data');
-        $this->assertGreaterThan(0, $skips[0]->timestamp);
+        $this->assertGreaterThan(0, $skips[0]->timestamp, 'Should auto-generate timestamp for old data');
     }
 
     public function testUnserializeLegacyFormatWithContinueStatus(): void

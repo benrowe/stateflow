@@ -88,7 +88,6 @@ class SerializationTest extends TestCase
 
         // ===== PART 2: Serialize context (e.g., save to database) =====
         $serialized = (new TransitionContextSerializer())->serialize($pausedContext);
-        $this->assertIsString($serialized);
         $this->assertJson($serialized);
 
         // ===== PART 3: Simulate loading from database and resuming =====
