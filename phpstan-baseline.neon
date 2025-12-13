@@ -121,24 +121,6 @@ parameters:
 			path: src/Configuration/Configuration.php
 
 		-
-			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.NumberOfChildren\) Event hierarchy naturally grows with domain events \(16 children, threshold 15\)\)\: Unexpected token "\.NumberOfChildren\)", expected ''\)'' at offset 72 on line 4$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: src/Events/Event.php
-
-		-
-			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.CouplingBetweenObjects\) Orchestrator pattern requires knowledge of all event types \(26 dependencies, threshold 13\)\)\: Unexpected token "\.CouplingBetweenObjects\)", expected ''\)'' at offset 95 on line 4$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: src/Events/EventOrchestrator.php
-
-		-
-			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.TooManyPublicMethods\) Orchestrator pattern requires one public method per event type \(15 methods, threshold 10\)\)\: Unexpected token "\.TooManyPublicMethods\)", expected ''\)'' at offset 237 on line 5$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: src/Events/EventOrchestrator.php
-
-		-
 			message: '#^Instanceof between BenRowe\\StateFlow\\Gate\\Gate and BenRowe\\StateFlow\\Gate\\Gate will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
 			count: 2
@@ -191,42 +173,6 @@ parameters:
 			identifier: match.alwaysTrue
 			count: 1
 			path: src/Locking/LockManager.php
-
-		-
-			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.CouplingBetweenObjects\) Lock management requires event dispatching and strategy handling \(14 dependencies, threshold 13\)\)\: Unexpected token "\.CouplingBetweenObjects\)", expected ''\)'' at offset 153 on line 6$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: src/Locking/LockManager.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\TransitionContextSerializer\:\:serializeActionExecutions\(\) should return array\<int, array\<string, mixed\>\> but returns array\<array\<string, mixed\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/TransitionContextSerializer.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\TransitionContextSerializer\:\:serializeActionSkips\(\) should return array\<int, array\<string, mixed\>\> but returns array\<array\<string, float\|string\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/TransitionContextSerializer.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\TransitionContextSerializer\:\:serializeConfiguration\(\) should return array\<string, array\<int, string\>\> but returns array\<string, array\<class\-string\<BenRowe\\StateFlow\\Action\\Action\>\|class\-string\<BenRowe\\StateFlow\\Gate\\Gate\>\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/TransitionContextSerializer.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\TransitionContextSerializer\:\:serializeGateEvaluations\(\) should return array\<int, array\<string, mixed\>\> but returns array\<array\<string, bool\|float\|string\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/TransitionContextSerializer.php
-
-		-
-			message: '#^PHPDoc tag @SuppressWarnings has invalid value \(\(PHPMD\.CouplingBetweenObjects\) Serializer must know all domain objects and factories \(17 dependencies, threshold 13\)\)\: Unexpected token "\.CouplingBetweenObjects\)", expected ''\)'' at offset 99 on line 4$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: src/TransitionContextSerializer.php
 
 		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\StateFactory\:\:fromArray\(\) expects array\<string, mixed\>, mixed given\.$#'
@@ -283,39 +229,15 @@ parameters:
 			path: tests/Integration/Configuration/ConfigurationTest.php
 
 		-
-			message: '#^Cannot access property \$gateResult on BenRowe\\StateFlow\\ActionSkip\|null\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Integration/StateFlow/ActionGuardTest.php
-
-		-
-			message: '#^Cannot access property \$isActionGate on BenRowe\\StateFlow\\GateEvaluation\|null\.$#'
-			identifier: property.nonObject
-			count: 5
-			path: tests/Integration/StateFlow/ActionGuardTest.php
-
-		-
-			message: '#^Cannot access property \$result on BenRowe\\StateFlow\\GateEvaluation\|null\.$#'
-			identifier: property.nonObject
-			count: 5
-			path: tests/Integration/StateFlow/ActionGuardTest.php
-
-		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ActionGuardTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
 			path: tests/Integration/StateFlow/ActionGuardTest.php
 
 		-
-			message: '#^Cannot access property \$executionState on BenRowe\\StateFlow\\Action\\ActionResult\|null\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: tests/Integration/StateFlow/BasicExecutionTest.php
-
-		-
-			message: '#^Cannot access property \$result on BenRowe\\StateFlow\\GateEvaluation\|null\.$#'
-			identifier: property.nonObject
-			count: 3
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with BenRowe\\StateFlow\\Action\\ActionResult will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
 			path: tests/Integration/StateFlow/BasicExecutionTest.php
 
 		-
@@ -323,12 +245,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: tests/Integration/StateFlow/BasicExecutionTest.php
-
-		-
-			message: '#^Cannot access property \$gateResult on BenRowe\\StateFlow\\ActionSkip\|null\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Integration/StateFlow/ComplexWorkflowTest.php
 
 		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\ComplexWorkflowTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
@@ -397,12 +313,6 @@ parameters:
 			path: tests/Integration/StateFlow/LockingTest.php
 
 		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Integration/StateFlow/SerializationTest.php
-
-		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Integration\\StateFlow\\SerializationTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
@@ -445,12 +355,6 @@ parameters:
 			path: tests/Unit/Action/ActionCollectionTest.php
 
 		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\Action\\Action\> will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/Action/ActionCollectionTest.php
-
-		-
 			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\Action\\ActionCollection\:\:set\(\) expects BenRowe\\StateFlow\\Action\\Action, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -459,12 +363,6 @@ parameters:
 		-
 			message: '#^BenRowe\\StateFlow\\Action\\ActionResultCollection does not accept string\.$#'
 			identifier: offsetAssign.valueType
-			count: 1
-			path: tests/Unit/Action/ActionResultCollectionTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\Action\\ActionResult\> will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Unit/Action/ActionResultCollectionTest.php
 
@@ -505,12 +403,6 @@ parameters:
 			path: tests/Unit/ActionSkipCollectionTest.php
 
 		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\ActionSkip\> will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/ActionSkipCollectionTest.php
-
-		-
 			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\ActionSkipCollection\:\:set\(\) expects BenRowe\\StateFlow\\ActionSkip, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -523,12 +415,6 @@ parameters:
 			path: tests/Unit/Gate/GateCollectionTest.php
 
 		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\Gate\\Gate\> will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/Gate/GateCollectionTest.php
-
-		-
 			message: '#^Parameter \#2 \$value of method BenRowe\\StateFlow\\Gate\\GateCollection\:\:set\(\) expects BenRowe\\StateFlow\\Gate\\Gate, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -537,12 +423,6 @@ parameters:
 		-
 			message: '#^BenRowe\\StateFlow\\GateEvaluationCollection does not accept string\.$#'
 			identifier: offsetAssign.valueType
-			count: 1
-			path: tests/Unit/GateEvaluationCollectionTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<BenRowe\\StateFlow\\GateEvaluation\> will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Unit/GateEvaluationCollectionTest.php
 
@@ -575,18 +455,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: tests/Unit/StateWorkerTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsFloat\(\) with float and ''Should auto…'' will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 2
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/TransitionContextSerializationTest.php
 
 		-
 			message: '#^Cannot access offset ''actions'' on mixed\.$#'
@@ -635,12 +503,6 @@ parameters:
 			identifier: argument.type
 			count: 4
 			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/TransitionContextSerializerTest.php
 
 		-
 			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\Tests\\Unit\\TransitionContextSerializerTest\:\:createTestState\(\) expects array\<string, mixed\>, array given\.$#'
