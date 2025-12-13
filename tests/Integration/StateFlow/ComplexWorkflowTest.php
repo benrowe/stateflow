@@ -234,7 +234,9 @@ class ComplexWorkflowTest extends TestCase
 
         // Verify the skip reason is SKIP_IDEMPOTENT
         $skips = $context2->executionHistory()->getActionSkips();
-        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skips[0]->gateResult);
+        $skip = $skips[0];
+        $this->assertNotNull($skip);
+        $this->assertSame(GateResult::SKIP_IDEMPOTENT, $skip->gateResult);
     }
 
     private function createStubGate(string $name, GateResult $result): Gate

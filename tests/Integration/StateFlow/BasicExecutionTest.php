@@ -55,6 +55,7 @@ class BasicExecutionTest extends TestCase
         $this->assertInstanceOf(TransitionContext::class, $context);
         $this->assertCount(1, $context->executionHistory()->getActionExecutions());
         $action = $context->executionHistory()->getActionExecutions()->toArray()[0];
+        $this->assertNotNull($action);
         $this->assertInstanceOf(ActionResult::class, $action);
         $this->assertSame(ExecutionState::CONTINUE, $action->executionState);
     }
@@ -105,16 +106,28 @@ class BasicExecutionTest extends TestCase
         // Verify all gates were evaluated
         $gateEvaluations = $context->executionHistory()->getGateEvaluations();
         $this->assertCount(3, $gateEvaluations, 'All 3 gates should be evaluated');
-        $this->assertSame(GateResult::ALLOW, $gateEvaluations[0]->result);
-        $this->assertSame(GateResult::ALLOW, $gateEvaluations[1]->result);
-        $this->assertSame(GateResult::ALLOW, $gateEvaluations[2]->result);
+        $gateEval0 = $gateEvaluations[0];
+        $gateEval1 = $gateEvaluations[1];
+        $gateEval2 = $gateEvaluations[2];
+        $this->assertNotNull($gateEval0);
+        $this->assertNotNull($gateEval1);
+        $this->assertNotNull($gateEval2);
+        $this->assertSame(GateResult::ALLOW, $gateEval0->result);
+        $this->assertSame(GateResult::ALLOW, $gateEval1->result);
+        $this->assertSame(GateResult::ALLOW, $gateEval2->result);
 
         // Verify all actions were executed
         $this->assertCount(3, $context->executionHistory()->getActionExecutions());
         $actionResults = $context->executionHistory()->getActionExecutions();
-        $this->assertSame(ExecutionState::CONTINUE, $actionResults[0]->executionState);
-        $this->assertSame(ExecutionState::CONTINUE, $actionResults[1]->executionState);
-        $this->assertSame(ExecutionState::CONTINUE, $actionResults[2]->executionState);
+        $actionResult0 = $actionResults[0];
+        $actionResult1 = $actionResults[1];
+        $actionResult2 = $actionResults[2];
+        $this->assertNotNull($actionResult0);
+        $this->assertNotNull($actionResult1);
+        $this->assertNotNull($actionResult2);
+        $this->assertSame(ExecutionState::CONTINUE, $actionResult0->executionState);
+        $this->assertSame(ExecutionState::CONTINUE, $actionResult1->executionState);
+        $this->assertSame(ExecutionState::CONTINUE, $actionResult2->executionState);
 
         // Verify gates executed before actions
         $this->assertContains('Gate:PermissionCheck', $this->logger->log);
