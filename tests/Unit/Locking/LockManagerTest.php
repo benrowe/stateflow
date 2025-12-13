@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Tests\Unit\Locking;
 
 use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
 use BenRowe\StateFlow\Locking\LockConfiguration;
 use BenRowe\StateFlow\Locking\LockKeyProvider;
 use BenRowe\StateFlow\Locking\LockManager;
 use BenRowe\StateFlow\Locking\LockProvider;
+use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\Locking\LockStrategy;
 use BenRowe\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
