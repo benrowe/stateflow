@@ -169,31 +169,4 @@ class TransitionContext
     {
         $this->history = $history;
     }
-
-    /**
-     * Serialize the context to a JSON string for persistence.
-     */
-    public function serialize(): string
-    {
-        return (new TransitionContextSerializer())->serialize($this);
-    }
-
-    /**
-     * Deserialize a context from a JSON string.
-     *
-     * @param string $data
-     * @param StateFactory $stateFactory
-     * @param ActionFactory $actionFactory
-     * @param GateFactory $gateFactory
-     * @throws JsonException
-     * @return self
-     */
-    public static function unserialize(
-        string $data,
-        StateFactory $stateFactory,
-        ActionFactory $actionFactory,
-        GateFactory $gateFactory
-    ): self {
-        return (new TransitionContextSerializer())->unserialize($data, $stateFactory, $actionFactory, $gateFactory);
-    }
 }

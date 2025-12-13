@@ -21,6 +21,7 @@ use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFactory;
 use BenRowe\StateFlow\TransitionContext;
+use BenRowe\StateFlow\TransitionContextSerializer;
 use JsonException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -49,7 +50,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
 
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         $this->assertIsString($serialized);
         $this->assertJson($serialized);
@@ -62,9 +63,9 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -86,8 +87,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -113,8 +114,8 @@ class TransitionContextSerializationTest extends TestCase
         $newState = new TestState(['status' => 'published']);
         $context->recordActionExecution(new ActionResult(ExecutionState::CONTINUE, $newState));
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -136,8 +137,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->executionStatus()->markPaused();
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -158,8 +159,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->executionStatus()->markStopped();
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -181,8 +182,8 @@ class TransitionContextSerializationTest extends TestCase
         $lockState = new LockState('order:123', 1234567890.0, 30);
         $context->setLockState($lockState);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -206,8 +207,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionSkip($action, GateResult::DENY);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -231,8 +232,8 @@ class TransitionContextSerializationTest extends TestCase
         $metadata = ['reason' => 'waiting for approval', 'approver' => 'manager@example.com'];
         $context->recordActionExecution(ActionResult::pause(null, $metadata));
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -254,8 +255,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->executionStatus()->markSkippedDueToLock();
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -284,8 +285,8 @@ class TransitionContextSerializationTest extends TestCase
         $lockState = new LockState('order:123', 1234567890.0, 30);
         $context->setLockState($lockState);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -319,7 +320,7 @@ class TransitionContextSerializationTest extends TestCase
         $this->expectException(JsonException::class);
         $this->expectExceptionMessage('Invalid JSON data: expected object');
 
-        TransitionContext::unserialize(
+        (new TransitionContextSerializer())->unserialize(
             'null',
             $this->stateFactory,
             $this->actionFactory,
@@ -334,7 +335,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and remove configuration
         $data = json_decode($serialized, true);
@@ -347,7 +348,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -366,7 +367,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and set configuration to a non-array value
         $data = json_decode($serialized, true);
@@ -379,7 +380,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -398,7 +399,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and set lockState to null
         $data = json_decode($serialized, true);
@@ -411,7 +412,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -429,7 +430,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and remove skippedDueToLock
         $data = json_decode($serialized, true);
@@ -442,7 +443,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -460,7 +461,7 @@ class TransitionContextSerializationTest extends TestCase
         $config = new Configuration([], []);
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and set status to null
         $data = json_decode($serialized, true);
@@ -473,7 +474,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -494,7 +495,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->executionStatus()->markCompleted();
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and modify executionStatus to have all flags false (simulating invalid/corrupted state)
         $data = json_decode($serialized, true);
@@ -512,7 +513,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -534,7 +535,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and set invalid gate result
         $data = json_decode($serialized, true);
@@ -547,7 +548,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -568,7 +569,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionExecution(new ActionResult(ExecutionState::CONTINUE));
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and set invalid execution state
         $data = json_decode($serialized, true);
@@ -581,7 +582,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -603,7 +604,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionSkip($action, GateResult::DENY);
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
 
         // Decode and set invalid gate result
         $data = json_decode($serialized, true);
@@ -616,7 +617,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode JSON');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $modifiedSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -639,8 +640,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordGateEvaluation($gate, GateResult::DENY, false);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -662,8 +663,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordGateEvaluation($gate, GateResult::SKIP_IDEMPOTENT, false);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -685,8 +686,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionSkip($action, GateResult::ALLOW);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -708,8 +709,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionSkip($action, GateResult::SKIP_IDEMPOTENT);
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -730,8 +731,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionExecution(new ActionResult(ExecutionState::PAUSE));
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -752,8 +753,8 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionExecution(new ActionResult(ExecutionState::STOP));
 
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -775,7 +776,7 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionExecution(new ActionResult(ExecutionState::CONTINUE, new TestState(['status' => 'published'])));
 
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
         $data = json_decode($serialized, true);
 
         // Verify both keys exist in the serialized JSON
@@ -794,7 +795,7 @@ class TransitionContextSerializationTest extends TestCase
         $this->assertSame('CONTINUE', $data['actionExecutions'][0]['executionState']);
 
         // Verify unserialization works correctly
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -817,7 +818,7 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
 
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
         $data = json_decode($serialized, true);
 
         $this->assertIsArray($data);
@@ -838,7 +839,7 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordGateEvaluation($gate, GateResult::ALLOW, false);
 
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
         $data = json_decode($serialized, true);
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
@@ -846,7 +847,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $originalTimestamp = $data['gateEvaluations'][0]['timestamp'];
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -868,7 +869,7 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionSkip($action, GateResult::DENY);
 
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
         $data = json_decode($serialized, true);
 
         $this->assertIsArray($data);
@@ -889,7 +890,7 @@ class TransitionContextSerializationTest extends TestCase
         $context = new TransitionContext($state, new ArrayDelta($delta), $config);
         $context->recordActionSkip($action, GateResult::DENY);
 
-        $serialized = $context->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($context);
         $data = json_decode($serialized, true);
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
@@ -897,7 +898,7 @@ class TransitionContextSerializationTest extends TestCase
 
         $originalTimestamp = $data['actionSkips'][0]['timestamp'];
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -953,7 +954,7 @@ class TransitionContextSerializationTest extends TestCase
         }
 
         // Should unserialize successfully and auto-generate timestamps
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $oldSerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -999,7 +1000,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode legacy data');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $legacySerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -1035,7 +1036,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode legacy data');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $legacySerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -1070,7 +1071,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode legacy data');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $legacySerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -1105,7 +1106,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode legacy data');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $legacySerialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -1138,7 +1139,7 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to encode legacy data');
         }
 
-        $restored = TransitionContext::unserialize(
+        $restored = (new TransitionContextSerializer())->unserialize(
             $legacySerialized,
             $this->stateFactory,
             $this->actionFactory,

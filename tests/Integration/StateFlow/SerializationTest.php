@@ -20,6 +20,7 @@ use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use BenRowe\StateFlow\TransitionContext;
+use BenRowe\StateFlow\TransitionContextSerializer;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -86,13 +87,13 @@ class SerializationTest extends TestCase
         $this->assertNotContains('Action:PublishDocument', $this->logger->log);
 
         // ===== PART 2: Serialize context (e.g., save to database) =====
-        $serialized = $pausedContext->serialize();
+        $serialized = (new TransitionContextSerializer())->serialize($pausedContext);
         $this->assertIsString($serialized);
         $this->assertJson($serialized);
 
         // ===== PART 3: Simulate loading from database and resuming =====
         // In real app, this might happen in a different request/process
-        $restoredContext = TransitionContext::unserialize(
+        $restoredContext = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -146,8 +147,8 @@ class SerializationTest extends TestCase
         $context = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']))->execute();
 
         // Serialize and unserialize
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -190,8 +191,8 @@ class SerializationTest extends TestCase
         $this->assertCount(2, $context->executionHistory()->getActionExecutions());
 
         // Serialize
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
@@ -235,8 +236,8 @@ class SerializationTest extends TestCase
         );
 
         // Serialize and unserialize
-        $serialized = $context->serialize();
-        $restored = TransitionContext::unserialize(
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+        $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
             $this->stateFactory,
             $this->actionFactory,
