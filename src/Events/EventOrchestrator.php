@@ -10,6 +10,7 @@ use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
+use BenRowe\StateFlow\Locking\LockState;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\TransitionContext;
 use Throwable;
@@ -17,7 +18,7 @@ use Throwable;
 /**
  * Centralizes event creation and dispatching for StateWorker
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Orchestrator pattern requires knowledge of all event types (20 dependencies, threshold 13)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Orchestrator pattern requires knowledge of all event types (26 dependencies, threshold 13)
  */
 class EventOrchestrator
 {
@@ -69,5 +70,30 @@ class EventOrchestrator
     public function transitionStopped(State $state, TransitionContext $context, mixed $metadata): void
     {
         $this->dispatcher->dispatch(new TransitionStopped($state, $context, $metadata));
+    }
+
+    public function lockAcquired(string $lockKey, LockState $lockState): void
+    {
+        $this->dispatcher->dispatch(new LockAcquired($lockKey, $lockState));
+    }
+
+    public function lockFailed(string $lockKey, State $state, string $reason): void
+    {
+        $this->dispatcher->dispatch(new LockFailed($lockKey, $state, $reason));
+    }
+
+    public function lockReleased(string $lockKey, State $state): void
+    {
+        $this->dispatcher->dispatch(new LockReleased($lockKey, $state));
+    }
+
+    public function lockRestored(string $lockKey, State $state): void
+    {
+        $this->dispatcher->dispatch(new LockRestored($lockKey, $state));
+    }
+
+    public function lockLost(string $lockKey, State $state): void
+    {
+        $this->dispatcher->dispatch(new LockLost($lockKey, $state));
     }
 }
