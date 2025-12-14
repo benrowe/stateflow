@@ -175,18 +175,6 @@ parameters:
 			path: src/Locking/LockManager.php
 
 		-
-			message: '#^Parameter \#1 \$data of method BenRowe\\StateFlow\\StateFactory\:\:fromArray\(\) expects array\<string, mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/TransitionContextSerializer.php
-
-		-
-			message: '#^Parameter \#1 \$data of static method BenRowe\\StateFlow\\Locking\\LockState\:\:fromArray\(\) expects array\<string, mixed\>, array\<mixed, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/TransitionContextSerializer.php
-
-		-
 			message: '#^Parameter \#1 \$decoded of method BenRowe\\StateFlow\\TransitionContextSerializer\:\:restoreActionExecutionsCollection\(\) expects array\<string, mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
@@ -212,12 +200,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \$decoded of method BenRowe\\StateFlow\\TransitionContextSerializer\:\:restoreExecutionStatus\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/TransitionContextSerializer.php
-
-		-
-			message: '#^Parameter \#2 \$statusData of method BenRowe\\StateFlow\\TransitionContextSerializer\:\:restoreNewFormatExecutionStatus\(\) expects array\<string, mixed\>, array\<mixed, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/TransitionContextSerializer.php
@@ -365,51 +347,3 @@ parameters:
 			identifier: classConstant.nonObject
 			count: 1
 			path: tests/Unit/StateWorkerTest.php
-
-		-
-			message: '#^Cannot access offset ''actions'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Cannot access offset ''executionState'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Cannot access offset ''gateResult'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Cannot access offset ''result'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Cannot access offset ''timestamp'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 4
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Cannot access offset 0 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 14
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Parameter \#2 \$array of method PHPUnit\\Framework\\Assert\:\:assertArrayHasKey\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: tests/Unit/TransitionContextSerializationTest.php
-
-		-
-			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: tests/Unit/TransitionContextSerializationTest.php

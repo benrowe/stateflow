@@ -541,7 +541,22 @@ class TransitionContextSerializationTest extends TestCase
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
         }
-        $data['gateEvaluations'][0]['result'] = 'INVALID_RESULT';
+        /** @var array<string, mixed> $data */
+        $rawGateEvaluations = $data['gateEvaluations'] ?? [];
+        if (!is_array($rawGateEvaluations)) {
+            $this->fail('gateEvaluations should be an array');
+        }
+        /** @var array<int, mixed> $gateEvaluations */
+        $gateEvaluations = $rawGateEvaluations;
+        $rawFirstEvaluation = $gateEvaluations[0] ?? [];
+        if (!is_array($rawFirstEvaluation)) {
+            $this->fail('First gate evaluation should be an array');
+        }
+        /** @var array<string, mixed> $firstEvaluation */
+        $firstEvaluation = $rawFirstEvaluation;
+        $firstEvaluation['result'] = 'INVALID_RESULT';
+        $gateEvaluations[0] = $firstEvaluation;
+        $data['gateEvaluations'] = $gateEvaluations;
         $modifiedSerialized = json_encode($data);
         if ($modifiedSerialized === false) {
             $this->fail('Failed to encode JSON');
@@ -575,7 +590,22 @@ class TransitionContextSerializationTest extends TestCase
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
         }
-        $data['actionExecutions'][0]['executionState'] = 'INVALID_STATE';
+        /** @var array<string, mixed> $data */
+        $rawActionExecutions = $data['actionExecutions'] ?? [];
+        if (!is_array($rawActionExecutions)) {
+            $this->fail('actionExecutions should be an array');
+        }
+        /** @var array<int, mixed> $actionExecutions */
+        $actionExecutions = $rawActionExecutions;
+        $rawFirstExecution = $actionExecutions[0] ?? [];
+        if (!is_array($rawFirstExecution)) {
+            $this->fail('First action execution should be an array');
+        }
+        /** @var array<string, mixed> $firstExecution */
+        $firstExecution = $rawFirstExecution;
+        $firstExecution['executionState'] = 'INVALID_STATE';
+        $actionExecutions[0] = $firstExecution;
+        $data['actionExecutions'] = $actionExecutions;
         $modifiedSerialized = json_encode($data);
         if ($modifiedSerialized === false) {
             $this->fail('Failed to encode JSON');
@@ -610,7 +640,22 @@ class TransitionContextSerializationTest extends TestCase
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
         }
-        $data['actionSkips'][0]['gateResult'] = 'INVALID_RESULT';
+        /** @var array<string, mixed> $data */
+        $rawActionSkips = $data['actionSkips'] ?? [];
+        if (!is_array($rawActionSkips)) {
+            $this->fail('actionSkips should be an array');
+        }
+        /** @var array<int, mixed> $actionSkips */
+        $actionSkips = $rawActionSkips;
+        $rawFirstSkip = $actionSkips[0] ?? [];
+        if (!is_array($rawFirstSkip)) {
+            $this->fail('First action skip should be an array');
+        }
+        /** @var array<string, mixed> $firstSkip */
+        $firstSkip = $rawFirstSkip;
+        $firstSkip['gateResult'] = 'INVALID_RESULT';
+        $actionSkips[0] = $firstSkip;
+        $data['actionSkips'] = $actionSkips;
         $modifiedSerialized = json_encode($data);
         if ($modifiedSerialized === false) {
             $this->fail('Failed to encode JSON');
@@ -780,18 +825,44 @@ class TransitionContextSerializationTest extends TestCase
 
         // Verify both keys exist in the serialized JSON
         $this->assertIsArray($data);
+        /** @var array<string, mixed> $data */
         $this->assertArrayHasKey('configuration', $data);
-        $this->assertArrayHasKey('actions', $data['configuration'], 'Configuration should have "actions" key with action class names');
+        $rawConfigData = $data['configuration'] ?? [];
+        if (!is_array($rawConfigData)) {
+            $this->fail('configuration should be an array');
+        }
+        /** @var array<string, mixed> $configData */
+        $configData = $rawConfigData;
+        $this->assertArrayHasKey('actions', $configData, 'Configuration should have "actions" key with action class names');
         $this->assertArrayHasKey('actionExecutions', $data, 'Top level should have "actionExecutions" key with execution results');
 
         // Verify configuration actions contains class names
-        $this->assertCount(1, $data['configuration']['actions']);
-        $this->assertSame(TestAction::class, $data['configuration']['actions'][0]);
+        $rawConfigActions = $configData['actions'] ?? [];
+        if (!is_array($rawConfigActions)) {
+            $this->fail('configuration.actions should be an array');
+        }
+        /** @var array<int, mixed> $configActions */
+        $configActions = $rawConfigActions;
+        $this->assertCount(1, $configActions);
+        $rawFirstAction = $configActions[0] ?? null;
+        $this->assertSame(TestAction::class, $rawFirstAction);
 
         // Verify actionExecutions contains execution state and metadata
-        $this->assertCount(1, $data['actionExecutions']);
-        $this->assertArrayHasKey('executionState', $data['actionExecutions'][0]);
-        $this->assertSame('CONTINUE', $data['actionExecutions'][0]['executionState']);
+        $rawActionExecutions = $data['actionExecutions'] ?? [];
+        if (!is_array($rawActionExecutions)) {
+            $this->fail('actionExecutions should be an array');
+        }
+        /** @var array<int, mixed> $actionExecutions */
+        $actionExecutions = $rawActionExecutions;
+        $this->assertCount(1, $actionExecutions);
+        $rawFirstExecution = $actionExecutions[0] ?? [];
+        if (!is_array($rawFirstExecution)) {
+            $this->fail('First action execution should be an array');
+        }
+        /** @var array<string, mixed> $firstExecution */
+        $firstExecution = $rawFirstExecution;
+        $this->assertArrayHasKey('executionState', $firstExecution);
+        $this->assertSame('CONTINUE', $firstExecution['executionState']);
 
         // Verify unserialization works correctly
         $restored = (new TransitionContextSerializer())->unserialize(
@@ -821,11 +892,25 @@ class TransitionContextSerializationTest extends TestCase
         $data = json_decode($serialized, true);
 
         $this->assertIsArray($data);
+        /** @var array<string, mixed> $data */
         $this->assertArrayHasKey('gateEvaluations', $data);
-        $this->assertCount(1, $data['gateEvaluations']);
-        $this->assertArrayHasKey('timestamp', $data['gateEvaluations'][0]);
-        $this->assertIsFloat($data['gateEvaluations'][0]['timestamp']);
-        $this->assertGreaterThan(0, $data['gateEvaluations'][0]['timestamp']);
+        $rawGateEvaluations = $data['gateEvaluations'] ?? [];
+        if (!is_array($rawGateEvaluations)) {
+            $this->fail('gateEvaluations should be an array');
+        }
+        /** @var array<int, mixed> $gateEvaluations */
+        $gateEvaluations = $rawGateEvaluations;
+        $this->assertCount(1, $gateEvaluations);
+        $rawFirstEvaluation = $gateEvaluations[0] ?? [];
+        if (!is_array($rawFirstEvaluation)) {
+            $this->fail('First gate evaluation should be an array');
+        }
+        /** @var array<string, mixed> $firstEvaluation */
+        $firstEvaluation = $rawFirstEvaluation;
+        $this->assertArrayHasKey('timestamp', $firstEvaluation);
+        $rawTimestamp = $firstEvaluation['timestamp'] ?? null;
+        $this->assertIsFloat($rawTimestamp);
+        $this->assertGreaterThan(0, $rawTimestamp);
     }
 
     public function testUnserializeRestoresGateEvaluationTimestamp(): void
@@ -843,8 +928,21 @@ class TransitionContextSerializationTest extends TestCase
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
         }
+        /** @var array<string, mixed> $data */
 
-        $originalTimestamp = $data['gateEvaluations'][0]['timestamp'];
+        $rawGateEvaluations = $data['gateEvaluations'] ?? [];
+        if (!is_array($rawGateEvaluations)) {
+            $this->fail('gateEvaluations should be an array');
+        }
+        /** @var array<int, mixed> $gateEvaluations */
+        $gateEvaluations = $rawGateEvaluations;
+        $rawFirstEvaluation = $gateEvaluations[0] ?? [];
+        if (!is_array($rawFirstEvaluation)) {
+            $this->fail('First gate evaluation should be an array');
+        }
+        /** @var array<string, mixed> $firstEvaluation */
+        $firstEvaluation = $rawFirstEvaluation;
+        $originalTimestamp = $firstEvaluation['timestamp'];
 
         $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,
@@ -872,11 +970,25 @@ class TransitionContextSerializationTest extends TestCase
         $data = json_decode($serialized, true);
 
         $this->assertIsArray($data);
+        /** @var array<string, mixed> $data */
         $this->assertArrayHasKey('actionSkips', $data);
-        $this->assertCount(1, $data['actionSkips']);
-        $this->assertArrayHasKey('timestamp', $data['actionSkips'][0]);
-        $this->assertIsFloat($data['actionSkips'][0]['timestamp']);
-        $this->assertGreaterThan(0, $data['actionSkips'][0]['timestamp']);
+        $rawActionSkips = $data['actionSkips'] ?? [];
+        if (!is_array($rawActionSkips)) {
+            $this->fail('actionSkips should be an array');
+        }
+        /** @var array<int, mixed> $actionSkips */
+        $actionSkips = $rawActionSkips;
+        $this->assertCount(1, $actionSkips);
+        $rawFirstSkip = $actionSkips[0] ?? [];
+        if (!is_array($rawFirstSkip)) {
+            $this->fail('First action skip should be an array');
+        }
+        /** @var array<string, mixed> $firstSkip */
+        $firstSkip = $rawFirstSkip;
+        $this->assertArrayHasKey('timestamp', $firstSkip);
+        $rawTimestamp = $firstSkip['timestamp'] ?? null;
+        $this->assertIsFloat($rawTimestamp);
+        $this->assertGreaterThan(0, $rawTimestamp);
     }
 
     public function testUnserializeRestoresActionSkipTimestamp(): void
@@ -894,8 +1006,21 @@ class TransitionContextSerializationTest extends TestCase
         if (!is_array($data)) {
             $this->fail('Failed to decode JSON');
         }
+        /** @var array<string, mixed> $data */
 
-        $originalTimestamp = $data['actionSkips'][0]['timestamp'];
+        $rawActionSkips = $data['actionSkips'] ?? [];
+        if (!is_array($rawActionSkips)) {
+            $this->fail('actionSkips should be an array');
+        }
+        /** @var array<int, mixed> $actionSkips */
+        $actionSkips = $rawActionSkips;
+        $rawFirstSkip = $actionSkips[0] ?? [];
+        if (!is_array($rawFirstSkip)) {
+            $this->fail('First action skip should be an array');
+        }
+        /** @var array<string, mixed> $firstSkip */
+        $firstSkip = $rawFirstSkip;
+        $originalTimestamp = $firstSkip['timestamp'];
 
         $restored = (new TransitionContextSerializer())->unserialize(
             $serialized,

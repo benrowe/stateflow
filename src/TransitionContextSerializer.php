@@ -59,8 +59,13 @@ class TransitionContextSerializer
         }
 
         // Reconstruct states
-        $initialState = $stateFactory->fromArray($decoded['initialState'] ?? []);
-        $currentState = $stateFactory->fromArray($decoded['currentState'] ?? []);
+        /** @var array<string, mixed> $initialStateData */
+        $initialStateData = $decoded['initialState'] ?? [];
+        $initialState = $stateFactory->fromArray($initialStateData);
+
+        /** @var array<string, mixed> $currentStateData */
+        $currentStateData = $decoded['currentState'] ?? [];
+        $currentState = $stateFactory->fromArray($currentStateData);
 
         // Reconstruct configuration
         $configuration = $this->restoreConfiguration($decoded, $actionFactory, $gateFactory);
@@ -89,8 +94,16 @@ class TransitionContextSerializer
         $this->restoreExecutionStatus($context, $decoded);
 
         // Restore lock state
-        $lockStateData = $decoded['lockState'] ?? [];
-        $context->setLockState(is_array($lockStateData) ? LockState::fromArray($lockStateData) : new LockState());
+        $rawLockState = $decoded['lockState'] ?? [];
+        if (!is_array($rawLockState)) {
+            $context->setLockState(new LockState());
+
+            return $context;
+        }
+
+        /** @var array<string, mixed> $lockStateData */
+        $lockStateData = $rawLockState;
+        $context->setLockState(LockState::fromArray($lockStateData));
 
         return $context;
     }
@@ -180,17 +193,21 @@ class TransitionContextSerializer
         ActionFactory $actionFactory,
         GateFactory $gateFactory
     ): Configuration {
-        $configData = $decoded['configuration'] ?? [];
+        $rawConfigData = $decoded['configuration'] ?? [];
+        /** @var array<string, mixed> $configData */
+        $configData = is_array($rawConfigData) ? $rawConfigData : [];
 
+        $rawGateClassNames = $configData['transitionGates'] ?? [];
         /** @var array<int, string> $gateClassNames */
-        $gateClassNames = is_array($configData) ? ($configData['transitionGates'] ?? []) : [];
+        $gateClassNames = is_array($rawGateClassNames) ? $rawGateClassNames : [];
         $transitionGates = array_map(
             fn (string $className) => $gateFactory->fromClassName($className),
             $gateClassNames
         );
 
+        $rawActionClassNames = $configData['actions'] ?? [];
         /** @var array<int, string> $actionClassNames */
-        $actionClassNames = is_array($configData) ? ($configData['actions'] ?? []) : [];
+        $actionClassNames = is_array($rawActionClassNames) ? $rawActionClassNames : [];
         $actions = array_map(
             fn (string $className) => $actionFactory->fromClassName($className),
             $actionClassNames
@@ -204,8 +221,11 @@ class TransitionContextSerializer
      */
     private function restoreExecutionStatus(TransitionContext $context, array $decoded): void
     {
-        if (isset($decoded['executionStatus']) && is_array($decoded['executionStatus'])) {
-            $this->restoreNewFormatExecutionStatus($context, $decoded['executionStatus']);
+        $rawExecutionStatus = $decoded['executionStatus'] ?? null;
+        if (null !== $rawExecutionStatus && is_array($rawExecutionStatus)) {
+            /** @var array<string, mixed> $executionStatusData */
+            $executionStatusData = $rawExecutionStatus;
+            $this->restoreNewFormatExecutionStatus($context, $executionStatusData);
 
             return;
         }
@@ -257,8 +277,9 @@ class TransitionContextSerializer
      */
     private function restoreGateEvaluationsCollection(array $decoded, GateFactory $gateFactory): GateEvaluationCollection
     {
+        $rawGateEvaluations = $decoded['gateEvaluations'] ?? [];
         /** @var array<int, array{gate: string, result: string, isActionGate: bool, timestamp?: float}> $gateEvaluationsData */
-        $gateEvaluationsData = $decoded['gateEvaluations'] ?? [];
+        $gateEvaluationsData = is_array($rawGateEvaluations) ? $rawGateEvaluations : [];
         $evaluations = [];
 
         foreach ($gateEvaluationsData as $evalData) {
@@ -281,8 +302,9 @@ class TransitionContextSerializer
      */
     private function restoreActionExecutionsCollection(array $decoded, StateFactory $stateFactory): ActionResultCollection
     {
+        $rawActionExecutions = $decoded['actionExecutions'] ?? [];
         /** @var array<int, array{executionState: string, newState: array<string, mixed>|null, metadata: mixed}> $actionExecutionsData */
-        $actionExecutionsData = $decoded['actionExecutions'] ?? [];
+        $actionExecutionsData = is_array($rawActionExecutions) ? $rawActionExecutions : [];
         $results = [];
 
         foreach ($actionExecutionsData as $actionData) {
@@ -292,9 +314,12 @@ class TransitionContextSerializer
                 'STOP' => ExecutionState::STOP,
                 default => ExecutionState::CONTINUE,
             };
-            $newState = $actionData['newState'] !== null
-                ? $stateFactory->fromArray($actionData['newState'])
-                : null;
+            $newState = null;
+            if (null !== $actionData['newState']) {
+                /** @var array<string, mixed> $newStateData */
+                $newStateData = $actionData['newState'];
+                $newState = $stateFactory->fromArray($newStateData);
+            }
             $results[] = new ActionResult($executionState, $newState, $actionData['metadata']);
         }
 
@@ -306,8 +331,9 @@ class TransitionContextSerializer
      */
     private function restoreActionSkipsCollection(array $decoded, ActionFactory $actionFactory): ActionSkipCollection
     {
+        $rawActionSkips = $decoded['actionSkips'] ?? [];
         /** @var array<int, array{action: string, gateResult: string, timestamp?: float}> $actionSkipsData */
-        $actionSkipsData = $decoded['actionSkips'] ?? [];
+        $actionSkipsData = is_array($rawActionSkips) ? $rawActionSkips : [];
         $skips = [];
 
         foreach ($actionSkipsData as $skipData) {
