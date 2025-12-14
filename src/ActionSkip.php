@@ -9,7 +9,7 @@ use BenRowe\StateFlow\Gate\GateResult;
 
 readonly class ActionSkip
 {
-    public readonly float $timestamp;
+    public float $timestamp;
 
     public function __construct(
         public Action $action,

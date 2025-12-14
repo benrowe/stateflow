@@ -67,9 +67,9 @@ final class GateEvaluationCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @throws InvalidArgumentException if value is not a GateEvaluation
+     * @throws InvalidArgumentException if the value is not a GateEvaluation
      */
-    public function set($key, $value): void
+    public function set($key, mixed $value): void
     {
         if (!$value instanceof GateEvaluation) {
             throw new InvalidArgumentException('Value must be an instance of GateEvaluation');
@@ -82,7 +82,7 @@ final class GateEvaluationCollection extends ArrayCollection
      * Override offsetSet to ensure type safety.
      *
      * @param int|string|null $offset
-     * @throws InvalidArgumentException if value is not a GateEvaluation
+     * @throws InvalidArgumentException if the value is not a GateEvaluation
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {

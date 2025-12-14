@@ -15,7 +15,7 @@ use JsonException;
 /**
  * Handles serialization and deserialization of TransitionContext
  *
- * Serializer must know all domain objects and factories (17 dependencies, threshold 13)
+ * Serializer must know-all domain objects and factories (17 dependencies, threshold 13)
  *
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
@@ -222,7 +222,7 @@ class TransitionContextSerializer
     private function restoreExecutionStatus(TransitionContext $context, array $decoded): void
     {
         $rawExecutionStatus = $decoded['executionStatus'] ?? null;
-        if (null !== $rawExecutionStatus && is_array($rawExecutionStatus)) {
+        if (is_array($rawExecutionStatus)) {
             /** @var array<string, mixed> $executionStatusData */
             $executionStatusData = $rawExecutionStatus;
             $this->restoreNewFormatExecutionStatus($context, $executionStatusData);

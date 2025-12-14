@@ -15,19 +15,19 @@ use BenRowe\StateFlow\Gate\GateResult;
  * Immutable execution history tracking for state transitions.
  *
  * Tracks gate evaluations, action executions, and action skips throughout a transition's lifecycle.
- * Follows immutable pattern - all recording methods return new instances.
+ * Follows an immutable pattern - all recording methods return new instances.
  */
-final class ExecutionHistory
+final readonly class ExecutionHistory
 {
-    private readonly State $initialState;
+    private State $initialState;
 
-    private readonly State $currentState;
+    private State $currentState;
 
-    private readonly GateEvaluationCollection $gateEvaluations;
+    private GateEvaluationCollection $gateEvaluations;
 
-    private readonly ActionResultCollection $actionExecutions;
+    private ActionResultCollection $actionExecutions;
 
-    private readonly ActionSkipCollection $actionSkips;
+    private ActionSkipCollection $actionSkips;
 
     /**
      * Create a new execution history.
@@ -90,7 +90,7 @@ final class ExecutionHistory
      *
      * @param Gate $gate The gate that was evaluated
      * @param GateResult $result The result of the evaluation
-     * @param bool $isActionGate Whether this is an action gate (vs transition gate)
+     * @param bool $isActionGate Whether this is an action gate (vs. transition gate)
      * @return self New instance with recorded evaluation
      */
     public function recordGateEvaluation(Gate $gate, GateResult $result, bool $isActionGate): self

@@ -25,6 +25,7 @@ class ActionExecutionService
     /**
      * Execute a single action with guard checking and result processing
      *
+     * @throws Throwable when action execute fails for any reason (runtime, static)
      * @return ExecutionState The execution state after running this action
      */
     public function executeAction(
@@ -71,7 +72,7 @@ class ActionExecutionService
         // Record result
         $context->recordActionExecution($result);
 
-        // Update state if action returned new state
+        // Update state if action returned a new state
         if ($result->newState !== null) {
             $context->updateCurrentState($result->newState);
         }
