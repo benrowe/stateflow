@@ -18,8 +18,6 @@ final class ActionSkipCollection extends ArrayCollection
 {
     /**
      * Create a new immutable action skip collection.
-     *
-     * @param ActionSkip ...$skips
      */
     public function __construct(ActionSkip ...$skips)
     {
@@ -28,8 +26,6 @@ final class ActionSkipCollection extends ArrayCollection
 
     /**
      * Create an empty collection.
-     *
-     * @return self
      */
     public static function empty(): self
     {
@@ -40,7 +36,6 @@ final class ActionSkipCollection extends ArrayCollection
      * Create a collection from an array of action skips.
      *
      * @param ActionSkip[] $skips
-     * @return self
      */
     public static function fromArray(array $skips): self
     {
@@ -49,9 +44,6 @@ final class ActionSkipCollection extends ArrayCollection
 
     /**
      * Add an action skip and return a new collection (immutable).
-     *
-     * @param ActionSkip $skip
-     * @return self
      */
     public function with(ActionSkip $skip): self
     {
@@ -75,7 +67,6 @@ final class ActionSkipCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not an ActionSkip
      */
     public function set($key, $value): void
@@ -91,7 +82,6 @@ final class ActionSkipCollection extends ArrayCollection
      * Override offsetSet to ensure type safety.
      *
      * @param int|string|null $offset
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not an ActionSkip
      */
     public function offsetSet(mixed $offset, mixed $value): void

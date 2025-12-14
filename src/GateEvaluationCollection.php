@@ -18,8 +18,6 @@ final class GateEvaluationCollection extends ArrayCollection
 {
     /**
      * Create a new immutable gate evaluation collection.
-     *
-     * @param GateEvaluation ...$evaluations
      */
     public function __construct(GateEvaluation ...$evaluations)
     {
@@ -28,8 +26,6 @@ final class GateEvaluationCollection extends ArrayCollection
 
     /**
      * Create an empty collection.
-     *
-     * @return self
      */
     public static function empty(): self
     {
@@ -40,7 +36,6 @@ final class GateEvaluationCollection extends ArrayCollection
      * Create a collection from an array of gate evaluations.
      *
      * @param GateEvaluation[] $evaluations
-     * @return self
      */
     public static function fromArray(array $evaluations): self
     {
@@ -49,9 +44,6 @@ final class GateEvaluationCollection extends ArrayCollection
 
     /**
      * Add a gate evaluation and return a new collection (immutable).
-     *
-     * @param GateEvaluation $evaluation
-     * @return self
      */
     public function with(GateEvaluation $evaluation): self
     {
@@ -75,7 +67,6 @@ final class GateEvaluationCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not a GateEvaluation
      */
     public function set($key, $value): void
@@ -91,7 +82,6 @@ final class GateEvaluationCollection extends ArrayCollection
      * Override offsetSet to ensure type safety.
      *
      * @param int|string|null $offset
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not a GateEvaluation
      */
     public function offsetSet(mixed $offset, mixed $value): void

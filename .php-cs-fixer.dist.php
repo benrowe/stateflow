@@ -51,6 +51,7 @@ return $config
         'no_short_bool_cast' => true,
         'no_singleline_whitespace_before_semicolons' => true,
         'no_spaces_around_offset' => true,
+        'no_superfluous_phpdoc_tags' => true,
         'no_trailing_comma_in_singleline' => true,
         'no_unused_imports' => true,
         'no_whitespace_before_comma_in_array' => true,
