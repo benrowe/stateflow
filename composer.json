@@ -43,8 +43,9 @@
         ],
         "quality": [
             "phpmd src text phpmd.xml.dist",
-            "phpstan analyse --memory-limit=1G"
+            "@phpstan"
         ],
+        "phpstan": "phpstan analyse --memory-limit=1G",
         "phpstan:baseline": "phpstan analyse --generate-baseline --memory-limit=1G",
         "lint": "php-cs-fixer fix --dry-run --diff",
         "lint:fix": "php-cs-fixer fix",
