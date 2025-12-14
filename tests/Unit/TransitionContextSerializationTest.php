@@ -1273,6 +1273,77 @@ class TransitionContextSerializationTest extends TestCase
         $this->assertFalse($restored->executionStatus()->isPaused());
         $this->assertFalse($restored->executionStatus()->isStopped());
     }
+
+    public function testUnserializeWithNonArrayExecutionStatus(): void
+    {
+        $data = [
+            'initialState' => ['status' => 'draft'],
+            'currentState' => ['status' => 'draft'],
+            'desiredDelta' => [],
+            'executionStatus' => 'invalid_string_value',  // Not an array
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [],
+                'actions' => [],
+            ],
+            'gateEvaluations' => [],
+            'actionExecutions' => [],
+            'actionSkips' => [],
+        ];
+
+        $serialized = json_encode($data);
+        if ($serialized === false) {
+            $this->fail('Failed to encode data');
+        }
+
+        $restored = (new TransitionContextSerializer())->unserialize(
+            $serialized,
+            new TestStateFactory(),
+            new TestActionFactory(),
+            new TestGateFactory()
+        );
+
+        // Should have default execution status (not completed, paused, or stopped)
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isStopped());
+    }
+
+    public function testUnserializeWithMissingExecutionStatusAndStatus(): void
+    {
+        $data = [
+            'initialState' => ['status' => 'draft'],
+            'currentState' => ['status' => 'draft'],
+            'desiredDelta' => [],
+            // No executionStatus field at all
+            // No status field at all
+            'lockState' => [],
+            'configuration' => [
+                'transitionGates' => [],
+                'actions' => [],
+            ],
+            'gateEvaluations' => [],
+            'actionExecutions' => [],
+            'actionSkips' => [],
+        ];
+
+        $serialized = json_encode($data);
+        if ($serialized === false) {
+            $this->fail('Failed to encode data');
+        }
+
+        $restored = (new TransitionContextSerializer())->unserialize(
+            $serialized,
+            new TestStateFactory(),
+            new TestActionFactory(),
+            new TestGateFactory()
+        );
+
+        // Should have default execution status
+        $this->assertFalse($restored->executionStatus()->isCompleted());
+        $this->assertFalse($restored->executionStatus()->isPaused());
+        $this->assertFalse($restored->executionStatus()->isStopped());
+    }
 }
 
 // Test implementations
