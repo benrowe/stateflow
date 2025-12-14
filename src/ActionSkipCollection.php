@@ -17,7 +17,7 @@ use InvalidArgumentException;
 final class ActionSkipCollection extends ArrayCollection
 {
     /**
-     * Create a new immutable action skip collection.
+     * Create a new immutable action to skip the collection.
      */
     public function __construct(ActionSkip ...$skips)
     {

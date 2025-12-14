@@ -9,7 +9,7 @@ use BenRowe\StateFlow\Gate\GateResult;
 
 readonly class GateEvaluation
 {
-    public readonly float $timestamp;
+    public float $timestamp;
 
     public function __construct(
         public Gate $gate,

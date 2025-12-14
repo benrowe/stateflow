@@ -45,13 +45,13 @@ class LockManager
             return null;
         }
 
-        // Generate lock key
+        // Generate a lock key
         $lockKey = $this->lockKeyProvider->getLockKey(
             $this->context->getCurrentState(),
             $this->context->getDesiredDelta()
         );
 
-        // Attempt to acquire lock
+        // Attempt to acquire a lock
         $acquired = $this->lockProvider->acquire($lockKey, $this->lockConfiguration->ttl);
 
         if ($acquired) {
@@ -122,7 +122,7 @@ class LockManager
         assert($acquiredAt !== null);
         assert($ttl !== null);
 
-        // Calculate how much time has elapsed since lock was acquired
+        // Calculate how much time has elapsed since the lock was acquired
         $elapsed = microtime(true) - $acquiredAt;
 
         // Renew if more than 50% of TTL has elapsed
@@ -147,7 +147,7 @@ class LockManager
     }
 
     /**
-     * Check if lock is still held, throw exception if lost
+     * Check if the lock is still held, throw exception if lost
      */
     public function checkLockStillHeld(): void
     {

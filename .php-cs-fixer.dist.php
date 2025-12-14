@@ -15,6 +15,7 @@ return $config
         '@PHP8x2Migration' => true,
         '@PHPUnit10x0Migration:risky' => true,
         'array_syntax' => ['syntax' => 'short'],
+        'array_push' => true,
         'binary_operator_spaces' => [
             'default' => 'single_space',
         ],
@@ -29,15 +30,18 @@ return $config
                 'property' => 'one',
             ],
         ],
-            'concat_space' => [
+        'concat_space' => [
             'spacing' => 'one',
         ],
+        'constant_case' => true,
         'declare_parentheses' => true,
         'declare_strict_types' => true,
         'function_typehint_space' => true,
         'fully_qualified_strict_types' => [
             'import_symbols' => true,
+            'leading_backslash_in_global_namespace' => false,
         ],
+        'mb_str_functions' => true,
         'method_argument_space' => true,
         'method_chaining_indentation' => true,
         'no_alias_functions' => true,
@@ -54,6 +58,7 @@ return $config
         'no_superfluous_phpdoc_tags' => true,
         'no_trailing_comma_in_singleline' => true,
         'no_unused_imports' => true,
+        'no_useless_else' => true,
         'no_whitespace_before_comma_in_array' => true,
         'no_whitespace_in_blank_line' => true,
         'nullable_type_declaration_for_default_null_value' => true,
@@ -91,6 +96,7 @@ return $config
         'phpdoc_trim' => true,
         'phpdoc_types' => true,
         'phpdoc_var_without_name' => true,
+        'php_unit_attributes' => true,
         'return_assignment' => true,
         'simplified_if_return' => true,
         'single_line_after_imports' => true,
