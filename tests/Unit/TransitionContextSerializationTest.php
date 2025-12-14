@@ -422,6 +422,37 @@ class TransitionContextSerializationTest extends TestCase
         $this->assertFalse($restored->lockState()->isLocked());
     }
 
+    public function testUnserializeWithInvalidLockStateType(): void
+    {
+        $state = new TestState(['status' => 'draft']);
+        $delta = ['status' => 'published'];
+        $config = new Configuration([], []);
+
+        $context = new TransitionContext($state, new ArrayDelta($delta), $config);
+        $serialized = (new TransitionContextSerializer())->serialize($context);
+
+        // Decode and set lockState to a string (invalid type)
+        $data = json_decode($serialized, true);
+        if (!is_array($data)) {
+            $this->fail('Failed to decode JSON');
+        }
+        $data['lockState'] = 'invalid_string_value';
+        $modifiedSerialized = json_encode($data);
+        if ($modifiedSerialized === false) {
+            $this->fail('Failed to encode JSON');
+        }
+
+        $restored = (new TransitionContextSerializer())->unserialize(
+            $modifiedSerialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        // Should have empty lock state when invalid type is provided
+        $this->assertFalse($restored->lockState()->isLocked());
+    }
+
     public function testUnserializeWithMissingSkippedDueToLock(): void
     {
         $state = new TestState(['status' => 'draft']);
