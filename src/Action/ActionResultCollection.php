@@ -23,7 +23,7 @@ final class ActionResultCollection extends ArrayCollection
      */
     public function __construct(ActionResult ...$results)
     {
-        parent::__construct($results);
+        parent::__construct(array_values($results));
     }
 
     /**
@@ -75,7 +75,8 @@ final class ActionResultCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @param ActionResult $value
+     * @param mixed $value
+     * @throws InvalidArgumentException if value is not an ActionResult
      */
     public function set($key, $value): void
     {
@@ -89,8 +90,9 @@ final class ActionResultCollection extends ArrayCollection
     /**
      * Override offsetSet to ensure type safety.
      *
-     * @param mixed $offset
-     * @param ActionResult $value
+     * @param int|string|null $offset
+     * @param mixed $value
+     * @throws InvalidArgumentException if value is not an ActionResult
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {
