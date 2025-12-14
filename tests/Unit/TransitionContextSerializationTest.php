@@ -1394,7 +1394,6 @@ class TestState implements State
     }
 
     /**
-     * @return static
      */
     public function with(array $changes): static
     {

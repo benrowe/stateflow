@@ -18,8 +18,6 @@ final class ActionCollection extends ArrayCollection
 {
     /**
      * Create a new immutable action collection.
-     *
-     * @param Action ...$actions
      */
     public function __construct(Action ...$actions)
     {
@@ -28,8 +26,6 @@ final class ActionCollection extends ArrayCollection
 
     /**
      * Create an empty collection.
-     *
-     * @return self
      */
     public static function empty(): self
     {
@@ -40,7 +36,6 @@ final class ActionCollection extends ArrayCollection
      * Create a collection from an array of actions.
      *
      * @param Action[] $actions
-     * @return self
      */
     public static function fromArray(array $actions): self
     {
@@ -49,9 +44,6 @@ final class ActionCollection extends ArrayCollection
 
     /**
      * Add an action and return a new collection (immutable).
-     *
-     * @param Action $action
-     * @return self
      */
     public function with(Action $action): self
     {
@@ -75,7 +67,6 @@ final class ActionCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not an Action
      */
     public function set($key, $value): void
@@ -91,7 +82,6 @@ final class ActionCollection extends ArrayCollection
      * Override offsetSet to ensure type safety.
      *
      * @param int|string|null $offset
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not an Action
      */
     public function offsetSet(mixed $offset, mixed $value): void

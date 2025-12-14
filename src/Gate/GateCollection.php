@@ -18,8 +18,6 @@ final class GateCollection extends ArrayCollection
 {
     /**
      * Create a new immutable gate collection.
-     *
-     * @param Gate ...$gates
      */
     public function __construct(Gate ...$gates)
     {
@@ -28,8 +26,6 @@ final class GateCollection extends ArrayCollection
 
     /**
      * Create an empty collection.
-     *
-     * @return self
      */
     public static function empty(): self
     {
@@ -40,7 +36,6 @@ final class GateCollection extends ArrayCollection
      * Create a collection from an array of gates.
      *
      * @param Gate[] $gates
-     * @return self
      */
     public static function fromArray(array $gates): self
     {
@@ -49,9 +44,6 @@ final class GateCollection extends ArrayCollection
 
     /**
      * Add a gate and return a new collection (immutable).
-     *
-     * @param Gate $gate
-     * @return self
      */
     public function with(Gate $gate): self
     {
@@ -75,7 +67,6 @@ final class GateCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not a Gate
      */
     public function set($key, $value): void
@@ -91,7 +82,6 @@ final class GateCollection extends ArrayCollection
      * Override offsetSet to ensure type safety.
      *
      * @param int|string|null $offset
-     * @param mixed $value
      * @throws InvalidArgumentException if value is not a Gate
      */
     public function offsetSet(mixed $offset, mixed $value): void
