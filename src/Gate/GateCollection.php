@@ -23,7 +23,7 @@ final class GateCollection extends ArrayCollection
      */
     public function __construct(Gate ...$gates)
     {
-        parent::__construct($gates);
+        parent::__construct(array_values($gates));
     }
 
     /**
@@ -75,7 +75,8 @@ final class GateCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @param Gate $value
+     * @param mixed $value
+     * @throws InvalidArgumentException if value is not a Gate
      */
     public function set($key, $value): void
     {
@@ -89,8 +90,9 @@ final class GateCollection extends ArrayCollection
     /**
      * Override offsetSet to ensure type safety.
      *
-     * @param mixed $offset
-     * @param Gate $value
+     * @param int|string|null $offset
+     * @param mixed $value
+     * @throws InvalidArgumentException if value is not a Gate
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {

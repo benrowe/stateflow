@@ -23,7 +23,7 @@ final class ActionSkipCollection extends ArrayCollection
      */
     public function __construct(ActionSkip ...$skips)
     {
-        parent::__construct($skips);
+        parent::__construct(array_values($skips));
     }
 
     /**
@@ -75,7 +75,8 @@ final class ActionSkipCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
-     * @param ActionSkip $value
+     * @param mixed $value
+     * @throws InvalidArgumentException if value is not an ActionSkip
      */
     public function set($key, $value): void
     {
@@ -89,8 +90,9 @@ final class ActionSkipCollection extends ArrayCollection
     /**
      * Override offsetSet to ensure type safety.
      *
-     * @param mixed $offset
-     * @param ActionSkip $value
+     * @param int|string|null $offset
+     * @param mixed $value
+     * @throws InvalidArgumentException if value is not an ActionSkip
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {
