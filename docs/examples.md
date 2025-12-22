@@ -552,7 +552,7 @@ class SafeAction implements Action
 
             return ActionResult::continue();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Stop the transition
             return ActionResult::stop(metadata: [
                 'error' => $e->getMessage(),
@@ -597,7 +597,7 @@ try {
     $worker->releaseLock();
     return response()->json(['error' => 'Workflow interrupted'], 500);
 
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     // Always release lock on unexpected errors
     $worker->releaseLock();
 
