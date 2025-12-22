@@ -323,7 +323,7 @@ if ($context->isCompleted()) {
 try {
     $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
-} catch (\Exception $e) {
+} catch (Exception $e) {
     $worker->releaseLock(); // Manual cleanup
     handleError($e);
 }
@@ -797,7 +797,7 @@ class LockMonitoringDispatcher implements EventDispatcher
 try {
     $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
     $context = $worker->execute();
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     // Always release lock on fatal errors
     $worker->releaseLock();
 
