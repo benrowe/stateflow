@@ -53,15 +53,19 @@ MESSAGE_TEXT="$MESSAGE"
 
 # Calculate padding for centering (use character count)
 MSG_LEN=$(echo -n "$MESSAGE_TEXT" | wc -m | tr -d ' ')
-ICON_LEN=$(echo -n "$ICON  " | wc -m | tr -d ' ')
-TOTAL_MSG_LEN=$((MSG_LEN + ICON_LEN + ICON_LEN))
+# if the MSG_LEN is an odd number, reduce the width to 79
+if [ $((MSG_LEN % 2)) -eq 1 ]; then
+    WIDTH=79
+fi
+
+ICON_LEN=$(echo -n "$ICON" | wc -m | tr -d ' ')
+TOTAL_MSG_LEN=$((MSG_LEN + ICON_LEN + ICON_LEN + 3))
 PADDING=$(( (WIDTH - TOTAL_MSG_LEN) / 2 ))
-RIGHT_PADDING=$(( WIDTH - TOTAL_MSG_LEN - PADDING ))
 
 # Build the line piece by piece
 printf -v EMPTY_LINE "%${WIDTH}s" ""
 printf -v LEFT_SPACES "%${PADDING}s" ""
-printf -v RIGHT_SPACES "%${RIGHT_PADDING}s" ""
+printf -v RIGHT_SPACES "%${PADDING}s" ""
 
 # Print the message box
 echo ""
