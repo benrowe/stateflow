@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 
 use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Configuration\ConfigurationFactory;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
@@ -45,7 +45,7 @@ class TransitionGateTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => (new ConfigurationFactory())->makeFromArray(
             [$gate1, $gate2, $gate3],
             [$action1, $action2]
         ));
@@ -103,7 +103,7 @@ class TransitionGateTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => (new ConfigurationFactory())->makeFromArray(
             [$gate1, $gate2, $gate3],
             [$action1, $action2]
         ));
@@ -147,7 +147,7 @@ class TransitionGateTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => (new ConfigurationFactory())->makeFromArray(
             [$idempotencyGate],
             [$action1, $action2]
         ));
@@ -193,7 +193,7 @@ class TransitionGateTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => (new ConfigurationFactory())->makeFromArray(
             [$gate1, $gate2, $gate3],
             [$action1, $action2]
         ));
@@ -240,7 +240,7 @@ class TransitionGateTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => (new ConfigurationFactory())->makeFromArray(
             [$permissionGate, $validationGate],
             [$action1, $action2]
         ));
@@ -286,7 +286,7 @@ class TransitionGateTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => (new ConfigurationFactory())->makeFromArray(
             [$gate1, $gate2, $gate3],
             [$action1, $action2]
         ));

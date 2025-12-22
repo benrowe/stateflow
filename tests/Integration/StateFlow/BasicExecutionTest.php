@@ -47,7 +47,7 @@ class BasicExecutionTest extends TestCase
                 return ActionResult::continue();
             });
 
-            return new Configuration([], [$action1]);
+            return Configuration::fromArray([], [$action1]);
         });
         $context = $stateFlow
             ->transition($this->createMock(State::class), new ArrayDelta([]))
@@ -92,7 +92,7 @@ class BasicExecutionTest extends TestCase
             $gates = [$permissionGate, $validationGate, $approvalGate];
             $actions = [$updateStatusAction, $sendNotificationAction, $createAuditLogAction];
 
-            return new Configuration($gates, $actions);
+            return Configuration::fromArray($gates, $actions);
         });
 
         // Execute the transition
@@ -167,7 +167,7 @@ class BasicExecutionTest extends TestCase
         // Action that returns a new state
         $publishAction = $this->createTestActionWithState('PublishAction', $newState);
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$publishAction]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$publishAction]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta(['status' => 'published']))

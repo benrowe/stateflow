@@ -22,7 +22,7 @@ final class TransitionContextSerializerTest extends TestCase
     {
         $state = $this->createTestState(['id' => '123']);
         $delta = new ArrayDelta(['status' => 'processing']);
-        $config = new Configuration([], []);
+        $config = Configuration::fromArray([], []);
         $context = new TransitionContext($state, $delta, $config);
 
         $serializer = new TransitionContextSerializer();
@@ -35,7 +35,7 @@ final class TransitionContextSerializerTest extends TestCase
     {
         $state = $this->createTestState(['id' => '123']);
         $delta = new ArrayDelta(['status' => 'processing']);
-        $config = new Configuration([], []);
+        $config = Configuration::fromArray([], []);
         $originalContext = new TransitionContext($state, $delta, $config);
 
         $serializer = new TransitionContextSerializer();

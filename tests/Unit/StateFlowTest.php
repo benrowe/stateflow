@@ -30,7 +30,7 @@ class StateFlowTest extends TestCase
 
     public function testItCanBeInitialised(): void
     {
-        $stateFlow = new StateFlow(fn () => new Configuration([], []));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], []));
 
         $this->assertInstanceOf(StateFlow::class, $stateFlow);
         $this->assertInstanceOf(
@@ -41,9 +41,9 @@ class StateFlowTest extends TestCase
 
     public function testItCanBeInitialisedWithExistingContext(): void
     {
-        $stateFlow = new StateFlow(fn () => new Configuration([], []));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], []));
         $state = $this->createTestState(['foo' => 'bar']);
-        $config = new Configuration([], [$this->createTestAction('myAction')]);
+        $config = Configuration::fromArray([], [$this->createTestAction('myAction')]);
         $context = new TransitionContext($state, new ArrayDelta([]), $config);
         $worker = $stateFlow->fromContext($context);
 

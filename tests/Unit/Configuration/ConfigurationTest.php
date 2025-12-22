@@ -17,7 +17,7 @@ class ConfigurationTest extends TestCase
 {
     public function testCanBeCreatedWithEmptyArrays(): void
     {
-        $config = new Configuration([], []);
+        $config = Configuration::fromArray([], []);
 
         $this->assertSame([], $config->transitionGates->toArray());
         $this->assertSame([], $config->actions->toArray());
@@ -29,7 +29,7 @@ class ConfigurationTest extends TestCase
         $gate2 = $this->createMock(Gate::class);
         $gates = [$gate1, $gate2];
 
-        $config = new Configuration($gates, []);
+        $config = Configuration::fromArray($gates, []);
 
         $this->assertSame($gates, $config->transitionGates->toArray());
         $this->assertSame([], $config->actions->toArray());
@@ -41,7 +41,7 @@ class ConfigurationTest extends TestCase
         $action2 = $this->createMock(Action::class);
         $actions = [$action1, $action2];
 
-        $config = new Configuration([], $actions);
+        $config = Configuration::fromArray([], $actions);
 
         $this->assertSame([], $config->transitionGates->toArray());
         $this->assertSame($actions, $config->actions->toArray());
@@ -54,7 +54,7 @@ class ConfigurationTest extends TestCase
         $gates = [$gate];
         $actions = [$action];
 
-        $config = new Configuration($gates, $actions);
+        $config = Configuration::fromArray($gates, $actions);
 
         $this->assertSame($gates, $config->transitionGates->toArray());
         $this->assertSame($actions, $config->actions->toArray());
@@ -65,7 +65,7 @@ class ConfigurationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage(sprintf('Gate at index 0 must implement %s, %s given', Gate::class, stdClass::class));
 
-        new Configuration([new stdClass()], []);
+        Configuration::fromArray([new stdClass()], []);
     }
 
     public function testActionsConfigIsValidated(): void
@@ -73,7 +73,7 @@ class ConfigurationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage(sprintf('Action at index %d must implement %s, %s given', 0, Action::class, stdClass::class));
 
-        new Configuration([], [new stdClass()]);
+        Configuration::fromArray([], [new stdClass()]);
     }
 
     public function testCanCreateConfigWithCollections(): void

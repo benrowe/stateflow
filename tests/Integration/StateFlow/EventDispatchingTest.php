@@ -22,7 +22,6 @@ use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStarting;
 use BenRowe\StateFlow\Events\TransitionStopped;
 use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
@@ -30,6 +29,7 @@ use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use BenRowe\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class EventDispatchingTest extends TestCase
 {
@@ -67,7 +67,7 @@ class EventDispatchingTest extends TestCase
                 return true;
             }));
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], []), $mockDispatcher);
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], []), $mockDispatcher);
 
         $stateFlow->transition($initialState, $delta);
     }
@@ -95,7 +95,7 @@ class EventDispatchingTest extends TestCase
         // Use the trait to create a simple action that updates the state
         $action = $this->createTestActionWithState('TestAction', $finalState);
 
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
 
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
 
@@ -134,7 +134,7 @@ class EventDispatchingTest extends TestCase
             });
 
         $action = $this->createTestActionWithResult('PauseAction', ActionResult::pause());
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $pausedContext = $stateFlow->transition($initialState, $delta)->execute();
 
@@ -174,7 +174,7 @@ class EventDispatchingTest extends TestCase
             });
 
         $action = $this->createTestActionWithResult('StopAction', ActionResult::stop());
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stoppedContext = $stateFlow->transition($initialState, $delta)->execute();
 
@@ -215,7 +215,7 @@ class EventDispatchingTest extends TestCase
             });
 
         $action = $this->createTestActionWithResult('PauseAction', ActionResult::pause(null, $metadata));
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $pausedContext = $stateFlow->transition($initialState, $delta)->execute();
 
@@ -257,7 +257,7 @@ class EventDispatchingTest extends TestCase
             });
 
         $action = $this->createTestActionWithResult('StopAction', ActionResult::stop(null, $metadata));
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stoppedContext = $stateFlow->transition($initialState, $delta)->execute();
 
@@ -286,7 +286,7 @@ class EventDispatchingTest extends TestCase
         $mockDispatcher = $this->createMock(EventDispatcher::class);
         $initialState = $this->createTestState(['status' => 'draft']);
         $delta = new ArrayDelta(['status' => 'failed']);
-        $exception = new \RuntimeException('Test exception');
+        $exception = new RuntimeException('Test exception');
 
         $mockDispatcher
             ->expects($this->any())
@@ -299,13 +299,13 @@ class EventDispatchingTest extends TestCase
         $action = $this->createMock(Action::class);
         $action->method('execute')->willThrowException($exception);
 
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
 
         try {
             $stateFlow->transition($initialState, $delta)->execute();
             $this->fail('Expected exception was not thrown');
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             // Expected
             $this->assertSame($exception, $e);
         }
@@ -347,7 +347,7 @@ class EventDispatchingTest extends TestCase
         $gate2 = $this->createTestGate('ValidationGate', GateResult::ALLOW);
         $action = $this->createTestAction('TestAction');
 
-        $config = new Configuration([$gate1, $gate2], [$action]);
+        $config = Configuration::fromArray([$gate1, $gate2], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stateFlow->transition($initialState, $delta)->execute();
 
@@ -394,7 +394,7 @@ class EventDispatchingTest extends TestCase
 
         $action = $this->createTestGuardedAction('GuardedAction', GateResult::ALLOW);
 
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stateFlow->transition($initialState, $delta)->execute();
 
@@ -436,7 +436,7 @@ class EventDispatchingTest extends TestCase
             });
 
         $action = $this->createTestAction('TestAction');
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stateFlow->transition($initialState, $delta)->execute();
 
@@ -480,7 +480,7 @@ class EventDispatchingTest extends TestCase
 
         $action = $this->createTestGuardedAction('GuardedAction', GateResult::DENY);
 
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stateFlow->transition($initialState, $delta)->execute();
 
@@ -517,7 +517,7 @@ class EventDispatchingTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $config = new Configuration([$transitionGate], [$action1, $action2]);
+        $config = Configuration::fromArray([$transitionGate], [$action1, $action2]);
         $stateFlow = new StateFlow(fn () => $config, $mockDispatcher);
         $stateFlow->transition($initialState, $delta)->execute();
 

@@ -69,7 +69,7 @@ class StateWorkerTest extends TestCase
         $action = $this->createStubAction('TestAction');
 
         // Create configuration
-        $config = new Configuration([$idempotentGate], [$action]);
+        $config = Configuration::fromArray([$idempotentGate], [$action]);
 
         // Create state and context
         $state = $this->createTestState(['status' => 'draft']);
@@ -133,7 +133,7 @@ class StateWorkerTest extends TestCase
         $action = $this->createStubAction('TestAction');
 
         // Create configuration
-        $config = new Configuration([$denyGate], [$action]);
+        $config = Configuration::fromArray([$denyGate], [$action]);
 
         // Create state and context
         $state = $this->createTestState(['status' => 'draft']);
@@ -194,7 +194,7 @@ class StateWorkerTest extends TestCase
         $action = $this->createStubAction('TestAction');
 
         // Create configuration
-        $config = new Configuration([$allowGate], [$action]);
+        $config = Configuration::fromArray([$allowGate], [$action]);
 
         // Create state and context
         $state = $this->createTestState(['status' => 'draft']);
@@ -234,7 +234,7 @@ class StateWorkerTest extends TestCase
         $gateAllow = $this->createTestGate('first gate', GateResult::ALLOW);
         $gateDeny = $this->createTestGate('second gate', GateResult::DENY);
 
-        $config = new Configuration([$gateAllow, $gateDeny], []);
+        $config = Configuration::fromArray([$gateAllow, $gateDeny], []);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
         // ensure we expect the gate events
         $mockDispatcher = $this->createMock(EventDispatcher::class);
@@ -264,7 +264,7 @@ class StateWorkerTest extends TestCase
     {
         $action = $this->createStubAction('TestAction');
 
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -292,7 +292,7 @@ class StateWorkerTest extends TestCase
         $action = $this->createStubAction('TestAction');
         $gate = $this->createTestGate('first gate', GateResult::ALLOW);
 
-        $config = new Configuration([$gate], [$action]);
+        $config = Configuration::fromArray([$gate], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -307,7 +307,7 @@ class StateWorkerTest extends TestCase
     {
         $action = $this->createStubAction('TestAction');
 
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -332,7 +332,7 @@ class StateWorkerTest extends TestCase
 
     public function testRunNextActionReturnsContextImmediatelyWhenNoMoreActions(): void
     {
-        $config = new Configuration([], []); // No actions
+        $config = Configuration::fromArray([], []); // No actions
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -350,7 +350,7 @@ class StateWorkerTest extends TestCase
     {
         $action = $this->createStubAction('TestAction');
 
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
         $context->executionStatus()->markStopped(); // Mark as stopped
@@ -375,7 +375,7 @@ class StateWorkerTest extends TestCase
         };
         $secondAction = $this->createStubAction('SecondAction');
 
-        $config = new Configuration([], [$pauseAction, $secondAction]);
+        $config = Configuration::fromArray([], [$pauseAction, $secondAction]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -399,7 +399,7 @@ class StateWorkerTest extends TestCase
         };
         $secondAction = $this->createStubAction('SecondAction');
 
-        $config = new Configuration([], [$stopAction, $secondAction]);
+        $config = Configuration::fromArray([], [$stopAction, $secondAction]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -429,7 +429,7 @@ class StateWorkerTest extends TestCase
             }
         };
 
-        $config = new Configuration([$invalidGate], []);
+        $config = Configuration::fromArray([$invalidGate], []);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -460,7 +460,7 @@ class StateWorkerTest extends TestCase
             }
         };
 
-        $config = new Configuration([], [$guardedAction]);
+        $config = Configuration::fromArray([], [$guardedAction]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -495,7 +495,7 @@ class StateWorkerTest extends TestCase
             }
         };
 
-        $config = new Configuration([], [$guardedAction]);
+        $config = Configuration::fromArray([], [$guardedAction]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
@@ -517,7 +517,7 @@ class StateWorkerTest extends TestCase
         $action2 = $this->createStubAction('Action2');
         $action3 = $this->createStubAction('Action3');
 
-        $config = new Configuration([], [$action1, $action2, $action3]);
+        $config = Configuration::fromArray([], [$action1, $action2, $action3]);
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
