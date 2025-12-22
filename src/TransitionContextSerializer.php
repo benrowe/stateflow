@@ -8,6 +8,7 @@ use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ActionResultCollection;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Configuration\ConfigurationFactory;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Locking\LockState;
 use JsonException;
@@ -213,7 +214,7 @@ class TransitionContextSerializer
             $actionClassNames
         );
 
-        return new Configuration($transitionGates, $actions);
+        return (new ConfigurationFactory())->makeFromArray($transitionGates, $actions);
     }
 
     /**
