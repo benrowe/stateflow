@@ -5,5 +5,6 @@ parameters:
         - tests
     parallel:
         maximumNumberOfProcesses: 4
+    treatPhpDocTypesAsCertain: false
 includes:
     - phpstan-baseline.neon
