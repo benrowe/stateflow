@@ -19,54 +19,6 @@ parameters:
 			path: src/ActionSkipCollection.php
 
 		-
-			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateActions\(\) with array\<BenRowe\\StateFlow\\Action\\Action\> will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Call to method BenRowe\\StateFlow\\Configuration\\Configuration\:\:validateGates\(\) with array\<BenRowe\\StateFlow\\Gate\\Gate\> will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$actions with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$actions with no value type specified in iterable type array\|\(BenRowe\\StateFlow\\Action\\ActionCollection&iterable\<BenRowe\\StateFlow\\Action\\Action\>\)\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$transitionGates with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Method BenRowe\\StateFlow\\Configuration\\Configuration\:\:__construct\(\) has parameter \$transitionGates with no value type specified in iterable type array\|\(BenRowe\\StateFlow\\Gate\\GateCollection&iterable\<BenRowe\\StateFlow\\Gate\\Gate\>\)\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Parameter \#1 \$actions of method BenRowe\\StateFlow\\Configuration\\Configuration\:\:createActionCollection\(\) expects array\<BenRowe\\StateFlow\\Action\\Action\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
-			message: '#^Parameter \#1 \$gates of method BenRowe\\StateFlow\\Configuration\\Configuration\:\:createGateCollection\(\) expects array\<BenRowe\\StateFlow\\Gate\\Gate\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Configuration/Configuration.php
-
-		-
 			message: '#^Parameter \#1 \.\.\.\$gates \(BenRowe\\StateFlow\\Gate\\Gate\) of method BenRowe\\StateFlow\\Gate\\GateCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Gate\\Gate\>\:\:__construct\(\)\.$#'
 			identifier: method.childParameterType
 			count: 1
@@ -113,12 +65,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/TransitionContextSerializer.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with BenRowe\\StateFlow\\Action\\ActionResult will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Integration/StateFlow/BasicExecutionTest.php
 
 		-
 			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:148\:\:message\(\) never returns null so it can be removed from the return type\.$#'
