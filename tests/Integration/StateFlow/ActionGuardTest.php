@@ -38,7 +38,7 @@ class ActionGuardTest extends TestCase
 
         $action = $this->createTestGuardedAction('GuardedAction', GateResult::ALLOW);
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta(['status' => 'published']))
@@ -70,7 +70,7 @@ class ActionGuardTest extends TestCase
 
         $action = $this->createTestGuardedAction('GuardedAction', GateResult::DENY);
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta(['status' => 'published']))
@@ -108,7 +108,7 @@ class ActionGuardTest extends TestCase
         $action2 = $this->createTestGuardedAction('Action2', GateResult::DENY);
         $action3 = $this->createTestGuardedAction('Action3', GateResult::ALLOW);
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta(['status' => 'published']))

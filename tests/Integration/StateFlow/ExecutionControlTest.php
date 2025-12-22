@@ -44,7 +44,7 @@ class ExecutionControlTest extends TestCase
         $action2 = $this->createTestActionWithResult('Action2', ActionResult::pause(null, ['reason' => 'awaiting approval']));
         $action3 = $this->createTestAction('Action3');
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta(['status' => 'approved']))
@@ -82,7 +82,7 @@ class ExecutionControlTest extends TestCase
         $action2 = $this->createTestActionWithResult('Action2', ActionResult::stop(null, ['reason' => 'validation failed']));
         $action3 = $this->createTestAction('Action3');
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta(['status' => 'failed']))
@@ -202,7 +202,7 @@ class ExecutionControlTest extends TestCase
             }
         };
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action1, $action2, $action3]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta($delta))

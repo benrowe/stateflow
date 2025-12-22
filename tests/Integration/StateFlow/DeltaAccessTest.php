@@ -69,7 +69,7 @@ class DeltaAccessTest extends TestCase
             }
         };
 
-        $stateFlow = new StateFlow(fn () => new Configuration([$gate], []));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([$gate], []));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta($expectedDelta))
@@ -112,7 +112,7 @@ class DeltaAccessTest extends TestCase
             }
         };
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action]));
 
         $context = $stateFlow
             ->transition($initialState, new ArrayDelta($expectedDelta))

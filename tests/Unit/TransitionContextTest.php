@@ -33,7 +33,7 @@ class TransitionContextTest extends TestCase
     {
         parent::setUp();
         $this->mockState = $this->createStub(State::class);
-        $this->mockConfiguration = new Configuration([], []);
+        $this->mockConfiguration = Configuration::fromArray([], []);
         $this->logger = new ExecutionLogger();
     }
 
@@ -247,7 +247,7 @@ class TransitionContextTest extends TestCase
 
     public function testDidGatePassEmpty(): void
     {
-        $config = new Configuration([], []);
+        $config = Configuration::fromArray([], []);
         $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $this->assertTrue($context->didGatesPass());
     }
@@ -256,7 +256,7 @@ class TransitionContextTest extends TestCase
     {
         $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
         $gate2 = $this->createTestGate('gate 2', GateResult::ALLOW);
-        $config = new Configuration([$gate1, $gate2], []);
+        $config = Configuration::fromArray([$gate1, $gate2], []);
         $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $context->recordGateEvaluation($gate1, GateResult::ALLOW, false);
         $context->recordGateEvaluation($gate2, GateResult::ALLOW, false);
@@ -268,7 +268,7 @@ class TransitionContextTest extends TestCase
     {
         $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
         $gate2 = $this->createTestGate('gate 2', GateResult::DENY);
-        $config = new Configuration([$gate1, $gate2], []);
+        $config = Configuration::fromArray([$gate1, $gate2], []);
         $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $context->recordGateEvaluation($gate1, GateResult::ALLOW, false);
         $context->recordGateEvaluation($gate2, GateResult::DENY, false);
@@ -280,7 +280,7 @@ class TransitionContextTest extends TestCase
     {
         $gate1 = $this->createTestGate('gate 1', GateResult::ALLOW);
         $gate2 = $this->createTestGate('gate 2', GateResult::DENY);
-        $config = new Configuration([$gate1, $gate2], []);
+        $config = Configuration::fromArray([$gate1, $gate2], []);
         $context = new TransitionContext($this->mockState, new ArrayDelta(['status' => 'published']), $config);
         $context->recordGateEvaluation($gate1, GateResult::DENY, false);
 

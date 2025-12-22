@@ -10,6 +10,7 @@ use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\Configuration\ConfigurationFactory;
 use BenRowe\StateFlow\Delta;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -33,15 +34,15 @@ class ConfigurationTest extends TestCase
                 // Different gates based on the transition type
                 if ($delta->has('status') && $delta->get('status') === 'published') {
                     // Publishing requires permission check
-                    return new Configuration([$permissionGate], []);
+                    return Configuration::fromArray([$permissionGate], []);
                 }
 
                 if ($delta->has('content')) {
                     // Content changes require validation
-                    return new Configuration([$validationGate], []);
+                    return Configuration::fromArray([$validationGate], []);
                 }
 
-                return new Configuration([], []);
+                return Configuration::fromArray([], []);
             }
         );
 
@@ -93,7 +94,7 @@ class ConfigurationTest extends TestCase
                     $actions[] = $updateIndexAction;
                 }
 
-                return new Configuration([], $actions);
+                return Configuration::fromArray([], $actions);
             }
         );
 
@@ -137,7 +138,7 @@ class ConfigurationTest extends TestCase
                     $actions[] = $action3; // ProcessPayment
                 }
 
-                return new Configuration($gates, $actions);
+                return (new ConfigurationFactory())->makeFromArray($gates, $actions);
             }
         );
 

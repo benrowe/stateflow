@@ -30,6 +30,7 @@ use BenRowe\StateFlow\Locking\LockStrategy;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Integration tests for locking functionality
@@ -80,7 +81,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], []);
+        $config = Configuration::fromArray([], []);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -179,7 +180,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking and FAIL_FAST strategy
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([$gate], [$action]);
+        $config = Configuration::fromArray([$gate], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -284,7 +285,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking and SKIP strategy
         $lockConfig = new LockConfiguration(LockStrategy::SKIP, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([$gate], [$action]);
+        $config = Configuration::fromArray([$gate], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -390,7 +391,7 @@ class LockingTest extends TestCase
             retryInterval: 50
         );
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -497,7 +498,7 @@ class LockingTest extends TestCase
             retryInterval: 50
         );
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -580,7 +581,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], []);
+        $config = Configuration::fromArray([], []);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -660,14 +661,14 @@ class LockingTest extends TestCase
         $action = new class () implements Action {
             public function execute(ActionContext $context): ActionResult
             {
-                throw new \RuntimeException('Action failed');
+                throw new RuntimeException('Action failed');
             }
         };
 
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -678,7 +679,7 @@ class LockingTest extends TestCase
         $state = $this->createTestState(['id' => '123', 'status' => 'pending']);
 
         // Expect exception to be thrown
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Action failed');
 
         try {
@@ -753,7 +754,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -842,7 +843,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action]);
+        $config = Configuration::fromArray([], [$action]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -953,7 +954,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking (30 second TTL)
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action1, $action2]);
+        $config = Configuration::fromArray([], [$action1, $action2]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -1060,7 +1061,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking (30 second TTL)
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action1, $action2]);
+        $config = Configuration::fromArray([], [$action1, $action2]);
 
         $stateFlow = new StateFlow(
             fn () => $config,
@@ -1159,7 +1160,7 @@ class LockingTest extends TestCase
         // Create StateFlow with locking
         $lockConfig = new LockConfiguration(LockStrategy::FAIL_FAST, 30);
         $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
-        $config = new Configuration([], [$action1, $action2]);
+        $config = Configuration::fromArray([], [$action1, $action2]);
 
         $stateFlow = new StateFlow(
             fn () => $config,

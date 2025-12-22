@@ -19,7 +19,7 @@ class CallableConfigurationProviderTest extends TestCase
     {
         $state = $this->createMock(State::class);
         $delta = new ArrayDelta(['status' => 'active']);
-        $expectedConfig = new Configuration([], []);
+        $expectedConfig = Configuration::fromArray([], []);
 
         $callableInvoked = false;
         $callable = function (State $configState, Delta $configDelta) use ($state, $delta, $expectedConfig, &$callableInvoked) {
@@ -43,7 +43,7 @@ class CallableConfigurationProviderTest extends TestCase
         $gate = $this->createMock(Gate::class);
         $action = $this->createMock(Action::class);
 
-        $callable = fn (State $s, Delta $d) => new Configuration([$gate], [$action]);
+        $callable = fn (State $s, Delta $d) => Configuration::fromArray([$gate], [$action]);
 
         $provider = new CallableConfigurationProvider($callable);
         $config = $provider->provide($state, new ArrayDelta(['foo' => 'bar']));
@@ -68,10 +68,10 @@ class CallableConfigurationProviderTest extends TestCase
         $callable = function (State $state, Delta $delta) use ($pendingGate, $activeGate) {
             $stateData = $state->toArray();
             if ($stateData['status'] === 'pending') {
-                return new Configuration([$pendingGate], []);
+                return Configuration::fromArray([$pendingGate], []);
             }
 
-            return new Configuration([$activeGate], []);
+            return Configuration::fromArray([$activeGate], []);
         };
 
         $provider = new CallableConfigurationProvider($callable);
@@ -91,10 +91,10 @@ class CallableConfigurationProviderTest extends TestCase
 
         $callable = function (State $state, Delta $delta) use ($action1, $action2) {
             if ($delta->has('priority') && $delta->get('priority') === 'high') {
-                return new Configuration([], [$action1]);
+                return Configuration::fromArray([], [$action1]);
             }
 
-            return new Configuration([], [$action2]);
+            return Configuration::fromArray([], [$action2]);
         };
 
         $provider = new CallableConfigurationProvider($callable);

@@ -53,15 +53,15 @@ class ComplexWorkflowTest extends TestCase
 
             // Draft -> Published: approval workflow
             if ($stateData['status'] === 'draft' && $delta->has('status') && $delta->get('status') === 'published') {
-                return new Configuration([], [$checkApprovalAction, $sendApprovalNotificationAction]);
+                return Configuration::fromArray([], [$checkApprovalAction, $sendApprovalNotificationAction]);
             }
 
             // Already published: just send notification
             if ($stateData['status'] === 'published') {
-                return new Configuration([], [$sendPublishedNotificationAction]);
+                return Configuration::fromArray([], [$sendPublishedNotificationAction]);
             }
 
-            return new Configuration([], []);
+            return Configuration::fromArray([], []);
         };
 
         $stateFlow = new StateFlow($configProvider);
@@ -118,7 +118,7 @@ class ComplexWorkflowTest extends TestCase
         // Step 4: Send notification (action - should execute on resume)
         $sendNotificationAction = $this->createTrackingAction('SendNotification', $executionLog);
 
-        $config = new Configuration(
+        $config = Configuration::fromArray(
             [$permissionGate],
             [$createApprovalAction, $waitForApprovalAction, $sendNotificationAction]
         );
@@ -204,7 +204,7 @@ class ComplexWorkflowTest extends TestCase
 
         $action = $this->createTrackingAction('ProcessTransition', $executionLog);
 
-        $config = new Configuration([$idempotencyGate], [$action]);
+        $config = Configuration::fromArray([$idempotencyGate], [$action]);
         $stateFlow = new StateFlow(fn () => $config);
 
         // First transition: draft -> published

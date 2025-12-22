@@ -19,9 +19,9 @@ use BenRowe\StateFlow\StateFactory;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
-use BenRowe\StateFlow\TransitionContext;
 use BenRowe\StateFlow\TransitionContextSerializer;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Integration tests for TransitionContext serialization and workflow persistence
@@ -63,7 +63,7 @@ class SerializationTest extends TestCase
         $action2 = new PausingAction('RequestApproval', $this->logger, ['awaiting' => 'manager']);
         $action3 = new LoggingAction('PublishDocument', $this->logger);
 
-        $config = new Configuration([], [$action1, $action2, $action3]);
+        $config = Configuration::fromArray([], [$action1, $action2, $action3]);
 
         // ===== PART 1: Execute workflow until pause =====
         $stateFlow1 = new StateFlow(fn () => $config);
@@ -139,7 +139,7 @@ class SerializationTest extends TestCase
         $gate1 = new SimpleGate('ContentGate', GateResult::ALLOW);
         $action1 = new LoggingAction('PublishAction', $this->logger);
 
-        $config = new Configuration([$gate1], [$action1]);
+        $config = Configuration::fromArray([$gate1], [$action1]);
 
         // Execute workflow
         $stateFlow = new StateFlow(fn () => $config);
@@ -179,7 +179,7 @@ class SerializationTest extends TestCase
         );
         $action3 = new LoggingAction('SendConfirmation', $this->logger);
 
-        $config = new Configuration([], [$action1, $action2, $action3]);
+        $config = Configuration::fromArray([], [$action1, $action2, $action3]);
 
         // Execute workflow
         $stateFlow = new StateFlow(fn () => $config);
@@ -222,7 +222,7 @@ class SerializationTest extends TestCase
         $action1 = new StateChangingAction('ReviewAction', $this->logger, $updatedState);
         $action2 = new PausingAction('AwaitApproval', $this->logger);
 
-        $config = new Configuration([], [$action1, $action2]);
+        $config = Configuration::fromArray([], [$action1, $action2]);
 
         // Execute workflow
         $stateFlow = new StateFlow(fn () => $config);
@@ -401,7 +401,7 @@ class SerializationActionFactory implements ActionFactory
                 $this->logger,
                 (new SerializationStateFactory())->fromArray(['status' => 'review', 'version' => 2])
             ),
-            default => throw new \RuntimeException("Unknown action class: {$className}"),
+            default => throw new RuntimeException("Unknown action class: {$className}"),
         };
     }
 }
@@ -412,7 +412,7 @@ class SerializationGateFactory implements GateFactory
     {
         return match ($className) {
             SimpleGate::class => new SimpleGate('Restored', GateResult::ALLOW),
-            default => throw new \RuntimeException("Unknown gate class: {$className}"),
+            default => throw new RuntimeException("Unknown gate class: {$className}"),
         };
     }
 }

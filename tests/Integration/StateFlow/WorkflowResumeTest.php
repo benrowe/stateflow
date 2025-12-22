@@ -50,7 +50,7 @@ class WorkflowResumeTest extends TestCase
         $action3 = $this->createTestAction('Action3');
 
         // Create configuration
-        $configuration = new Configuration([], [$action1, $action2, $action3]);
+        $configuration = Configuration::fromArray([], [$action1, $action2, $action3]);
 
         // Step 1: Initial execution - should pause after action 2
         $stateFlow1 = new StateFlow(fn () => $configuration);
@@ -110,7 +110,7 @@ class WorkflowResumeTest extends TestCase
         $stateAfterAction3 = $this->createTestState(['status' => 'published', 'version' => 3]);
         $action3 = $this->createTestActionWithState('Action3', $stateAfterAction3);
 
-        $configuration = new Configuration([], [$action1, $action2, $action3]);
+        $configuration = Configuration::fromArray([], [$action1, $action2, $action3]);
 
         // Initial execution
         $stateFlow1 = new StateFlow(fn () => $configuration);
@@ -150,7 +150,7 @@ class WorkflowResumeTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $configuration = new Configuration([], [$action1, $action2]);
+        $configuration = Configuration::fromArray([], [$action1, $action2]);
 
         // Execute to completion
         $stateFlow1 = new StateFlow(fn () => $configuration);
@@ -193,7 +193,7 @@ class WorkflowResumeTest extends TestCase
         $action2 = $this->createTestActionWithResult('Action2', ActionResult::stop());
         $action3 = $this->createTestAction('Action3');
 
-        $configuration = new Configuration([], [$action1, $action2, $action3]);
+        $configuration = Configuration::fromArray([], [$action1, $action2, $action3]);
 
         // Execute until stopped
         $stateFlow1 = new StateFlow(fn () => $configuration);
@@ -222,12 +222,12 @@ class WorkflowResumeTest extends TestCase
         // V1 config
         $actionA = $this->createTestActionWithResult('ActionA', ActionResult::pause());
         $actionB = $this->createTestAction('ActionB');
-        $configV1 = new Configuration([], [$actionA, $actionB]);
+        $configV1 = Configuration::fromArray([], [$actionA, $actionB]);
 
         // V2 config
         $actionC = $this->createTestAction('ActionC');
         $actionD = $this->createTestAction('ActionD');
-        $configV2 = new Configuration([], [$actionC, $actionD]);
+        $configV2 = Configuration::fromArray([], [$actionC, $actionD]);
 
         // Config provider returns config based on state version
         $configProvider = function ($state) use ($configV1, $configV2) {

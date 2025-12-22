@@ -46,7 +46,7 @@ class StepByStepExecutionTest extends TestCase
         $action1 = $this->createTestAction('Action1');
         $action2 = $this->createTestAction('Action2');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray(
             [$gate1, $gate2, $gate3],
             [$action1, $action2]
         ));
@@ -94,7 +94,7 @@ class StepByStepExecutionTest extends TestCase
 
         $action1 = $this->createTestAction('Action1');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray(
             [$gate1, $gate2, $gate3],
             [$action1]
         ));
@@ -130,7 +130,7 @@ class StepByStepExecutionTest extends TestCase
         $action2 = $this->createTestAction('Action2');
         $action3 = $this->createTestAction('Action3');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray(
             [$gate1, $gate2],
             [$action1, $action2, $action3]
         ));
@@ -173,7 +173,7 @@ class StepByStepExecutionTest extends TestCase
         $action2 = $this->createTestAction('Action2');
         $action3 = $this->createTestAction('Action3');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray(
             [],
             [$action1, $action2, $action3]
         ));
@@ -216,7 +216,7 @@ class StepByStepExecutionTest extends TestCase
         $action2 = $this->createTestGuardedAction('Action2', GateResult::DENY);
         $action3 = $this->createTestGuardedAction('Action3', GateResult::ALLOW);
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action1, $action2, $action3]));
 
         $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
@@ -251,7 +251,7 @@ class StepByStepExecutionTest extends TestCase
         $action2 = $this->createTestAction('Action2');
 
         // Test 1: Using step-by-step execution
-        $stateFlow1 = new StateFlow(fn () => new Configuration(
+        $stateFlow1 = new StateFlow(fn () => Configuration::fromArray(
             [$gate1, $gate2],
             [$action1, $action2]
         ));
@@ -263,7 +263,7 @@ class StepByStepExecutionTest extends TestCase
         $stepByStepContext = $worker1->runActions();
 
         // Test 2: Using execute() shorthand - reuse the same configuration
-        $stateFlow2 = new StateFlow(fn () => new Configuration(
+        $stateFlow2 = new StateFlow(fn () => Configuration::fromArray(
             [$gate1, $gate2],
             [$action1, $action2]
         ));
@@ -304,7 +304,7 @@ class StepByStepExecutionTest extends TestCase
 
         $action1 = $this->createTestAction('Action1');
 
-        $stateFlow = new StateFlow(fn () => new Configuration(
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray(
             [$gate1, $gate2],
             [$action1]
         ));
@@ -339,7 +339,7 @@ class StepByStepExecutionTest extends TestCase
         $action2 = $this->createTestActionWithResult('Action2', ActionResult::pause());
         $action3 = $this->createTestAction('Action3');
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action1, $action2, $action3]));
 
         $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 
@@ -377,7 +377,7 @@ class StepByStepExecutionTest extends TestCase
         $action2 = $this->createTestActionWithResult('Action2', ActionResult::stop());
         $action3 = $this->createTestAction('Action3');
 
-        $stateFlow = new StateFlow(fn () => new Configuration([], [$action1, $action2, $action3]));
+        $stateFlow = new StateFlow(fn () => Configuration::fromArray([], [$action1, $action2, $action3]));
 
         $worker = $stateFlow->transition($initialState, new ArrayDelta(['status' => 'published']));
 

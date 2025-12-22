@@ -42,7 +42,7 @@ class ErrorHandlingTest extends TestCase
         $invalidGate = new stdClass();
 
         // This should throw immediately in the Configuration constructor
-        new Configuration([$invalidGate], []);
+        Configuration::fromArray([$invalidGate], []);
     }
 
     public function testInvalidActionThrowsException(): void
@@ -53,7 +53,7 @@ class ErrorHandlingTest extends TestCase
         $invalidAction = new stdClass();
 
         // This should throw immediately in the Configuration constructor
-        new Configuration([], [$invalidAction]);
+        Configuration::fromArray([], [$invalidAction]);
     }
 
     public function testMultipleInvalidGatesReportsFirstInvalid(): void
@@ -64,7 +64,7 @@ class ErrorHandlingTest extends TestCase
         $validGate = $this->createStubGate('ValidGate', GateResult::ALLOW);
         $invalidGate = 'not a gate';
 
-        new Configuration([$validGate, $invalidGate], []);
+        Configuration::fromArray([$validGate, $invalidGate], []);
     }
 
     public function testMultipleInvalidActionsReportsFirstInvalid(): void
@@ -76,7 +76,7 @@ class ErrorHandlingTest extends TestCase
         $validAction2 = $this->createStubAction('Action2');
         $invalidAction = ['not' => 'an action'];
 
-        new Configuration([], [$validAction1, $validAction2, $invalidAction]);
+        Configuration::fromArray([], [$validAction1, $validAction2, $invalidAction]);
     }
 
     /**
@@ -96,7 +96,7 @@ class ErrorHandlingTest extends TestCase
         $action2 = $this->createThrowingAction('FailingAction', $exception);
         $action3 = $this->createStubAction('Action3');
 
-        $config = new Configuration([], [$action1, $action2, $action3]);
+        $config = Configuration::fromArray([], [$action1, $action2, $action3]);
 
         // StateFlow with no EventDispatcher (uses NullEventDispatcher by default)
         $stateFlow = new StateFlow(fn () => $config);
@@ -119,7 +119,7 @@ class ErrorHandlingTest extends TestCase
         $action2 = $this->createThrowingAction('Action2', $exception);
         $action3 = $this->createTrackingAction('Action3', $executionLog);
 
-        $config = new Configuration([], [$action1, $action2, $action3]);
+        $config = Configuration::fromArray([], [$action1, $action2, $action3]);
         $stateFlow = new StateFlow(fn () => $config);
 
         try {
@@ -158,7 +158,7 @@ class ErrorHandlingTest extends TestCase
             }
         };
 
-        $config = new Configuration([$invalidGate], []);
+        $config = Configuration::fromArray([$invalidGate], []);
         $stateFlow = new StateFlow(fn () => $config);
 
         $this->expectException(InvalidGateResultException::class);
