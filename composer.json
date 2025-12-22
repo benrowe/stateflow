@@ -49,12 +49,7 @@
         "phpstan:baseline": "phpstan analyse --generate-baseline --memory-limit=1G",
         "lint": "php-cs-fixer fix --dry-run --diff",
         "lint:fix": "php-cs-fixer fix",
-        "check": [
-            "@lint",
-            "@quality",
-            "@test:coverage",
-            "scripts/message.sh --level success \"All Checks Passed Successfully\""
-        ]
+        "check": "scripts/check.sh"
     },
     "config": {
         "sort-packages": true,
