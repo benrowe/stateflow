@@ -42,6 +42,7 @@ class ErrorHandlingTest extends TestCase
         $invalidGate = new stdClass();
 
         // This should throw immediately in the Configuration constructor
+        // @phpstan-ignore argument.type
         Configuration::fromArray([$invalidGate], []);
     }
 
@@ -53,6 +54,7 @@ class ErrorHandlingTest extends TestCase
         $invalidAction = new stdClass();
 
         // This should throw immediately in the Configuration constructor
+        // @phpstan-ignore argument.type
         Configuration::fromArray([], [$invalidAction]);
     }
 
@@ -64,6 +66,7 @@ class ErrorHandlingTest extends TestCase
         $validGate = $this->createStubGate('ValidGate', GateResult::ALLOW);
         $invalidGate = 'not a gate';
 
+        // @phpstan-ignore argument.type
         Configuration::fromArray([$validGate, $invalidGate], []);
     }
 
@@ -76,6 +79,7 @@ class ErrorHandlingTest extends TestCase
         $validAction2 = $this->createStubAction('Action2');
         $invalidAction = ['not' => 'an action'];
 
+        // @phpstan-ignore argument.type
         Configuration::fromArray([], [$validAction1, $validAction2, $invalidAction]);
     }
 
@@ -152,7 +156,7 @@ class ErrorHandlingTest extends TestCase
                 return null;
             }
 
-            public function message(): ?string
+            public function message(): string
             {
                 return 'Invalid Gate';
             }

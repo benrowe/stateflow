@@ -125,6 +125,7 @@ class ActionResultCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of ActionResult');
 
         $collection = new ActionResultCollection();
+        // @phpstan-ignore argument.type
         $collection->set(0, 'not an action result');
     }
 
@@ -134,6 +135,7 @@ class ActionResultCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of ActionResult');
 
         $collection = new ActionResultCollection();
+        // @phpstan-ignore offsetAssign.valueType
         $collection[0] = 'not an action result';
     }
 
