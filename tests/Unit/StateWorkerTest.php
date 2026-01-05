@@ -29,6 +29,7 @@ use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use BenRowe\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
  * Unit tests for StateWorker
@@ -250,6 +251,7 @@ class StateWorkerTest extends TestCase
                 if ($event instanceof GateEvaluating) {
                     return in_array($event->gate->message(), ['first gate', 'second gate'], true);
                 }
+                assert($event instanceof stdClass);
                 $this->fail('Unexpected event ' . $event::class);
             });
         $worker = new StateWorker($context, $mockDispatcher);

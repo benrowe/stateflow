@@ -125,15 +125,3 @@ parameters:
 			identifier: argument.named
 			count: 1
 			path: tests/Unit/Action/ActionResultTest.php
-
-		-
-			message: '#^Binary operation "\." between ''Unexpected event '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: tests/Unit/StateWorkerTest.php
-
-		-
-			message: '#^Cannot access constant class on mixed\.$#'
-			identifier: classConstant.nonObject
-			count: 1
-			path: tests/Unit/StateWorkerTest.php
