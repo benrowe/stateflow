@@ -56,7 +56,7 @@ interface State
      * Create a new state instance with changes applied
      * User implements their merge strategy here
      */
-    public function with(array $changes): State;
+    public function with(array $changes): static;
 }```
 
 ### StateFactory
@@ -648,8 +648,7 @@ class StateFlow
     public function __construct(
         callable|ConfigurationProvider $configProvider,
         ?EventDispatcher $eventDispatcher = null,
-        ?LockProvider $lockProvider = null,
-        ?LockKeyProvider $lockKeyProvider = null,
+        ?LockContext $lockContext = null,
     ) {}
 
     /**

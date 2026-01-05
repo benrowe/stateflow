@@ -36,7 +36,7 @@ class ArticleState implements State
         ];
     }
 
-    public function with(array $changes): State
+    public function with(array $changes): static
     {
         return new self(
             status: $changes['status'] ?? $this->status,
@@ -105,7 +105,7 @@ class OrderState implements State
         ];
     }
 
-    public function with(array $changes): State
+    public function with(array $changes): static
     {
         return new self(
             id: $changes['id'] ?? $this->id,
@@ -270,15 +270,23 @@ class OrderConfigurationProvider implements ConfigurationProvider
 }
 
 // Usage
-$stateFlow = new StateFlow(
-    configProvider: new OrderConfigurationProvider($payment, $inventory, $shipping),
-    eventDispatcher: new OrderEventDispatcher(),
-    lockProvider: new RedisLockProvider($redis),
-    lockKeyProvider: new class implements LockKeyProvider {
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new class implements LockKeyProvider {
         public function getLockKey(State $state, Delta $delta): string {
             return "order:{$state->toArray()['id']}";
         }
     },
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
+
+$stateFlow = new StateFlow(
+    configProvider: new OrderConfigurationProvider($payment, $inventory, $shipping),
+    eventDispatcher: new OrderEventDispatcher(),
+    lockContext: $lockContext,
 );
 
 // Process order with lock
@@ -325,7 +333,7 @@ class ContentState implements State
         ];
     }
 
-    public function with(array $changes): State
+    public function with(array $changes): static
     {
         return new self(
             id: $changes['id'] ?? $this->id,
@@ -414,6 +422,15 @@ class ProcessVideoAction implements Action
 }
 
 // Main workflow
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
+
 $stateFlow = new StateFlow(
     configProvider: fn($s, $d) => new Configuration(
         actions: [
@@ -422,8 +439,7 @@ $stateFlow = new StateFlow(
             new PublishVideoAction(),
         ],
     ),
-    lockProvider: new RedisLockProvider($redis),
-    lockKeyProvider: new EntityLockKeyProvider(),
+    lockContext: $lockContext,
 );
 
 // Start workflow

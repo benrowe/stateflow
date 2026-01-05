@@ -169,7 +169,7 @@ interface State
      * Create a new state instance with changes applied
      * USER IMPLEMENTS THEIR MERGE STRATEGY HERE
      */
-    public function with(array $changes): State;
+    public function with(array $changes): static;
 }
 ```
 
@@ -210,7 +210,7 @@ class OrderState implements State
         ];
     }
 
-    public function with(array $changes): State
+    public function with(array $changes): static
     {
         // User's merge strategy - shallow merge example
         return new self(
@@ -242,7 +242,7 @@ class ArrayState implements State
 
     public function toArray(): array { return $this->data; }
 
-    public function with(array $changes): State {
+    public function with(array $changes): static {
         return new self(array_merge($this->data, $changes));
     }
 }
@@ -258,7 +258,7 @@ class ImmutableOrderState implements State
     public static function draft(string $id): self { /* ... */ }
     public static function published(string $id, DateTimeImmutable $at): self { /* ... */ }
 
-    public function with(array $changes): State {
+    public function with(array $changes): static {
         // Smart merging based on what changed
         if (isset($changes['status']) && $changes['status'] === 'published') {
             return self::published($this->id, new DateTimeImmutable());
@@ -637,13 +637,13 @@ class AuditAction implements Action
         $executionContext = $context->executionContext;
 
         // Access what gates were evaluated
-        foreach ($executionContext->getGateEvaluations() as $eval) {
-            Log::info("Gate: {$eval['gate']} => {$eval['result']}");
+        foreach ($executionContext->executionHistory()->getGateEvaluations() as $eval) {
+            Log::info("Gate: " . get_class($eval->gate) . " => " . $eval->result->name);
         }
 
         // Access what actions already ran
-        foreach ($executionContext->getActionExecutions() as $exec) {
-            Log::info("Action: {$exec['action']}");
+        foreach ($executionContext->executionHistory()->getActionExecutions() as $result) {
+            Log::info("Action executed with state: " . $result->executionState->name);
         }
 
         return ActionResult::continue();
@@ -813,8 +813,7 @@ class StateFlow
     public function __construct(
         callable|ConfigurationProvider $configProvider,
         ?EventDispatcher $eventDispatcher = null,
-        ?LockProvider $lockProvider = null,
-        ?LockKeyProvider $lockKeyProvider = null
+        ?LockContext $lockContext = null
     ) {}
 
     /**
@@ -838,10 +837,18 @@ class StateFlow
 **Simple Execution:**
 
 ```php
-$lockProvider = new RedisLockProvider($redis);
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
+
 $stateFlow = new StateFlow(
     configProvider: $configProvider,
-    lockProvider: $lockProvider,
+    lockContext: $lockContext,
 );
 $initialState = new OrderState(/* ... */);
 
@@ -891,19 +898,38 @@ class TransitionContext
     public function getCurrentState(): State;
     public function getDesiredDelta(): Delta;
 
-    // Status checks
+    // Status checks (via executionStatus())
+    public function executionStatus(): ExecutionStatus;
+
+    // Execution history (via executionHistory())
+    public function executionHistory(): ExecutionHistory;
+}
+
+class ExecutionStatus
+{
     public function isCompleted(): bool;
     public function isPaused(): bool;
     public function isStopped(): bool;
+}
 
+class ExecutionHistory
+{
     // Execution history (returns typed collections)
     public function getGateEvaluations(): GateEvaluationCollection;
     public function getActionExecutions(): ActionResultCollection;
     public function getActionSkips(): ActionSkipCollection;
+}
 
+class TransitionContextSerializer
+{
     // Serialization
-    public function serialize(): string;
-    public static function unserialize(string $data, StateFactory $stateFactory, ActionFactory $actionFactory): self;
+    public function serialize(TransitionContext $context): string;
+    public function unserialize(
+        string $data,
+        StateFactory $stateFactory,
+        ActionFactory $actionFactory,
+        GateFactory $gateFactory
+    ): TransitionContext;
 }
 ```
 
@@ -921,7 +947,7 @@ class SmartAction implements Action
         $executionContext = $context->executionContext;
 
         // Get gate evaluations as collection
-        $evaluations = $executionContext->getGateEvaluations();
+        $evaluations = $executionContext->executionHistory()->getGateEvaluations();
 
         // Use Doctrine Collection methods
         $notificationGate = $evaluations->filter(
@@ -933,7 +959,7 @@ class SmartAction implements Action
         }
 
         // Or convert to array if needed
-        foreach ($executionContext->getGateEvaluations()->toArray() as $eval) {
+        foreach ($executionContext->executionHistory()->getGateEvaluations()->toArray() as $eval) {
             Log::info("Gate evaluated", [
                 'gate' => get_class($eval->gate),
                 'result' => $eval->result->name,

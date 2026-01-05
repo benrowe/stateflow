@@ -213,10 +213,18 @@ Lock behavior is configured once on the `StateFlow` constructor. Different use c
 **API Request (fail fast):**
 
 ```php
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
+
 $stateFlow = new StateFlow(
     configProvider: $config,
-    lockProvider: new RedisLockProvider($redis),
-    lockKeyProvider: new EntityLockKeyProvider(),
+    lockContext: $lockContext,
 );
 
 try {
@@ -231,13 +239,19 @@ try {
 **Background Job (with longer TTL):**
 
 ```php
-// Configure lock provider with longer TTL for background jobs
-$lockProvider = new RedisLockProvider($redis, ttl: 60);
+// Configure lock with longer TTL for background jobs
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 60
+    )
+);
 
 $stateFlow = new StateFlow(
     configProvider: $config,
-    lockProvider: $lockProvider,
-    lockKeyProvider: new EntityLockKeyProvider(),
+    lockContext: $lockContext,
 );
 
 $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'published']));
@@ -247,10 +261,18 @@ $context = $worker->execute();
 **Critical Operation (fail on contention):**
 
 ```php
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
+
 $stateFlow = new StateFlow(
     configProvider: $config,
-    lockProvider: new RedisLockProvider($redis),
-    lockKeyProvider: new EntityLockKeyProvider(),
+    lockContext: $lockContext,
 );
 
 try {
@@ -712,22 +734,42 @@ try {
 
 ### 1. Choose Appropriate TTL
 
-Configure TTL on your `LockProvider` based on workflow duration:
+Configure TTL on your `LockConfiguration` based on workflow duration:
 
 ```php
 // Short-lived synchronous transition (30 seconds)
-$lockProvider = new RedisLockProvider($redis, ttl: 30);
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
 
 // Async transition with external dependency (1 hour)
-$lockProvider = new RedisLockProvider($redis, ttl: 3600);
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 3600
+    )
+);
 
 // Very long-running workflow (24 hours)
-$lockProvider = new RedisLockProvider($redis, ttl: 86400);
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 86400
+    )
+);
 
 $stateFlow = new StateFlow(
     configProvider: $config,
-    lockProvider: $lockProvider,
-    lockKeyProvider: new EntityLockKeyProvider(),
+    lockContext: $lockContext,
 );
 ```
 
@@ -855,17 +897,23 @@ class StateTransitionTest extends TestCase
     public function test_concurrent_transitions_are_prevented()
     {
         $lockProvider = new InMemoryLockProvider();
+        $lockContext = new LockContext(
+            provider: $lockProvider,
+            keyProvider: new EntityLockKeyProvider(),
+            configuration: new LockConfiguration(
+                strategy: LockStrategy::FAIL_FAST,
+                ttl: 30
+            )
+        );
 
         $stateFlow1 = new StateFlow(
             configProvider: /* ... */,
-            lockProvider: $lockProvider,
-            lockKeyProvider: new EntityLockKeyProvider(),
+            lockContext: $lockContext,
         );
 
         $stateFlow2 = new StateFlow(
             configProvider: /* ... */,
-            lockProvider: $lockProvider, // Same lock provider
-            lockKeyProvider: new EntityLockKeyProvider(),
+            lockContext: $lockContext, // Same lock context
         );
 
         $state = new OrderState('ORD-123', 'draft', 99.99);
