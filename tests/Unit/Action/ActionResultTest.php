@@ -87,16 +87,11 @@ class ActionResultTest extends TestCase
 
     private static function mockState(): State
     {
-        $mock = (new MockGenerator())->testDouble(
-            State::class,
-            true,
-            callOriginalConstructor: false,
-            callOriginalClone: false,
-            cloneArguments: false,
-            allowMockingUnknownTypes: false,
-        );
+        $mock = (new MockGenerator())
+            ->testDouble(State::class, true, [], [], '', false, false, true, false, false, null, false);
         assert($mock instanceof State);
 
         return $mock;
+
     }
 }
