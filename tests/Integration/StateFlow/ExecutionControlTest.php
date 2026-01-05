@@ -122,8 +122,10 @@ class ExecutionControlTest extends TestCase
         // Action 1: Uses state.with(delta) to merge changes
         $action1 = new class ($stateCaptures, $this->logger) implements Action
         {
-            /** @var array<string, mixed> */
-            private array $stateCaptures;
+            /**
+             * @var array<string, mixed>
+             */
+            private array $stateCaptures; // @phpstan-ignore-line
 
             /**
              * @param array<string, mixed> $stateCaptures
@@ -152,7 +154,7 @@ class ExecutionControlTest extends TestCase
         $action2 = new class ($stateCaptures, $this->logger) implements Action
         {
             /** @var array<string, mixed> */
-            private array $stateCaptures;
+            private array $stateCaptures; // @phpstan-ignore-line
 
             /**
              * @param array<string, mixed> $stateCaptures
@@ -170,6 +172,7 @@ class ExecutionControlTest extends TestCase
                 $this->stateCaptures['action2_received'] = $context->currentState->toArray();
 
                 $currentData = $context->currentState->toArray();
+                assert(is_int($currentData['version']));
                 $newState = $context->currentState->with(['version' => $currentData['version'] + 1]);
                 $this->stateCaptures['action2_returned'] = $newState->toArray();
 
@@ -181,7 +184,7 @@ class ExecutionControlTest extends TestCase
         $action3 = new class ($stateCaptures, $this->logger) implements Action
         {
             /** @var array<string, mixed> */
-            private array $stateCaptures;
+            private array $stateCaptures; // @phpstan-ignore-line
 
             /**
              * @param array<string, mixed> $stateCaptures
