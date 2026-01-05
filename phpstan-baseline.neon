@@ -7,30 +7,6 @@ parameters:
 			path: src/Locking/LockManager.php
 
 		-
-			message: '#^Binary operation "\+" between mixed and 1 results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: tests/Integration/StateFlow/ExecutionControlTest.php
-
-		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:123\:\:\$stateCaptures is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: tests/Integration/StateFlow/ExecutionControlTest.php
-
-		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:152\:\:\$stateCaptures is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: tests/Integration/StateFlow/ExecutionControlTest.php
-
-		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:181\:\:\$stateCaptures is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: tests/Integration/StateFlow/ExecutionControlTest.php
-
-		-
 			message: '#^Cannot access offset ''version'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
