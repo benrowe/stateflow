@@ -172,9 +172,7 @@ class ComplexWorkflowTest extends TestCase
             /**
              * @param array<string> $history
              */
-            public function __construct(private array &$history)
-            {
-            }
+            public function __construct(private array &$history) {}
 
             public function evaluate(GateContext $context): GateResult
             {
@@ -263,8 +261,7 @@ class ComplexWorkflowTest extends TestCase
                 private string $name,
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$log
-            ) {
-            }
+            ) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -292,8 +289,7 @@ class ComplexWorkflowTest extends TestCase
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$log,
                 private array $metadata
-            ) {
-            }
+            ) {}
 
             public function execute(ActionContext $context): ActionResult
             {

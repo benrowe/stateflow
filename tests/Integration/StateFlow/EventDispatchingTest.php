@@ -33,9 +33,9 @@ use RuntimeException;
 
 class EventDispatchingTest extends TestCase
 {
-    use CreatesTestStates;
     use CreatesTestActions;
     use CreatesTestGates;
+    use CreatesTestStates;
 
     private ExecutionLogger $logger;
 

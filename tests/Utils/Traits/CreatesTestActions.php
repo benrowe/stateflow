@@ -30,8 +30,7 @@ trait CreatesTestActions
             public function __construct(
                 private string $name,
                 private ExecutionLogger $logger
-            ) {
-            }
+            ) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -52,8 +51,7 @@ trait CreatesTestActions
                 private string $name,
                 private State $newState,
                 private ExecutionLogger $logger
-            ) {
-            }
+            ) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -74,8 +72,7 @@ trait CreatesTestActions
                 private string $name,
                 private ActionResult $result,
                 private ExecutionLogger $logger
-            ) {
-            }
+            ) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -96,8 +93,7 @@ trait CreatesTestActions
                 private string $name,
                 private GateResult $gateResult,
                 private ExecutionLogger $logger
-            ) {
-            }
+            ) {}
 
             public function gate(): Gate
             {
@@ -107,8 +103,7 @@ trait CreatesTestActions
                         private string $actionName,
                         private GateResult $result,
                         private ExecutionLogger $logger
-                    ) {
-                    }
+                    ) {}
 
                     public function evaluate(GateContext $context): GateResult
                     {

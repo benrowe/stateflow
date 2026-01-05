@@ -188,9 +188,7 @@ class ErrorHandlingTest extends TestCase
             /**
              * @phpstan-ignore property.onlyWritten
              */
-            public function __construct(private string $name)
-            {
-            }
+            public function __construct(private string $name) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -207,8 +205,7 @@ class ErrorHandlingTest extends TestCase
                 /** @phpstan-ignore property.onlyWritten */
                 private string $name,
                 private Throwable $exception
-            ) {
-            }
+            ) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -231,8 +228,7 @@ class ErrorHandlingTest extends TestCase
                 private string $name,
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$log
-            ) {
-            }
+            ) {}
 
             public function execute(ActionContext $context): ActionResult
             {

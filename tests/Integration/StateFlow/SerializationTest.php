@@ -267,8 +267,7 @@ class LoggingAction implements Action
     public function __construct(
         private string $name,
         private ExecutionLogger $logger
-    ) {
-    }
+    ) {}
 
     public function execute(ActionContext $context): ActionResult
     {
@@ -287,8 +286,7 @@ class PausingAction implements Action
         private string $name,
         private ExecutionLogger $logger,
         private ?array $metadata = null
-    ) {
-    }
+    ) {}
 
     public function execute(ActionContext $context): ActionResult
     {
@@ -307,8 +305,7 @@ class StoppingAction implements Action
         private string $name,
         private ExecutionLogger $logger,
         private ?array $metadata = null
-    ) {
-    }
+    ) {}
 
     public function execute(ActionContext $context): ActionResult
     {
@@ -324,8 +321,7 @@ class StateChangingAction implements Action
         private string $name,
         private ExecutionLogger $logger,
         private State $newState
-    ) {
-    }
+    ) {}
 
     public function execute(ActionContext $context): ActionResult
     {
@@ -340,8 +336,7 @@ class SimpleGate implements Gate
     public function __construct(
         private string $name,
         private GateResult $result
-    ) {
-    }
+    ) {}
 
     public function evaluate(GateContext $context): GateResult
     {
@@ -365,9 +360,7 @@ class SerializationStateFactory implements StateFactory
             /**
              * @param array<string, mixed> $data
              */
-            public function __construct(private array $data)
-            {
-            }
+            public function __construct(private array $data) {}
 
             public function toArray(): array
             {
@@ -384,9 +377,7 @@ class SerializationStateFactory implements StateFactory
 
 class SerializationActionFactory implements ActionFactory
 {
-    public function __construct(private ExecutionLogger $logger)
-    {
-    }
+    public function __construct(private ExecutionLogger $logger) {}
 
     public function fromClassName(string $className): Action
     {

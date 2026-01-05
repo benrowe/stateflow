@@ -20,9 +20,7 @@ use BenRowe\StateFlow\TransitionContext;
 use Exception;
 use PHPUnit\Framework\TestCase;
 
-interface GuardableAction extends Action, Guardable
-{
-}
+interface GuardableAction extends Action, Guardable {}
 
 class ActionExecutionServiceTest extends TestCase
 {

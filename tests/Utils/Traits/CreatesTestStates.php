@@ -17,6 +17,7 @@ trait CreatesTestStates
 {
     /**
      * @param array<string, mixed> $data
+     *
      * @throws Exception
      */
     private function createTestState(array $data): State

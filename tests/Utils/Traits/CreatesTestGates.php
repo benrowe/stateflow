@@ -26,8 +26,7 @@ trait CreatesTestGates
                 private string $name,
                 private GateResult $result,
                 private ExecutionLogger $logger
-            ) {
-            }
+            ) {}
 
             public function evaluate(GateContext $context): GateResult
             {
