@@ -125,6 +125,7 @@ class GateCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of Gate');
 
         $collection = new GateCollection();
+        // @phpstan-ignore argument.type
         $collection->set(0, 'not a gate');
     }
 
@@ -134,6 +135,7 @@ class GateCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of Gate');
 
         $collection = new GateCollection();
+        // @phpstan-ignore offsetAssign.valueType
         $collection[0] = 'not a gate';
     }
 

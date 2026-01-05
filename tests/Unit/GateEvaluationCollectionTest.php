@@ -147,6 +147,7 @@ class GateEvaluationCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of GateEvaluation');
 
         $collection = new GateEvaluationCollection();
+        // @phpstan-ignore argument.type
         $collection->set(0, 'not a gate evaluation');
     }
 
@@ -156,6 +157,7 @@ class GateEvaluationCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of GateEvaluation');
 
         $collection = new GateEvaluationCollection();
+        // @phpstan-ignore offsetAssign.valueType
         $collection[0] = 'not a gate evaluation';
     }
 

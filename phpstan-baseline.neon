@@ -67,12 +67,6 @@ parameters:
 			path: src/TransitionContextSerializer.php
 
 		-
-			message: '#^Method BenRowe\\StateFlow\\Gate\\Gate@anonymous/tests/Integration/StateFlow/ErrorHandlingTest\.php\:148\:\:message\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: tests/Integration/StateFlow/ErrorHandlingTest.php
-
-		-
 			message: '#^Binary operation "\+" between mixed and 1 results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1

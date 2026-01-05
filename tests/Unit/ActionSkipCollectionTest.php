@@ -147,6 +147,7 @@ class ActionSkipCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of ActionSkip');
 
         $collection = new ActionSkipCollection();
+        // @phpstan-ignore argument.type
         $collection->set(0, 'not an action skip');
     }
 
@@ -156,6 +157,7 @@ class ActionSkipCollectionTest extends TestCase
         $this->expectExceptionMessage('Value must be an instance of ActionSkip');
 
         $collection = new ActionSkipCollection();
+        // @phpstan-ignore offsetAssign.valueType
         $collection[0] = 'not an action skip';
     }
 
