@@ -13,20 +13,13 @@ use PHPUnit\Framework\TestCase;
 
 class ActionSkipCollectionTest extends TestCase
 {
-    public function testConstructorWithVariadicSkips(): void
+    public function testConstructorWithBadActionSkip(): void
     {
-        $action1 = $this->createMock(Action::class);
-        $action2 = $this->createMock(Action::class);
-        $action3 = $this->createMock(Action::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('All elements must be instances of ' . ActionSkip::class);
 
-        $skip1 = new ActionSkip($action1, GateResult::DENY);
-        $skip2 = new ActionSkip($action2, GateResult::SKIP_IDEMPOTENT);
-        $skip3 = new ActionSkip($action3, GateResult::DENY);
-
-        $collection = new ActionSkipCollection($skip1, $skip2, $skip3);
-
-        $this->assertCount(3, $collection);
-        $this->assertSame([$skip1, $skip2, $skip3], $collection->toArray());
+        // @phpstan-ignore-next-line
+        new ActionSkipCollection([stdClass::class]);
     }
 
     public function testConstructorWithNoSkips(): void
@@ -76,7 +69,7 @@ class ActionSkipCollectionTest extends TestCase
         $skip1 = new ActionSkip($action1, GateResult::DENY);
         $skip2 = new ActionSkip($action2, GateResult::SKIP_IDEMPOTENT);
 
-        $original = new ActionSkipCollection($skip1);
+        $original = new ActionSkipCollection([$skip1]);
         $new = $original->with($skip2);
 
         // Original should be unchanged
@@ -99,7 +92,7 @@ class ActionSkipCollectionTest extends TestCase
         $skip1 = new ActionSkip($action1, GateResult::DENY);
         $skip2 = new ActionSkip($action2, GateResult::SKIP_IDEMPOTENT);
 
-        $collection = new ActionSkipCollection($skip1, $skip2);
+        $collection = new ActionSkipCollection([$skip1, $skip2]);
         $array = $collection->toArray();
 
         $this->assertCount(2, $array);
@@ -117,7 +110,7 @@ class ActionSkipCollectionTest extends TestCase
         $skip2 = new ActionSkip($action2, GateResult::SKIP_IDEMPOTENT);
         $skip3 = new ActionSkip($action3, GateResult::DENY);
 
-        $collection = new ActionSkipCollection($skip1, $skip2, $skip3);
+        $collection = new ActionSkipCollection([$skip1, $skip2, $skip3]);
 
         $this->assertCount(3, $collection);
         $this->assertSame(3, $collection->count());
@@ -131,7 +124,7 @@ class ActionSkipCollectionTest extends TestCase
         $skip1 = new ActionSkip($action1, GateResult::DENY);
         $skip2 = new ActionSkip($action2, GateResult::SKIP_IDEMPOTENT);
 
-        $collection = new ActionSkipCollection($skip1, $skip2);
+        $collection = new ActionSkipCollection([$skip1, $skip2]);
 
         $skips = [];
         foreach ($collection as $skip) {

@@ -8,19 +8,17 @@ use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateCollection;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class GateCollectionTest extends TestCase
 {
-    public function testConstructorWithVariadicGates(): void
+    public function testConstructorWithBadGate(): void
     {
-        $gate1 = $this->createMock(Gate::class);
-        $gate2 = $this->createMock(Gate::class);
-        $gate3 = $this->createMock(Gate::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('All elements must be instances of ' . Gate::class);
 
-        $collection = new GateCollection($gate1, $gate2, $gate3);
-
-        $this->assertCount(3, $collection);
-        $this->assertSame([$gate1, $gate2, $gate3], $collection->toArray());
+        // @phpstan-ignore-next-line
+        new GateCollection([stdClass::class]);
     }
 
     public function testConstructorWithNoGates(): void
@@ -64,7 +62,7 @@ class GateCollectionTest extends TestCase
         $gate1 = $this->createMock(Gate::class);
         $gate2 = $this->createMock(Gate::class);
 
-        $original = new GateCollection($gate1);
+        $original = new GateCollection([$gate1]);
         $new = $original->with($gate2);
 
         // Original should be unchanged
@@ -84,7 +82,7 @@ class GateCollectionTest extends TestCase
         $gate1 = $this->createMock(Gate::class);
         $gate2 = $this->createMock(Gate::class);
 
-        $collection = new GateCollection($gate1, $gate2);
+        $collection = new GateCollection([$gate1, $gate2]);
         $array = $collection->toArray();
 
         $this->assertCount(2, $array);
@@ -98,7 +96,7 @@ class GateCollectionTest extends TestCase
         $gate2 = $this->createMock(Gate::class);
         $gate3 = $this->createMock(Gate::class);
 
-        $collection = new GateCollection($gate1, $gate2, $gate3);
+        $collection = new GateCollection([$gate1, $gate2, $gate3]);
 
         $this->assertCount(3, $collection);
         $this->assertSame(3, $collection->count());
@@ -109,7 +107,7 @@ class GateCollectionTest extends TestCase
         $gate1 = $this->createMock(Gate::class);
         $gate2 = $this->createMock(Gate::class);
 
-        $collection = new GateCollection($gate1, $gate2);
+        $collection = new GateCollection([$gate1, $gate2]);
 
         $gates = [];
         foreach ($collection as $gate) {

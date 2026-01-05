@@ -11,16 +11,13 @@ use PHPUnit\Framework\TestCase;
 
 class ActionResultCollectionTest extends TestCase
 {
-    public function testConstructorWithVariadicResults(): void
+    public function testConstructorWithBadActionResult(): void
     {
-        $result1 = ActionResult::continue();
-        $result2 = ActionResult::pause();
-        $result3 = ActionResult::stop();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('All elements must be instances of ' . ActionResult::class);
 
-        $collection = new ActionResultCollection($result1, $result2, $result3);
-
-        $this->assertCount(3, $collection);
-        $this->assertSame([$result1, $result2, $result3], $collection->toArray());
+        // @phpstan-ignore-next-line
+        new ActionResultCollection([stdClass::class]);
     }
 
     public function testConstructorWithNoResults(): void
@@ -64,7 +61,7 @@ class ActionResultCollectionTest extends TestCase
         $result1 = ActionResult::continue();
         $result2 = ActionResult::pause();
 
-        $original = new ActionResultCollection($result1);
+        $original = new ActionResultCollection([$result1]);
         $new = $original->with($result2);
 
         // Original should be unchanged
@@ -84,7 +81,7 @@ class ActionResultCollectionTest extends TestCase
         $result1 = ActionResult::continue();
         $result2 = ActionResult::pause();
 
-        $collection = new ActionResultCollection($result1, $result2);
+        $collection = new ActionResultCollection([$result1, $result2]);
         $array = $collection->toArray();
 
         $this->assertCount(2, $array);
@@ -98,7 +95,7 @@ class ActionResultCollectionTest extends TestCase
         $result2 = ActionResult::pause();
         $result3 = ActionResult::stop();
 
-        $collection = new ActionResultCollection($result1, $result2, $result3);
+        $collection = new ActionResultCollection([$result1, $result2, $result3]);
 
         $this->assertCount(3, $collection);
         $this->assertSame(3, $collection->count());
@@ -109,7 +106,7 @@ class ActionResultCollectionTest extends TestCase
         $result1 = ActionResult::continue();
         $result2 = ActionResult::pause();
 
-        $collection = new ActionResultCollection($result1, $result2);
+        $collection = new ActionResultCollection([$result1, $result2]);
 
         $results = [];
         foreach ($collection as $result) {

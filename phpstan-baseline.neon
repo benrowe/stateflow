@@ -1,36 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter \#1 \.\.\.\$actions \(BenRowe\\StateFlow\\Action\\Action\) of method BenRowe\\StateFlow\\Action\\ActionCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\Action\>\:\:__construct\(\)\.$#'
-			identifier: method.childParameterType
-			count: 1
-			path: src/Action/ActionCollection.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$results \(BenRowe\\StateFlow\\Action\\ActionResult\) of method BenRowe\\StateFlow\\Action\\ActionResultCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Action\\ActionResult\>\:\:__construct\(\)\.$#'
-			identifier: method.childParameterType
-			count: 1
-			path: src/Action/ActionResultCollection.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$skips \(BenRowe\\StateFlow\\ActionSkip\) of method BenRowe\\StateFlow\\ActionSkipCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\ActionSkip\>\:\:__construct\(\)\.$#'
-			identifier: method.childParameterType
-			count: 1
-			path: src/ActionSkipCollection.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$gates \(BenRowe\\StateFlow\\Gate\\Gate\) of method BenRowe\\StateFlow\\Gate\\GateCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\Gate\\Gate\>\:\:__construct\(\)\.$#'
-			identifier: method.childParameterType
-			count: 1
-			path: src/Gate/GateCollection.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$evaluations \(BenRowe\\StateFlow\\GateEvaluation\) of method BenRowe\\StateFlow\\GateEvaluationCollection\:\:__construct\(\) is not contravariant with parameter \#1 \$elements \(array\) of method Doctrine\\Common\\Collections\\ArrayCollection\<int,BenRowe\\StateFlow\\GateEvaluation\>\:\:__construct\(\)\.$#'
-			identifier: method.childParameterType
-			count: 1
-			path: src/GateEvaluationCollection.php
-
-		-
 			message: '#^Match arm comparison between BenRowe\\StateFlow\\Locking\\LockStrategy\:\:WAIT and BenRowe\\StateFlow\\Locking\\LockStrategy\:\:WAIT is always true\.$#'
 			identifier: match.alwaysTrue
 			count: 1
