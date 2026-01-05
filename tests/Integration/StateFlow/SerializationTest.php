@@ -360,7 +360,8 @@ class SerializationStateFactory implements StateFactory
 {
     public function fromArray(array $data): State
     {
-        return new class ($data) implements State {
+        return new class ($data) implements State
+        {
             /**
              * @param array<string, mixed> $data
              */

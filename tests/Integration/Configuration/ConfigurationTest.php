@@ -174,7 +174,8 @@ class ConfigurationTest extends TestCase
 
     private function createStubAction(string $name): Action
     {
-        return new class ($name) implements Action {
+        return new class ($name) implements Action
+        {
             public function __construct(private string $name)
             {
             }

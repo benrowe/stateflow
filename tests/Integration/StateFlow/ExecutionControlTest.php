@@ -120,7 +120,8 @@ class ExecutionControlTest extends TestCase
         $stateCaptures = [];
 
         // Action 1: Uses state.with(delta) to merge changes
-        $action1 = new class ($stateCaptures, $this->logger) implements Action {
+        $action1 = new class ($stateCaptures, $this->logger) implements Action
+        {
             /** @var array<string, mixed> */
             private array $stateCaptures;
 
@@ -148,7 +149,8 @@ class ExecutionControlTest extends TestCase
         };
 
         // Action 2: Increments version (should receive state from action 1)
-        $action2 = new class ($stateCaptures, $this->logger) implements Action {
+        $action2 = new class ($stateCaptures, $this->logger) implements Action
+        {
             /** @var array<string, mixed> */
             private array $stateCaptures;
 
@@ -176,7 +178,8 @@ class ExecutionControlTest extends TestCase
         };
 
         // Action 3: Adds timestamp (should receive state from action 2)
-        $action3 = new class ($stateCaptures, $this->logger) implements Action {
+        $action3 = new class ($stateCaptures, $this->logger) implements Action
+        {
             /** @var array<string, mixed> */
             private array $stateCaptures;
 

@@ -149,7 +149,8 @@ class ErrorHandlingTest extends TestCase
         $state = $this->createTestState(['status' => 'pending']);
 
         // Create a gate that returns null (bypassing type hints)
-        $invalidGate = new class () implements Gate {
+        $invalidGate = new class () implements Gate
+        {
             public function evaluate(GateContext $context): GateResult
             {
                 // @phpstan-ignore return.type
@@ -182,7 +183,8 @@ class ErrorHandlingTest extends TestCase
 
     private function createStubAction(string $name): Action
     {
-        return new class ($name) implements Action {
+        return new class ($name) implements Action
+        {
             /**
              * @phpstan-ignore property.onlyWritten
              */
@@ -199,7 +201,8 @@ class ErrorHandlingTest extends TestCase
 
     private function createThrowingAction(string $name, Throwable $exception): Action
     {
-        return new class ($name, $exception) implements Action {
+        return new class ($name, $exception) implements Action
+        {
             public function __construct(
                 /** @phpstan-ignore property.onlyWritten */
                 private string $name,
@@ -219,7 +222,8 @@ class ErrorHandlingTest extends TestCase
      */
     private function createTrackingAction(string $name, array &$log): Action
     {
-        return new class ($name, $log) implements Action {
+        return new class ($name, $log) implements Action
+        {
             /**
              * @param array<string> $log
              */

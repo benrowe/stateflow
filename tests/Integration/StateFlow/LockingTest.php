@@ -143,7 +143,8 @@ class LockingTest extends TestCase
 
         // Create gate and action to verify they don't execute
         $gateExecuted = false;
-        $gate = new class ($gateExecuted) implements Gate {
+        $gate = new class ($gateExecuted) implements Gate
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
@@ -163,7 +164,8 @@ class LockingTest extends TestCase
         };
 
         $actionExecuted = false;
-        $action = new class ($actionExecuted) implements Action {
+        $action = new class ($actionExecuted) implements Action
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
@@ -248,7 +250,8 @@ class LockingTest extends TestCase
 
         // Create gate and action to verify they don't execute
         $gateExecuted = false;
-        $gate = new class ($gateExecuted) implements Gate {
+        $gate = new class ($gateExecuted) implements Gate
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
@@ -268,7 +271,8 @@ class LockingTest extends TestCase
         };
 
         $actionExecuted = false;
-        $action = new class ($actionExecuted) implements Action {
+        $action = new class ($actionExecuted) implements Action
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
@@ -369,7 +373,8 @@ class LockingTest extends TestCase
 
         // Create a simple action to verify execution
         $actionExecuted = false;
-        $action = new class ($actionExecuted) implements Action {
+        $action = new class ($actionExecuted) implements Action
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
@@ -476,7 +481,8 @@ class LockingTest extends TestCase
 
         // Create a simple action to verify it does NOT execute
         $actionExecuted = false;
-        $action = new class ($actionExecuted) implements Action {
+        $action = new class ($actionExecuted) implements Action
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
@@ -658,7 +664,8 @@ class LockingTest extends TestCase
             });
 
         // Create an action that throws an exception
-        $action = new class () implements Action {
+        $action = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 throw new RuntimeException('Action failed');
@@ -744,7 +751,8 @@ class LockingTest extends TestCase
             });
 
         // Create an action that pauses execution
-        $action = new class () implements Action {
+        $action = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 return ActionResult::pause();
@@ -833,7 +841,8 @@ class LockingTest extends TestCase
             });
 
         // Create an action that stops execution
-        $action = new class () implements Action {
+        $action = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 return ActionResult::stop();
@@ -925,7 +934,8 @@ class LockingTest extends TestCase
 
         // Create multiple actions that simulate long execution
         // We'll manipulate the lock acquired time to simulate TTL expiry
-        $action1 = new class () implements Action {
+        $action1 = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 // Simulate time passing - manipulate lock state to appear old
@@ -944,7 +954,8 @@ class LockingTest extends TestCase
             }
         };
 
-        $action2 = new class () implements Action {
+        $action2 = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 return ActionResult::continue();
@@ -1032,7 +1043,8 @@ class LockingTest extends TestCase
             });
 
         // Create action that simulates time passing
-        $action1 = new class () implements Action {
+        $action1 = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 // Simulate time passing - manipulate lock state to appear old
@@ -1051,7 +1063,8 @@ class LockingTest extends TestCase
             }
         };
 
-        $action2 = new class () implements Action {
+        $action2 = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 return ActionResult::continue();
@@ -1128,7 +1141,8 @@ class LockingTest extends TestCase
 
         // Create multiple actions - second action should not execute due to lost lock
         $action1Executed = false;
-        $action1 = new class ($action1Executed) implements Action {
+        $action1 = new class ($action1Executed) implements Action
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
@@ -1143,7 +1157,8 @@ class LockingTest extends TestCase
         };
 
         $action2Executed = false;
-        $action2 = new class ($action2Executed) implements Action {
+        $action2 = new class ($action2Executed) implements Action
+        {
             /** @phpstan-ignore-next-line */
             public function __construct(private bool &$executed)
             {
