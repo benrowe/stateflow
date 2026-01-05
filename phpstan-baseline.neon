@@ -79,13 +79,13 @@ parameters:
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
 
 		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:151\:\:\$stateCaptures is never read, only written\.$#'
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:152\:\:\$stateCaptures is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
 
 		-
-			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:179\:\:\$stateCaptures is never read, only written\.$#'
+			message: '#^Property BenRowe\\StateFlow\\Action\\Action@anonymous/tests/Integration/StateFlow/ExecutionControlTest\.php\:181\:\:\$stateCaptures is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Integration/StateFlow/ExecutionControlTest.php
