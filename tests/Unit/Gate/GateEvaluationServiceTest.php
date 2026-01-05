@@ -29,7 +29,7 @@ class GateEvaluationServiceTest extends TestCase
         $gate1->method('evaluate')->willReturn(GateResult::ALLOW);
         $gate2->method('evaluate')->willReturn(GateResult::ALLOW);
 
-        $gates = new GateCollection($gate1, $gate2);
+        $gates = new GateCollection([$gate1, $gate2]);
         $context = $this->createMock(TransitionContext::class);
         $state = $this->createMock(State::class);
         $delta = new ArrayDelta([]);
@@ -56,7 +56,7 @@ class GateEvaluationServiceTest extends TestCase
 
         $gate1->method('evaluate')->willReturn(GateResult::DENY);
 
-        $gates = new GateCollection($gate1, $gate2);
+        $gates = new GateCollection([$gate1, $gate2]);
         $context = $this->createMock(TransitionContext::class);
         $state = $this->createMock(State::class);
         $delta = new ArrayDelta([]);
@@ -83,7 +83,7 @@ class GateEvaluationServiceTest extends TestCase
 
         $gate1->method('evaluate')->willReturn(GateResult::SKIP_IDEMPOTENT);
 
-        $gates = new GateCollection($gate1, $gate2);
+        $gates = new GateCollection([$gate1, $gate2]);
         $context = $this->createMock(TransitionContext::class);
         $state = $this->createMock(State::class);
         $delta = new ArrayDelta([]);
@@ -165,7 +165,7 @@ class GateEvaluationServiceTest extends TestCase
             return 'invalid';
         });
 
-        $gates = new GateCollection($gate);
+        $gates = new GateCollection([$gate]);
         $context = $this->createMock(TransitionContext::class);
         $state = $this->createMock(State::class);
         $delta = new ArrayDelta([]);

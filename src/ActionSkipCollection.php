@@ -18,9 +18,19 @@ final class ActionSkipCollection extends ArrayCollection
 {
     /**
      * Create a new immutable action to skip the collection.
+     *
+     * @param ActionSkip[] $skips
+     *
+     * @throws InvalidArgumentException if any element is not an ActionSkip
      */
-    public function __construct(ActionSkip ...$skips)
+    public function __construct(array $skips = [])
     {
+        foreach ($skips as $skip) {
+            if (!$skip instanceof ActionSkip) {
+                throw new InvalidArgumentException('All elements must be instances of ' . ActionSkip::class);
+            }
+        }
+
         parent::__construct(array_values($skips));
     }
 
@@ -39,7 +49,7 @@ final class ActionSkipCollection extends ArrayCollection
      */
     public static function fromArray(array $skips): self
     {
-        return new self(...$skips);
+        return new self($skips);
     }
 
     /**

@@ -18,9 +18,19 @@ final class ActionCollection extends ArrayCollection
 {
     /**
      * Create a new immutable action collection.
+     *
+     * @param Action[] $actions
+     *
+     * @throws InvalidArgumentException if any element is not an Action
      */
-    public function __construct(Action ...$actions)
+    public function __construct(array $actions = [])
     {
+        foreach ($actions as $action) {
+            if (!$action instanceof Action) {
+                throw new InvalidArgumentException('All elements must be instances of ' . Action::class);
+            }
+        }
+
         parent::__construct(array_values($actions));
     }
 
@@ -39,7 +49,7 @@ final class ActionCollection extends ArrayCollection
      */
     public static function fromArray(array $actions): self
     {
-        return new self(...$actions);
+        return new self($actions);
     }
 
     /**

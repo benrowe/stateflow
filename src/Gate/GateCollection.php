@@ -18,9 +18,19 @@ final class GateCollection extends ArrayCollection
 {
     /**
      * Create a new immutable gate collection.
+     *
+     * @param Gate[] $gates
+     *
+     * @throws InvalidArgumentException if any element is not a Gate
      */
-    public function __construct(Gate ...$gates)
+    public function __construct(array $gates = [])
     {
+        foreach ($gates as $gate) {
+            if (!$gate instanceof Gate) {
+                throw new InvalidArgumentException('All elements must be instances of ' . Gate::class);
+            }
+        }
+
         parent::__construct(array_values($gates));
     }
 
@@ -39,7 +49,7 @@ final class GateCollection extends ArrayCollection
      */
     public static function fromArray(array $gates): self
     {
-        return new self(...$gates);
+        return new self($gates);
     }
 
     /**

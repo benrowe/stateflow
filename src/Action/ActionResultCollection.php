@@ -18,9 +18,19 @@ final class ActionResultCollection extends ArrayCollection
 {
     /**
      * Create a new immutable action result collection.
+     *
+     * @param ActionResult[] $results
+     *
+     * @throws InvalidArgumentException if any element is not an ActionResult
      */
-    public function __construct(ActionResult ...$results)
+    public function __construct(array $results = [])
     {
+        foreach ($results as $result) {
+            if (!$result instanceof ActionResult) {
+                throw new InvalidArgumentException('All elements must be instances of ' . ActionResult::class);
+            }
+        }
+
         parent::__construct(array_values($results));
     }
 
@@ -39,7 +49,7 @@ final class ActionResultCollection extends ArrayCollection
      */
     public static function fromArray(array $results): self
     {
-        return new self(...$results);
+        return new self($results);
     }
 
     /**

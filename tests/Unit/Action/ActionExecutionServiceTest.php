@@ -222,7 +222,7 @@ class ActionExecutionServiceTest extends TestCase
 
         $action1 = $this->createMock(Action::class);
         $action2 = $this->createMock(Action::class);
-        $actions = new ActionCollection($action1, $action2);
+        $actions = new ActionCollection([$action1, $action2]);
         $context = $this->createMock(TransitionContext::class);
 
         $context->expects($this->exactly(2))->method('recordActionSkip');

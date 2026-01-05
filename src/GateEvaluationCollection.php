@@ -18,9 +18,19 @@ final class GateEvaluationCollection extends ArrayCollection
 {
     /**
      * Create a new immutable gate evaluation collection.
+     *
+     * @param GateEvaluation[] $evaluations
+     *
+     * @throws InvalidArgumentException if any element is not an GateEvaluation
      */
-    public function __construct(GateEvaluation ...$evaluations)
+    public function __construct(array $evaluations = [])
     {
+        foreach ($evaluations as $evaluation) {
+            if (!$evaluation instanceof GateEvaluation) {
+                throw new InvalidArgumentException('All elements must be instances of ' . GateEvaluation::class);
+            }
+        }
+
         parent::__construct(array_values($evaluations));
     }
 
@@ -39,7 +49,7 @@ final class GateEvaluationCollection extends ArrayCollection
      */
     public static function fromArray(array $evaluations): self
     {
-        return new self(...$evaluations);
+        return new self($evaluations);
     }
 
     /**

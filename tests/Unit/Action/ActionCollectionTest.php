@@ -8,19 +8,17 @@ use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionCollection;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class ActionCollectionTest extends TestCase
 {
-    public function testConstructorWithVariadicActions(): void
+    public function testConstructorWithBadAction(): void
     {
-        $action1 = $this->createMock(Action::class);
-        $action2 = $this->createMock(Action::class);
-        $action3 = $this->createMock(Action::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('All elements must be instances of ' . Action::class);
 
-        $collection = new ActionCollection($action1, $action2, $action3);
-
-        $this->assertCount(3, $collection);
-        $this->assertSame([$action1, $action2, $action3], $collection->toArray());
+        // @phpstan-ignore-next-line
+        new ActionCollection([stdClass::class]);
     }
 
     public function testConstructorWithNoActions(): void
@@ -64,7 +62,7 @@ class ActionCollectionTest extends TestCase
         $action1 = $this->createMock(Action::class);
         $action2 = $this->createMock(Action::class);
 
-        $original = new ActionCollection($action1);
+        $original = new ActionCollection([$action1]);
         $new = $original->with($action2);
 
         // Original should be unchanged
@@ -84,7 +82,7 @@ class ActionCollectionTest extends TestCase
         $action1 = $this->createMock(Action::class);
         $action2 = $this->createMock(Action::class);
 
-        $collection = new ActionCollection($action1, $action2);
+        $collection = new ActionCollection([$action1, $action2]);
         $array = $collection->toArray();
 
         $this->assertCount(2, $array);
@@ -98,7 +96,7 @@ class ActionCollectionTest extends TestCase
         $action2 = $this->createMock(Action::class);
         $action3 = $this->createMock(Action::class);
 
-        $collection = new ActionCollection($action1, $action2, $action3);
+        $collection = new ActionCollection([$action1, $action2, $action3]);
 
         $this->assertCount(3, $collection);
         $this->assertSame(3, $collection->count());
@@ -109,7 +107,7 @@ class ActionCollectionTest extends TestCase
         $action1 = $this->createMock(Action::class);
         $action2 = $this->createMock(Action::class);
 
-        $collection = new ActionCollection($action1, $action2);
+        $collection = new ActionCollection([$action1, $action2]);
 
         $actions = [];
         foreach ($collection as $action) {

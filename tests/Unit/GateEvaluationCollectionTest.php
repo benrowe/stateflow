@@ -10,23 +10,17 @@ use BenRowe\StateFlow\GateEvaluation;
 use BenRowe\StateFlow\GateEvaluationCollection;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class GateEvaluationCollectionTest extends TestCase
 {
-    public function testConstructorWithVariadicEvaluations(): void
+    public function testConstructorWithBadGateEvaluation(): void
     {
-        $gate1 = $this->createMock(Gate::class);
-        $gate2 = $this->createMock(Gate::class);
-        $gate3 = $this->createMock(Gate::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('All elements must be instances of ' . GateEvaluation::class);
 
-        $eval1 = new GateEvaluation($gate1, GateResult::ALLOW, false);
-        $eval2 = new GateEvaluation($gate2, GateResult::DENY, true);
-        $eval3 = new GateEvaluation($gate3, GateResult::SKIP_IDEMPOTENT, false);
-
-        $collection = new GateEvaluationCollection($eval1, $eval2, $eval3);
-
-        $this->assertCount(3, $collection);
-        $this->assertSame([$eval1, $eval2, $eval3], $collection->toArray());
+        // @phpstan-ignore-next-line
+        new GateEvaluationCollection([stdClass::class]);
     }
 
     public function testConstructorWithNoEvaluations(): void
@@ -76,7 +70,7 @@ class GateEvaluationCollectionTest extends TestCase
         $eval1 = new GateEvaluation($gate1, GateResult::ALLOW, false);
         $eval2 = new GateEvaluation($gate2, GateResult::DENY, true);
 
-        $original = new GateEvaluationCollection($eval1);
+        $original = new GateEvaluationCollection([$eval1]);
         $new = $original->with($eval2);
 
         // Original should be unchanged
@@ -99,7 +93,7 @@ class GateEvaluationCollectionTest extends TestCase
         $eval1 = new GateEvaluation($gate1, GateResult::ALLOW, false);
         $eval2 = new GateEvaluation($gate2, GateResult::DENY, true);
 
-        $collection = new GateEvaluationCollection($eval1, $eval2);
+        $collection = new GateEvaluationCollection([$eval1, $eval2]);
         $array = $collection->toArray();
 
         $this->assertCount(2, $array);
@@ -117,7 +111,7 @@ class GateEvaluationCollectionTest extends TestCase
         $eval2 = new GateEvaluation($gate2, GateResult::DENY, true);
         $eval3 = new GateEvaluation($gate3, GateResult::SKIP_IDEMPOTENT, false);
 
-        $collection = new GateEvaluationCollection($eval1, $eval2, $eval3);
+        $collection = new GateEvaluationCollection([$eval1, $eval2, $eval3]);
 
         $this->assertCount(3, $collection);
         $this->assertSame(3, $collection->count());
@@ -131,7 +125,7 @@ class GateEvaluationCollectionTest extends TestCase
         $eval1 = new GateEvaluation($gate1, GateResult::ALLOW, false);
         $eval2 = new GateEvaluation($gate2, GateResult::DENY, true);
 
-        $collection = new GateEvaluationCollection($eval1, $eval2);
+        $collection = new GateEvaluationCollection([$eval1, $eval2]);
 
         $evaluations = [];
         foreach ($collection as $evaluation) {
