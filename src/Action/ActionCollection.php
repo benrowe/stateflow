@@ -67,6 +67,7 @@ final class ActionCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
+     *
      * @throws InvalidArgumentException if value is not an Action
      */
     public function set($key, $value): void
@@ -82,6 +83,7 @@ final class ActionCollection extends ArrayCollection
      * Override offsetSet to ensure type safety.
      *
      * @param int|string|null $offset
+     *
      * @throws InvalidArgumentException if value is not an Action
      */
     public function offsetSet(mixed $offset, mixed $value): void

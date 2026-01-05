@@ -316,7 +316,7 @@ class TransitionContextSerializer
                 default => ExecutionState::CONTINUE,
             };
             $newState = null;
-            if (null !== $actionData['newState']) {
+            if ($actionData['newState'] !== null) {
                 /** @var array<string, mixed> $newStateData */
                 $newStateData = $actionData['newState'];
                 $newState = $stateFactory->fromArray($newStateData);

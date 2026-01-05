@@ -67,6 +67,7 @@ final class GateCollection extends ArrayCollection
      * Override set to ensure type safety.
      *
      * @param int $key
+     *
      * @throws InvalidArgumentException if value is not a Gate
      */
     public function set($key, $value): void
@@ -82,6 +83,7 @@ final class GateCollection extends ArrayCollection
      * Override offsetSet to ensure type safety.
      *
      * @param int|string|null $offset
+     *
      * @throws InvalidArgumentException if value is not a Gate
      */
     public function offsetSet(mixed $offset, mixed $value): void

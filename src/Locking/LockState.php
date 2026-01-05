@@ -13,8 +13,7 @@ readonly class LockState
         public ?string $lockKey = null,
         public ?float $acquiredAt = null,
         public ?int $ttl = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Check if a lock is currently held

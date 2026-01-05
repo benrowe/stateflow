@@ -6,6 +6,4 @@ namespace BenRowe\StateFlow\Exceptions;
 
 use RuntimeException;
 
-class TransitionException extends RuntimeException
-{
-}
+class TransitionException extends RuntimeException {}

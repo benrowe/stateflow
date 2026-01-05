@@ -16,9 +16,7 @@ final readonly class ArrayDelta implements Delta, JsonSerializable
     /**
      * @param array<string, mixed> $changes
      */
-    public function __construct(private array $changes = [])
-    {
-    }
+    public function __construct(private array $changes = []) {}
 
     public function has(string $key): bool
     {

@@ -12,8 +12,7 @@ readonly class ActionResult
         public ExecutionState $executionState,
         public ?State $newState = null,
         public mixed $metadata = null,
-    ) {
-    }
+    ) {}
 
     public static function continue(?State $newState = null): self
     {

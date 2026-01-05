@@ -19,14 +19,14 @@ class ActionExecutionService
     public function __construct(
         private readonly EventOrchestrator $events,
         private readonly GateEvaluationService $gateEvaluator
-    ) {
-    }
+    ) {}
 
     /**
      * Execute a single action with guard checking and result processing
      *
-     * @throws Throwable when action execute fails for any reason (runtime, static)
      * @return ExecutionState The execution state after running this action
+     *
+     * @throws Throwable when action execute fails for any reason (runtime, static)
      */
     public function executeAction(
         Action $action,

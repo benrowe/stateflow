@@ -6,6 +6,4 @@ namespace BenRowe\StateFlow\Exceptions;
 
 use RuntimeException;
 
-class LockAcquisitionException extends RuntimeException
-{
-}
+class LockAcquisitionException extends RuntimeException {}
