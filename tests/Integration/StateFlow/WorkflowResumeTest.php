@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
+use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\StateFlow;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
@@ -230,7 +231,7 @@ class WorkflowResumeTest extends TestCase
         $configV2 = Configuration::fromArray([], [$actionC, $actionD]);
 
         // Config provider returns config based on state version
-        $configProvider = function ($state) use ($configV1, $configV2) {
+        $configProvider = function (State $state) use ($configV1, $configV2) {
             return $state->toArray()['version'] === 1 ? $configV1 : $configV2;
         };
 

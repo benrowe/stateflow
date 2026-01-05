@@ -64,9 +64,6 @@ class LockManager
             LockStrategy::FAIL_FAST => $this->handleFailFast($lockKey),
             LockStrategy::SKIP => $this->handleSkip($lockKey),
             LockStrategy::WAIT => $this->handleWait($lockKey),
-            // @codeCoverageIgnoreStart
-            LockStrategy::NONE => null,
-            // @codeCoverageIgnoreEnd
         };
 
         return null;
