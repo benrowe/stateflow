@@ -367,7 +367,8 @@ class StateWorkerTest extends TestCase
 
     public function testExecuteActionsStopsWhenActionReturnsPause(): void
     {
-        $pauseAction = new class () implements Action {
+        $pauseAction = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 return ActionResult::pause(null, ['reason' => 'need approval']);
@@ -391,7 +392,8 @@ class StateWorkerTest extends TestCase
 
     public function testExecuteActionsStopsWhenActionReturnsStop(): void
     {
-        $stopAction = new class () implements Action {
+        $stopAction = new class () implements Action
+        {
             public function execute(ActionContext $context): ActionResult
             {
                 return ActionResult::stop(null, ['reason' => 'fatal error']);
@@ -416,7 +418,8 @@ class StateWorkerTest extends TestCase
     public function testEvaluateGateThrowsInvalidGateResultExceptionOnTypeError(): void
     {
         // Create a gate that returns invalid type (not GateResult)
-        $invalidGate = new class () implements Gate {
+        $invalidGate = new class () implements Gate
+        {
             public function evaluate(GateContext $context): GateResult
             {
                 // @phpstan-ignore return.type
@@ -444,7 +447,8 @@ class StateWorkerTest extends TestCase
     {
         $denyGate = $this->createTestGate('deny gate', GateResult::DENY);
 
-        $guardedAction = new class ($denyGate) implements Action, Guardable {
+        $guardedAction = new class ($denyGate) implements Action, Guardable
+        {
             public function __construct(private Gate $gate)
             {
             }
@@ -479,7 +483,8 @@ class StateWorkerTest extends TestCase
     {
         $skipGate = $this->createTestGate('skip gate', GateResult::SKIP_IDEMPOTENT);
 
-        $guardedAction = new class ($skipGate) implements Action, Guardable {
+        $guardedAction = new class ($skipGate) implements Action, Guardable
+        {
             public function __construct(private Gate $gate)
             {
             }
@@ -548,7 +553,8 @@ class StateWorkerTest extends TestCase
 
     private function createStubAction(string $name): Action
     {
-        return new class ($name) implements Action {
+        return new class ($name) implements Action
+        {
             /**
              * @phpstan-ignore property.onlyWritten
              */

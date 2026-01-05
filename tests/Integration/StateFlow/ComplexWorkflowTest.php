@@ -167,7 +167,8 @@ class ComplexWorkflowTest extends TestCase
         $transitionHistory = [];
 
         // Gate that checks if transition already occurred
-        $idempotencyGate = new class ($transitionHistory) implements Gate {
+        $idempotencyGate = new class ($transitionHistory) implements Gate
+        {
             /**
              * @param array<string> $history
              */
@@ -253,7 +254,8 @@ class ComplexWorkflowTest extends TestCase
      */
     private function createTrackingAction(string $name, array &$log): Action
     {
-        return new class ($name, $log) implements Action {
+        return new class ($name, $log) implements Action
+        {
             /**
              * @param array<string> $log
              */
@@ -279,7 +281,8 @@ class ComplexWorkflowTest extends TestCase
      */
     private function createPausingAction(string $name, array &$log, array $metadata = []): Action
     {
-        return new class ($name, $log, $metadata) implements Action {
+        return new class ($name, $log, $metadata) implements Action
+        {
             /**
              * @param array<string> $log
              * @param array<string, mixed> $metadata

@@ -44,7 +44,8 @@ class DeltaAccessTest extends TestCase
         $expectedDelta = ['status' => 'published', 'priority' => 'high'];
 
         $deltaCapture = null;
-        $gate = new class ($deltaCapture, $this->logger) implements Gate {
+        $gate = new class ($deltaCapture, $this->logger) implements Gate
+        {
             /** @phpstan-ignore property.onlyWritten */
             private mixed $deltaCapture;
 
@@ -92,7 +93,8 @@ class DeltaAccessTest extends TestCase
         $expectedDelta = ['status' => 'published', 'version' => 2];
 
         $deltaCapture = null;
-        $action = new class ($deltaCapture, $this->logger) implements Action {
+        $action = new class ($deltaCapture, $this->logger) implements Action
+        {
             /** @phpstan-ignore property.onlyWritten */
             private mixed $deltaCapture;
 

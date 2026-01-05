@@ -20,7 +20,8 @@ trait CreatesTestGates
     {
         $logger = $this->getLogger();
 
-        return new class ($name, $result, $logger) implements Gate {
+        return new class ($name, $result, $logger) implements Gate
+        {
             public function __construct(
                 private string $name,
                 private GateResult $result,

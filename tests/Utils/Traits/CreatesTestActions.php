@@ -25,7 +25,8 @@ trait CreatesTestActions
     {
         $logger = $this->getLogger();
 
-        return new class ($name, $logger) implements Action {
+        return new class ($name, $logger) implements Action
+        {
             public function __construct(
                 private string $name,
                 private ExecutionLogger $logger
@@ -45,7 +46,8 @@ trait CreatesTestActions
     {
         $logger = $this->getLogger();
 
-        return new class ($name, $newState, $logger) implements Action {
+        return new class ($name, $newState, $logger) implements Action
+        {
             public function __construct(
                 private string $name,
                 private State $newState,
@@ -66,7 +68,8 @@ trait CreatesTestActions
     {
         $logger = $this->getLogger();
 
-        return new class ($name, $result, $logger) implements Action {
+        return new class ($name, $result, $logger) implements Action
+        {
             public function __construct(
                 private string $name,
                 private ActionResult $result,
@@ -87,7 +90,8 @@ trait CreatesTestActions
     {
         $logger = $this->getLogger();
 
-        return new class ($name, $gateResult, $logger) implements Action, Guardable {
+        return new class ($name, $gateResult, $logger) implements Action, Guardable
+        {
             public function __construct(
                 private string $name,
                 private GateResult $gateResult,
@@ -97,7 +101,8 @@ trait CreatesTestActions
 
             public function gate(): Gate
             {
-                return new class ($this->name, $this->gateResult, $this->logger) implements Gate {
+                return new class ($this->name, $this->gateResult, $this->logger) implements Gate
+                {
                     public function __construct(
                         private string $actionName,
                         private GateResult $result,
