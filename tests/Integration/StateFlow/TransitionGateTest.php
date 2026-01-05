@@ -16,9 +16,9 @@ use PHPUnit\Framework\TestCase;
 
 class TransitionGateTest extends TestCase
 {
-    use CreatesTestStates;
-    use CreatesTestGates;
     use CreatesTestActions;
+    use CreatesTestGates;
+    use CreatesTestStates;
 
     private ExecutionLogger $logger;
 

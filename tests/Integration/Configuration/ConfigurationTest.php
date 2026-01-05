@@ -176,9 +176,7 @@ class ConfigurationTest extends TestCase
     {
         return new class ($name) implements Action
         {
-            public function __construct(private string $name)
-            {
-            }
+            public function __construct(private string $name) {}
 
             public function execute(ActionContext $context): ActionResult
             {

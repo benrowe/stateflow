@@ -35,8 +35,8 @@ use PHPUnit\Framework\TestCase;
  */
 class StateWorkerTest extends TestCase
 {
-    use CreatesTestStates;
     use CreatesTestGates;
+    use CreatesTestStates;
 
     private ExecutionLogger $logger;
 
@@ -296,7 +296,6 @@ class StateWorkerTest extends TestCase
         $state = $this->createTestState(['status' => 'draft']);
         $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
 
-
         $worker = new StateWorker($context, new NullEventDispatcher());
         $this->expectException(TransitionException::class);
         $this->expectExceptionMessage('Gates not evaluated');
@@ -449,9 +448,7 @@ class StateWorkerTest extends TestCase
 
         $guardedAction = new class ($denyGate) implements Action, Guardable
         {
-            public function __construct(private Gate $gate)
-            {
-            }
+            public function __construct(private Gate $gate) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -485,9 +482,7 @@ class StateWorkerTest extends TestCase
 
         $guardedAction = new class ($skipGate) implements Action, Guardable
         {
-            public function __construct(private Gate $gate)
-            {
-            }
+            public function __construct(private Gate $gate) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -558,9 +553,7 @@ class StateWorkerTest extends TestCase
             /**
              * @phpstan-ignore property.onlyWritten
              */
-            public function __construct(private string $name)
-            {
-            }
+            public function __construct(private string $name) {}
 
             public function execute(ActionContext $context): ActionResult
             {

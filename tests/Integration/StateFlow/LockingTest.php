@@ -146,9 +146,7 @@ class LockingTest extends TestCase
         $gate = new class ($gateExecuted) implements Gate
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function evaluate(GateContext $context): GateResult
             {
@@ -167,9 +165,7 @@ class LockingTest extends TestCase
         $action = new class ($actionExecuted) implements Action
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -253,9 +249,7 @@ class LockingTest extends TestCase
         $gate = new class ($gateExecuted) implements Gate
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function evaluate(GateContext $context): GateResult
             {
@@ -274,9 +268,7 @@ class LockingTest extends TestCase
         $action = new class ($actionExecuted) implements Action
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -376,9 +368,7 @@ class LockingTest extends TestCase
         $action = new class ($actionExecuted) implements Action
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -484,9 +474,7 @@ class LockingTest extends TestCase
         $action = new class ($actionExecuted) implements Action
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -1144,9 +1132,7 @@ class LockingTest extends TestCase
         $action1 = new class ($action1Executed) implements Action
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function execute(ActionContext $context): ActionResult
             {
@@ -1160,9 +1146,7 @@ class LockingTest extends TestCase
         $action2 = new class ($action2Executed) implements Action
         {
             /** @phpstan-ignore-next-line */
-            public function __construct(private bool &$executed)
-            {
-            }
+            public function __construct(private bool &$executed) {}
 
             public function execute(ActionContext $context): ActionResult
             {

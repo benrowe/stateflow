@@ -960,7 +960,6 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to decode JSON');
         }
         /** @var array<string, mixed> $data */
-
         $rawGateEvaluations = $data['gateEvaluations'] ?? [];
         if (!is_array($rawGateEvaluations)) {
             $this->fail('gateEvaluations should be an array');
@@ -1038,7 +1037,6 @@ class TransitionContextSerializationTest extends TestCase
             $this->fail('Failed to decode JSON');
         }
         /** @var array<string, mixed> $data */
-
         $rawActionSkips = $data['actionSkips'] ?? [];
         if (!is_array($rawActionSkips)) {
             $this->fail('actionSkips should be an array');
@@ -1384,17 +1382,13 @@ class TestState implements State
     /**
      * @param array<string, mixed> $data
      */
-    public function __construct(private array $data)
-    {
-    }
+    public function __construct(private array $data) {}
 
     public function toArray(): array
     {
         return $this->data;
     }
 
-    /**
-     */
     public function with(array $changes): static
     {
         /** @var static */

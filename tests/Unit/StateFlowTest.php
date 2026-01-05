@@ -17,8 +17,8 @@ use PHPUnit\Framework\TestCase;
 
 class StateFlowTest extends TestCase
 {
-    use CreatesTestStates;
     use CreatesTestActions;
+    use CreatesTestStates;
 
     private ExecutionLogger $logger;
 

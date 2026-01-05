@@ -17,9 +17,9 @@ use PHPUnit\Framework\TestCase;
 
 class StepByStepExecutionTest extends TestCase
 {
-    use CreatesTestStates;
-    use CreatesTestGates;
     use CreatesTestActions;
+    use CreatesTestGates;
+    use CreatesTestStates;
 
     private ExecutionLogger $logger;
 
