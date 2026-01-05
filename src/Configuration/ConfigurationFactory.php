@@ -46,6 +46,7 @@ class ConfigurationFactory
 
     /**
      * @param array<mixed> $gates
+     *
      * @phpstan-assert Gate[] $gates
      */
     private function validateGates(array $gates): void
@@ -66,6 +67,7 @@ class ConfigurationFactory
 
     /**
      * @param array<mixed> $actions
+     *
      * @phpstan-assert Action[] $actions
      */
     private function validateActions(array $actions): void

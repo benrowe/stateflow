@@ -6,6 +6,4 @@ namespace BenRowe\StateFlow\Exceptions;
 
 use RuntimeException;
 
-class LockExpiredException extends RuntimeException
-{
-}
+class LockExpiredException extends RuntimeException {}

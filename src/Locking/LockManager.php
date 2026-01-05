@@ -25,8 +25,7 @@ class LockManager
         private readonly ?LockConfiguration $lockConfiguration,
         private readonly TransitionContext $context,
         private readonly EventOrchestrator $eventOrchestrator,
-    ) {
-    }
+    ) {}
 
     /**
      * Acquire a lock for the transition

@@ -14,6 +14,5 @@ readonly class ActionContext
         public State $currentState,
         public Delta $desiredDelta,
         public TransitionContext $executionContext,
-    ) {
-    }
+    ) {}
 }

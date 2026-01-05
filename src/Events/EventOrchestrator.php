@@ -28,8 +28,7 @@ class EventOrchestrator
 {
     public function __construct(
         private readonly EventDispatcher $dispatcher
-    ) {
-    }
+    ) {}
 
     public function gateEvaluating(Gate $gate, GateContext $context, bool $isActionGate): void
     {

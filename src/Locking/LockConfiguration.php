@@ -14,6 +14,5 @@ readonly class LockConfiguration
         public int $ttl = 30,
         public int $waitTimeout = 10,
         public int $retryInterval = 100,
-    ) {
-    }
+    ) {}
 }

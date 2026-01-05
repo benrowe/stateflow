@@ -16,8 +16,7 @@ class GateEvaluationService
 {
     public function __construct(
         private readonly EventOrchestrator $events
-    ) {
-    }
+    ) {}
 
     /**
      * Evaluate all transition gates, returning first denial/skip or ALLOW

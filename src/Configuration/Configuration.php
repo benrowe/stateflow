@@ -11,9 +11,7 @@ use BenRowe\StateFlow\Gate\GateCollection;
 
 readonly class Configuration
 {
-    public function __construct(public GateCollection $transitionGates, public ActionCollection $actions)
-    {
-    }
+    public function __construct(public GateCollection $transitionGates, public ActionCollection $actions) {}
 
     /**
      * Alias for new ConfigurationFactory()->makeFromArray($transitionGates, $actions)

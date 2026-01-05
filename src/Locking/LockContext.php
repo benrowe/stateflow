@@ -16,6 +16,5 @@ readonly class LockContext
         public LockProvider $provider,
         public LockKeyProvider $keyProvider,
         public LockConfiguration $configuration,
-    ) {
-    }
+    ) {}
 }
