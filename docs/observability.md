@@ -667,6 +667,15 @@ class DebugDispatcher implements EventDispatcher
 ## Use Case: Complete Monitoring Setup
 
 ```php
+$lockContext = new LockContext(
+    provider: $lockProvider,
+    keyProvider: $lockKeyProvider,
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
+
 $stateFlow = new StateFlow(
     configProvider: $config,
     eventDispatcher: new MultiChannelDispatcher(
@@ -674,8 +683,7 @@ $stateFlow = new StateFlow(
         metrics: app(MetricsCollector::class),
         eventBus: app(EventBus::class),
     ),
-    lockProvider: $lockProvider,
-    lockKeyProvider: $lockKeyProvider,
+    lockContext: $lockContext,
 );
 
 // Now you get:

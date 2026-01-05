@@ -113,10 +113,18 @@ Every step emits events:
 Locking is configured on the `StateFlow` itself, making it an integral part of the workflow orchestration.
 
 ```php
-$lockProvider = new RedisLockProvider($redis);
+$lockContext = new LockContext(
+    provider: new RedisLockProvider($redis),
+    keyProvider: new EntityLockKeyProvider(),
+    configuration: new LockConfiguration(
+        strategy: LockStrategy::FAIL_FAST,
+        ttl: 30
+    )
+);
+
 $stateFlow = new StateFlow(
     configProvider: $configProvider,
-    lockProvider: $lockProvider,
+    lockContext: $lockContext,
 );
 
 // The worker will use the flows's lock provider
@@ -199,7 +207,7 @@ The new architecture separates the setup of a transition from its execution.
 ```php
 interface State {
     public function toArray(): array;
-    public function with(array $changes): State;
+    public function with(array $changes): static;
 }
 ```
 
