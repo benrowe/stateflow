@@ -1,13 +1,19 @@
 <?php
 
-$finder = PhpCsFixer\Finder::create()
+declare(strict_types=1);
+
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+use PhpCsFixer\Runner\Parallel\ParallelConfig;
+
+$finder = Finder::create()
     ->in(__DIR__ . '/src')
     ->in(__DIR__ . '/tests')
     ->name('*.php')
     ->ignoreDotFiles(true)
     ->ignoreVCS(true);
 
-$config = new PhpCsFixer\Config();
+$config = new Config();
 
 return $config
     ->setRules([
@@ -84,7 +90,6 @@ return $config
         'lowercase_cast' => true,
         'lowercase_keywords' => true,
         'lowercase_static_reference' => true,
-
         'mb_str_functions' => true,
         'magic_constant_casing' => true,
         'magic_method_casing' => true,
@@ -162,8 +167,11 @@ return $config
         'trim_array_spaces' => true,
         'unary_operator_spaces' => true,
         'whitespace_after_comma_in_array' => true,
+        'modifier_keywords' => [
+            'elements' => ['method', 'property'],
+        ],
     ])
     ->setFinder($finder)
     ->setRiskyAllowed(true)
     ->setUsingCache(true)
-    ->setParallelConfig(new PhpCsFixer\Runner\Parallel\ParallelConfig());
+    ->setParallelConfig(new ParallelConfig());
