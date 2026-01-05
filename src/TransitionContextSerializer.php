@@ -53,11 +53,7 @@ class TransitionContextSerializer
         ActionFactory $actionFactory,
         GateFactory $gateFactory
     ): TransitionContext {
-        $decoded = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
-
-        if (!is_array($decoded)) {
-            throw new JsonException('Invalid JSON data: expected object');
-        }
+        $decoded = $this->decode($data);
 
         // Reconstruct states
         /** @var array<string, mixed> $initialStateData */
@@ -107,6 +103,23 @@ class TransitionContextSerializer
         $context->setLockState(LockState::fromArray($lockStateData));
 
         return $context;
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws JsonException
+     */
+    private function decode(string $data): array
+    {
+        $decoded = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+
+        if (!is_array($decoded)) {
+            throw new JsonException('Invalid JSON data: expected object');
+        }
+
+        // @phpstan-ignore-next-line - we know it's an array
+        return $decoded;
     }
 
     /**
