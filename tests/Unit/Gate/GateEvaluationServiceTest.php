@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Tests\Unit\Gate;
 
+use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Events\EventOrchestrator;
 use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
@@ -15,6 +16,8 @@ use BenRowe\StateFlow\Gate\Guardable;
 use BenRowe\StateFlow\State;
 use BenRowe\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
+
+interface GuardableTestAction extends Action, Guardable {}
 
 class GateEvaluationServiceTest extends TestCase
 {
@@ -150,6 +153,46 @@ class GateEvaluationServiceTest extends TestCase
         $eventOrchestrator->expects($this->once())->method('gateEvaluated');
 
         $result = $service->evaluateActionGuard($action, $context);
+
+        $this->assertSame(GateResult::DENY, $result);
+    }
+
+    public function testEvaluateGuardIfApplicableReturnsNullWhenActionIsNotGuardable(): void
+    {
+        $eventOrchestrator = $this->createMock(EventOrchestrator::class);
+        $service = new GateEvaluationService($eventOrchestrator);
+
+        $action = $this->createMock(Action::class);
+        $context = $this->createMock(TransitionContext::class);
+
+        $eventOrchestrator->expects($this->never())->method('gateEvaluating');
+        $context->expects($this->never())->method('recordGateEvaluation');
+
+        $result = $service->evaluateGuardIfApplicable($action, $context);
+
+        $this->assertNull($result);
+    }
+
+    public function testEvaluateGuardIfApplicableDelegatesWhenActionIsGuardable(): void
+    {
+        $eventOrchestrator = $this->createMock(EventOrchestrator::class);
+        $service = new GateEvaluationService($eventOrchestrator);
+
+        $gate = $this->createMock(Gate::class);
+        $gate->method('evaluate')->willReturn(GateResult::DENY);
+
+        $action = $this->createMock(GuardableTestAction::class);
+        $action->method('gate')->willReturn($gate);
+
+        $context = $this->createMock(TransitionContext::class);
+        $state = $this->createMock(State::class);
+        $delta = new ArrayDelta([]);
+
+        $context->method('getCurrentState')->willReturn($state);
+        $context->method('getDesiredDelta')->willReturn($delta);
+        $context->expects($this->once())->method('recordGateEvaluation');
+
+        $result = $service->evaluateGuardIfApplicable($action, $context);
 
         $this->assertSame(GateResult::DENY, $result);
     }

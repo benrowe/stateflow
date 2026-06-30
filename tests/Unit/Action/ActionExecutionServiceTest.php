@@ -11,6 +11,7 @@ use BenRowe\StateFlow\Action\ActionExecutionService;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Action\Yieldable;
+use BenRowe\StateFlow\Action\YieldResponse;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Events\EventOrchestrator;
 use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
@@ -167,8 +168,7 @@ class ActionExecutionServiceTest extends TestCase
 
         $context->method('getCurrentState')->willReturn($state);
         $context->method('getDesiredDelta')->willReturn($delta);
-        $context->method('hasPendingYieldResponse')->willReturn(true);
-        $context->method('consumePendingYieldResponse')->willReturn($responseData);
+        $context->method('consumePendingYieldResponseAsObject')->willReturn(new YieldResponse($responseData));
 
         $action->expects($this->once())
             ->method('execute')
@@ -240,7 +240,7 @@ class ActionExecutionServiceTest extends TestCase
         $action = $this->createMock(GuardableAction::class);
         $context = $this->createMock(TransitionContext::class);
 
-        $gateEvaluator->method('evaluateActionGuard')->with($action, $context)->willReturn(GateResult::DENY);
+        $gateEvaluator->method('evaluateGuardIfApplicable')->with($action, $context)->willReturn(GateResult::DENY);
 
         $context->expects($this->once())->method('recordActionSkip')->with($action, GateResult::DENY);
         $events->expects($this->once())->method('actionSkipped')->with($action, GateResult::DENY);
