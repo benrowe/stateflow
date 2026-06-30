@@ -10,4 +10,9 @@ enum ExecutionState
     case PAUSE;
     case STOP;
     case YIELD;
+
+    public function isYield(): bool
+    {
+        return $this === self::YIELD;
+    }
 }
