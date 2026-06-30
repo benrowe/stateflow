@@ -22,6 +22,7 @@ Most state machines force you into rigid patterns. StateFlow is different:
 - 👀 **Fully Observable** - Events fired at every step for monitoring and debugging
 - 🎨 **Flexible Validation** - Two-tier gates (transition-level + action-level)
 - 📦 **Serializable Context** - Pause, store, and resume workflows hours or days later
+- ⏳ **Async Action Yielding** - Suspend a single action for external async work (webhooks, fraud checks, third-party APIs) and resume with the response; remaining actions in the same transition continue automatically
 - 🔧 **User-Controlled** - You define state structure, merge strategy, and lock behavior
 
 ## Perfect For
@@ -135,6 +136,33 @@ class ProcessVideoAction implements Action {
 // Resume later when ready
 $resumedWorker = $stateFlow->fromContext($pausedContext);
 $resumedWorker->execute();
+```
+
+### ⏳ Async Action Yielding
+
+Suspend a *single action* mid-transition to wait for an external response — remaining actions continue in the same transition once resumed:
+
+```php
+class RunFraudCheckAction implements Action, Yieldable {
+    public function execute(ActionContext $context): ActionResult {
+        if ($context->hasYieldResponse()) {
+            // Second call: webhook delivered the async result
+            $response = $context->yieldResponse();
+            return $response['outcome'] === 'approved'
+                ? ActionResult::continue()
+                : ActionResult::stop(['reason' => 'fraud_check_rejected']);
+        }
+
+        // First call: dispatch external work and suspend
+        $this->client->startCheck($context->currentState);
+        return ActionResult::yield(['dispatchedAt' => time()]);
+    }
+}
+
+// Webhook handler resumes the transition with the async response
+$worker = $stateFlow->fromContext($persistedContext);
+$worker->resumeWithResponse(['outcome' => 'approved', 'checkId' => $id]);
+// Remaining actions in the transition run immediately after
 ```
 
 ### 🔒 Race Condition Prevention
@@ -300,11 +328,12 @@ try {
 | Feature | StateFlow | Traditional State Machines |
 |---------|-----------|---------------------------|
 | **Granular Control** | ✅ Per-action execution & pause/resume | ❌ Must complete in one execution |
+| **Async Yielding** | ✅ Single action suspends for external work, resumes with response | ❌ Must split into multiple transitions |
 | **Race-Safe** | ✅ Built-in mutex locking | ❌ Manual coordination required |
 | **Observable** | ✅ Events at every step | ❌ Limited visibility |
 | **Flexible State** | ✅ User-defined merge strategy | ❌ Rigid state structure |
 | **Lazy Config** | ✅ Load gates/actions on-demand | ❌ All configured upfront |
-| **Lock Persistence** | ✅ Lock held across pauses | ❌ N/A |
+| **Lock Persistence** | ✅ Lock held across pauses/yields | ❌ N/A |
 | **Execution Trace** | ✅ Complete audit trail | ❌ Limited history |
 
 ## Status
