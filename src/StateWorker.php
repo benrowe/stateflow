@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow;
 
 use BenRowe\StateFlow\Action\ActionExecutionService;
+use BenRowe\StateFlow\Action\ExecutionState;
+use BenRowe\StateFlow\Action\Yieldable;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\EventOrchestrator;
+use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
 use BenRowe\StateFlow\Exceptions\TransitionException;
 use BenRowe\StateFlow\Gate\GateEvaluationService;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -85,7 +88,7 @@ class StateWorker
         $this->executeActions();
 
         // Mark as completed if we got through all actions
-        if (!$this->context->executionStatus()->isPaused() && !$this->context->executionStatus()->isStopped()) {
+        if ($this->isReadyToComplete()) {
             $this->context->executionStatus()->markCompleted();
         }
 
@@ -141,7 +144,7 @@ class StateWorker
             $this->executeActions();
 
             // Mark as completed if we got through all actions
-            if (!$this->context->executionStatus()->isPaused() && !$this->context->executionStatus()->isStopped()) {
+            if ($this->isReadyToComplete()) {
                 $this->context->executionStatus()->markCompleted();
                 $this->eventOrchestrator->transitionCompleted(
                     $this->context->getCurrentState(),
@@ -152,8 +155,59 @@ class StateWorker
             return $this->context;
         } finally {
             // Always release lock if it was acquired (including on exception or pause/stop)
-            // Only keep lock if paused (scenario 9.8) - but we haven't implemented that yet
-            if ($this->context->lockState()->isLocked() && !$this->context->executionStatus()->isPaused()) {
+            // Only keep lock if paused or yielded (scenario 9.8)
+            if ($this->context->lockState()->isLocked() && !$this->isHoldingLock()) {
+                $this->lockManager->releaseLock();
+            }
+        }
+    }
+
+    /**
+     * Resume a yielded transition by re-invoking the action that yielded with response data.
+     *
+     * @throws TransitionException if the transition is not currently yielded
+     * @throws NonYieldableActionException if the action at the resume cursor no longer implements Yieldable
+     */
+    public function resumeWithResponse(mixed $data): TransitionContext
+    {
+        if (!$this->context->executionStatus()->isYielded()) {
+            throw new TransitionException('Cannot resume: transition is not yielded');
+        }
+
+        $action = $this->configuration->actions->toArray()[$this->nextActionIndex];
+
+        if (!$action instanceof Yieldable) {
+            throw new NonYieldableActionException(
+                'Action ' . $action::class . ' no longer implements Yieldable; cannot resume yielded transition'
+            );
+        }
+
+        $this->context->executionStatus()->clearYieldStatus();
+        $this->context->setPendingYieldResponse($data);
+
+        // Acquire lock if locking is configured
+        $this->lockManager->acquireLock();
+
+        // If transition was skipped due to lock, return early
+        if ($this->context->executionStatus()->wasSkippedDueToLock()) {
+            return $this->context;
+        }
+
+        try {
+            $this->executeActions();
+
+            // Mark as completed if we got through all actions
+            if ($this->isReadyToComplete()) {
+                $this->context->executionStatus()->markCompleted();
+                $this->eventOrchestrator->transitionCompleted(
+                    $this->context->getCurrentState(),
+                    $this->context
+                );
+            }
+
+            return $this->context;
+        } finally {
+            if ($this->context->lockState()->isLocked() && !$this->isHoldingLock()) {
                 $this->lockManager->releaseLock();
             }
         }
@@ -168,8 +222,8 @@ class StateWorker
             // Execute the next action
             $this->executeNextAction();
 
-            // Stop if workflow is paused or stopped
-            if ($this->context->executionStatus()->isPaused() || $this->context->executionStatus()->isStopped()) {
+            // Stop if workflow is paused, stopped, or yielded
+            if ($this->isSuspended()) {
                 break;
             }
         }
@@ -179,6 +233,11 @@ class StateWorker
     {
         // Don't execute if workflow is stopped (PAUSE can be resumed)
         if ($this->context->executionStatus()->isStopped()) {
+            return;
+        }
+
+        // Don't execute if workflow is yielded; resumeWithResponse() must be used instead
+        if ($this->context->executionStatus()->isYielded()) {
             return;
         }
 
@@ -198,6 +257,29 @@ class StateWorker
         $action = $actions[$this->nextActionIndex];
         $this->nextActionIndex++;
 
-        $this->actionExecutor->executeAction($action, $this->context);
+        $executionState = $this->actionExecutor->executeAction($action, $this->context);
+
+        // Hold the cursor on the yielding action so resumption re-invokes it
+        if ($executionState === ExecutionState::YIELD) {
+            $this->nextActionIndex--;
+        }
+    }
+
+    private function isReadyToComplete(): bool
+    {
+        return !$this->isSuspended();
+    }
+
+    private function isSuspended(): bool
+    {
+        return $this->context->executionStatus()->isPaused()
+            || $this->context->executionStatus()->isStopped()
+            || $this->context->executionStatus()->isYielded();
+    }
+
+    private function isHoldingLock(): bool
+    {
+        return $this->context->executionStatus()->isPaused()
+            || $this->context->executionStatus()->isYielded();
     }
 }
