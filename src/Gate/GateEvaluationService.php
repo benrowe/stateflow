@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow\Gate;
 
+use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Events\EventOrchestrator;
 use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
 use BenRowe\StateFlow\TransitionContext;
@@ -44,6 +45,20 @@ class GateEvaluationService
         }
 
         return GateResult::ALLOW;
+    }
+
+    /**
+     * Evaluate an action's guard gate if it opts in via Guardable; null if not applicable.
+     */
+    public function evaluateGuardIfApplicable(
+        Action $action,
+        TransitionContext $context
+    ): ?GateResult {
+        if (!$action instanceof Guardable) {
+            return null;
+        }
+
+        return $this->evaluateActionGuard($action, $context);
     }
 
     /**
