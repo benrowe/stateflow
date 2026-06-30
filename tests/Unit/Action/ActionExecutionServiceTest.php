@@ -6,11 +6,14 @@ namespace BenRowe\StateFlow\Tests\Unit\Action;
 
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionCollection;
+use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionExecutionService;
 use BenRowe\StateFlow\Action\ActionResult;
 use BenRowe\StateFlow\Action\ExecutionState;
+use BenRowe\StateFlow\Action\Yieldable;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Events\EventOrchestrator;
+use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
 use BenRowe\StateFlow\ExecutionStatus;
 use BenRowe\StateFlow\Gate\GateEvaluationService;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -21,6 +24,8 @@ use Exception;
 use PHPUnit\Framework\TestCase;
 
 interface GuardableAction extends Action, Guardable {}
+
+interface YieldableAction extends Action, Yieldable {}
 
 class ActionExecutionServiceTest extends TestCase
 {
@@ -113,6 +118,93 @@ class ActionExecutionServiceTest extends TestCase
 
         $this->assertSame(ExecutionState::STOP, $returnedState);
         $this->assertTrue($executionStatus->isStopped());
+    }
+
+    public function testExecuteActionWithYieldState(): void
+    {
+        $events = $this->createMock(EventOrchestrator::class);
+        $gateEvaluator = $this->createMock(GateEvaluationService::class);
+        $service = new ActionExecutionService($events, $gateEvaluator);
+
+        $action = $this->createMock(YieldableAction::class);
+        $context = $this->createMock(TransitionContext::class);
+        $executionStatus = new ExecutionStatus();
+        $state = $this->createMock(State::class);
+        $delta = new ArrayDelta([]);
+        $metadata = ['checkId' => 'abc123'];
+        $result = new ActionResult(ExecutionState::YIELD, null, $metadata);
+
+        $context->method('getCurrentState')->willReturn($state);
+        $context->method('getDesiredDelta')->willReturn($delta);
+        $context->method('executionStatus')->willReturn($executionStatus);
+
+        $action->method('execute')->willReturn($result);
+
+        $context->expects($this->once())->method('recordActionExecution')->with($result);
+
+        $events->expects($this->once())->method('actionExecuting');
+        $events->expects($this->once())->method('actionExecuted');
+        $events->expects($this->once())->method('transitionYielded')->with($state, $context, $metadata);
+
+        $returnedState = $service->executeAction($action, $context);
+
+        $this->assertSame(ExecutionState::YIELD, $returnedState);
+        $this->assertTrue($executionStatus->isYielded());
+    }
+
+    public function testExecuteActionPassesPendingYieldResponseToActionContext(): void
+    {
+        $events = $this->createMock(EventOrchestrator::class);
+        $gateEvaluator = $this->createMock(GateEvaluationService::class);
+        $service = new ActionExecutionService($events, $gateEvaluator);
+
+        $action = $this->createMock(YieldableAction::class);
+        $context = $this->createMock(TransitionContext::class);
+        $state = $this->createMock(State::class);
+        $delta = new ArrayDelta([]);
+        $responseData = ['outcome' => 'approved'];
+        $result = new ActionResult(ExecutionState::CONTINUE, null);
+
+        $context->method('getCurrentState')->willReturn($state);
+        $context->method('getDesiredDelta')->willReturn($delta);
+        $context->method('hasPendingYieldResponse')->willReturn(true);
+        $context->method('consumePendingYieldResponse')->willReturn($responseData);
+
+        $action->expects($this->once())
+            ->method('execute')
+            ->with($this->callback(function (ActionContext $actionContext) use ($responseData) {
+                return $actionContext->hasYieldResponse() === true
+                    && $actionContext->yieldResponse() === $responseData;
+            }))
+            ->willReturn($result);
+
+        $service->executeAction($action, $context);
+    }
+
+    public function testExecuteActionThrowsWhenNonYieldableActionYields(): void
+    {
+        $events = $this->createMock(EventOrchestrator::class);
+        $gateEvaluator = $this->createMock(GateEvaluationService::class);
+        $service = new ActionExecutionService($events, $gateEvaluator);
+
+        $action = $this->createMock(Action::class);
+        $context = $this->createMock(TransitionContext::class);
+        $state = $this->createMock(State::class);
+        $delta = new ArrayDelta([]);
+        $result = new ActionResult(ExecutionState::YIELD, null, ['checkId' => 'abc123']);
+
+        $context->method('getCurrentState')->willReturn($state);
+        $context->method('getDesiredDelta')->willReturn($delta);
+
+        $action->method('execute')->willReturn($result);
+
+        $context->expects($this->never())->method('recordActionExecution');
+        $events->expects($this->never())->method('actionExecuted');
+        $events->expects($this->never())->method('transitionYielded');
+
+        $this->expectException(NonYieldableActionException::class);
+
+        $service->executeAction($action, $context);
     }
 
     public function testExecuteActionUpdatesStateWhenActionReturnsNewState(): void

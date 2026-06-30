@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow\Action;
 
 use BenRowe\StateFlow\Events\EventOrchestrator;
+use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
 use BenRowe\StateFlow\Gate\GateEvaluationService;
 use BenRowe\StateFlow\Gate\GateResult;
 use BenRowe\StateFlow\Gate\Guardable;
@@ -44,11 +45,16 @@ class ActionExecutionService
             }
         }
 
-        // Create action context
+        // Create action context, attaching any pending yield response
+        $hasYieldResponse = $context->hasPendingYieldResponse();
+        $yieldResponseData = $context->consumePendingYieldResponse();
+
         $actionContext = new ActionContext(
             $context->getCurrentState(),
             $context->getDesiredDelta(),
-            $context
+            $context,
+            $hasYieldResponse,
+            $yieldResponseData
         );
 
         // Dispatch executing event
@@ -66,6 +72,13 @@ class ActionExecutionService
             throw $exception;
         }
 
+        // Yielding is an explicit opt-in capability; reject before anything is recorded
+        if ($result->executionState === ExecutionState::YIELD && !$action instanceof Yieldable) {
+            throw new NonYieldableActionException(
+                'Action ' . $action::class . ' returned ActionResult::yield() but does not implement Yieldable'
+            );
+        }
+
         // Dispatch executed event
         $this->events->actionExecuted($action, $actionContext, $result);
 
@@ -77,7 +90,7 @@ class ActionExecutionService
             $context->updateCurrentState($result->newState);
         }
 
-        // Handle pause/stop
+        // Handle pause/stop/yield
         if ($result->executionState === ExecutionState::PAUSE) {
             $context->executionStatus()->markPaused($result->metadata);
             $this->events->transitionPaused(
@@ -88,6 +101,13 @@ class ActionExecutionService
         } elseif ($result->executionState === ExecutionState::STOP) {
             $context->executionStatus()->markStopped($result->metadata);
             $this->events->transitionStopped(
+                $context->getCurrentState(),
+                $context,
+                $result->metadata
+            );
+        } elseif ($result->executionState === ExecutionState::YIELD) {
+            $context->executionStatus()->markYielded($result->metadata);
+            $this->events->transitionYielded(
                 $context->getCurrentState(),
                 $context,
                 $result->metadata
