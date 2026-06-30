@@ -25,6 +25,7 @@ use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Events\TransitionFailed;
 use BenRowe\StateFlow\Events\TransitionPaused;
 use BenRowe\StateFlow\Events\TransitionStopped;
+use BenRowe\StateFlow\Events\TransitionYielded;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -234,6 +235,26 @@ class EventOrchestratorTest extends TestCase
 
         $orchestrator = new EventOrchestrator($dispatcher);
         $orchestrator->transitionStopped($state, $context, $metadata);
+    }
+
+    public function testTransitionYieldedDispatchesCorrectEvent(): void
+    {
+        $state = $this->createMock(State::class);
+        $context = $this->createMock(TransitionContext::class);
+        $metadata = ['checkId' => 'abc123'];
+        $dispatcher = $this->createMock(EventDispatcher::class);
+
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($event) use ($state, $context, $metadata) {
+                return $event instanceof TransitionYielded
+                    && $event->currentState === $state
+                    && $event->context === $context
+                    && $event->metadata === $metadata;
+            }));
+
+        $orchestrator = new EventOrchestrator($dispatcher);
+        $orchestrator->transitionYielded($state, $context, $metadata);
     }
 
     public function testLockAcquiredDispatchesCorrectEvent(): void

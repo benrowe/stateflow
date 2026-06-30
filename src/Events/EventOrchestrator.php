@@ -75,6 +75,11 @@ class EventOrchestrator
         $this->dispatcher->dispatch(new TransitionStopped($state, $context, $metadata));
     }
 
+    public function transitionYielded(State $state, TransitionContext $context, mixed $metadata): void
+    {
+        $this->dispatcher->dispatch(new TransitionYielded($state, $context, $metadata));
+    }
+
     public function lockAcquired(string $lockKey, LockState $lockState): void
     {
         $this->dispatcher->dispatch(new LockAcquired($lockKey, $lockState));
