@@ -232,6 +232,66 @@ class WorkflowYieldTest extends TestCase
         $this->assertCount(1, $lockReleasedEvents, 'LockReleased event should be dispatched once completed');
     }
 
+    public function testResumeWithResponseIsSkippedWhenLockCannotBeAcquiredWithSkipStrategy(): void
+    {
+        $lockProvider = $this->createMock(LockProvider::class);
+        $lockProvider
+            ->expects($this->exactly(2))
+            ->method('acquire')
+            ->with('entity:1', 30)
+            ->willReturnOnConsecutiveCalls(true, false);
+        $lockProvider
+            ->expects($this->any())
+            ->method('exists')
+            ->willReturn(true);
+        $lockProvider
+            ->expects($this->never())
+            ->method('release');
+
+        $lockKeyProvider = $this->createMock(LockKeyProvider::class);
+        $lockKeyProvider
+            ->expects($this->any())
+            ->method('getLockKey')
+            ->willReturn('entity:1');
+
+        $actionInvocationCount = 0;
+        $action = new class ($actionInvocationCount) implements Action, Yieldable
+        {
+            public function __construct(private int &$invocationCount) {}
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->invocationCount++;
+
+                if ($context->hasYieldResponse()) {
+                    return ActionResult::continue();
+                }
+
+                return ActionResult::yield();
+            }
+        };
+
+        $lockConfig = new LockConfiguration(LockStrategy::SKIP, 30);
+        $lockContext = new LockContext($lockProvider, $lockKeyProvider, $lockConfig);
+        $config = Configuration::fromArray([], [$action]);
+
+        $stateFlow = new StateFlow(fn () => $config, null, $lockContext);
+        $state = $this->createTestState(['id' => '1', 'status' => 'draft']);
+
+        $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'pending']));
+        $yieldedContext = $worker->execute();
+
+        $this->assertTrue($yieldedContext->executionStatus()->isYielded());
+        $this->assertSame(1, $actionInvocationCount);
+
+        $resumedContext = $worker->resumeWithResponse(['outcome' => 'approved']);
+
+        $this->assertTrue($resumedContext->executionStatus()->wasSkippedDueToLock());
+        $this->assertFalse($resumedContext->executionStatus()->isCompleted());
+        $this->assertFalse($resumedContext->executionStatus()->isYielded());
+        $this->assertSame(1, $actionInvocationCount, 'Action should not be re-invoked when lock cannot be acquired');
+    }
+
     protected function getLogger(): ExecutionLogger
     {
         return $this->logger;
