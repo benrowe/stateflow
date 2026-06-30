@@ -2,8 +2,15 @@
 
 # Docker configuration
 IMAGE_NAME = stateflow-php
-DOCKER_RUN = docker run --rm -v $(PWD):/app -w /app $(IMAGE_NAME)
 DOCKER_RUN_IT = docker run --rm -it -v $(PWD):/app -v $(HOME)/.gitconfig:/home/appuser/.gitconfig:ro -v $(HOME)/.ssh/:/home/appuser/.ssh:ro -w /app $(IMAGE_NAME)
+
+# Use Docker when available and the image exists; otherwise run natively on the host PHP binary
+DOCKER_AVAILABLE := $(shell command -v docker >/dev/null 2>&1 && docker image inspect $(IMAGE_NAME) >/dev/null 2>&1 && echo true || echo false)
+ifeq ($(DOCKER_AVAILABLE),true)
+    DOCKER_RUN = docker run --rm -v $(PWD):/app -w /app $(IMAGE_NAME)
+else
+    DOCKER_RUN =
+endif
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
