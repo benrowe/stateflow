@@ -19,13 +19,8 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-if php -m 2>/dev/null | grep -q pcov; then
-    echo "Running tests with coverage..."
-    composer test:coverage
-else
-    echo "Running tests (pcov not available, skipping coverage)..."
-    composer test
-fi
+echo "Running tests with coverage..."
+composer test:coverage
 if [ $? -ne 0 ]; then
     EXIT_CODE=1
 fi
