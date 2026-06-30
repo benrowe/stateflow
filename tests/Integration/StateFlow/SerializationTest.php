@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\Action\Yieldable;
 use BenRowe\StateFlow\ActionFactory;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
@@ -254,6 +255,67 @@ class SerializationTest extends TestCase
         );
     }
 
+    /**
+     * Scenario: Serialize yielded workflow, then deserialize and resume with a response
+     *
+     * This simulates an action dispatching async work (e.g. an external API call),
+     * the transition being persisted mid-flight, and later resumed from a fresh
+     * request once the response is available.
+     */
+    public function testSerializeAndResumeYieldedWorkflow(): void
+    {
+        $initialState = $this->createTestState(['status' => 'draft']);
+
+        $action1 = new LoggingAction('PrepareDocument', $this->logger);
+        $action2 = new YieldingAction('RequestExternalCheck', $this->logger, ['checkId' => 'abc']);
+        $action3 = new LoggingAction('PublishDocument', $this->logger);
+
+        $config = Configuration::fromArray([], [$action1, $action2, $action3]);
+
+        // ===== PART 1: Execute workflow until yield =====
+        $stateFlow1 = new StateFlow(fn () => $config);
+        $worker1 = $stateFlow1->transition($initialState, new ArrayDelta(['status' => 'pending']));
+        $yieldedContext = $worker1->execute();
+
+        $this->assertTrue($yieldedContext->executionStatus()->isYielded());
+        $this->assertFalse($yieldedContext->executionStatus()->isCompleted());
+        $this->assertCount(2, $yieldedContext->executionHistory()->getActionExecutions());
+        $this->assertEquals(['checkId' => 'abc'], $yieldedContext->getStatusMetadata());
+        $this->assertNotContains('Action:PublishDocument', $this->logger->log);
+
+        // ===== PART 2: Serialize context (e.g., save to database) =====
+        $serialized = (new TransitionContextSerializer())->serialize($yieldedContext);
+        $this->assertJson($serialized);
+
+        // ===== PART 3: Simulate loading from database in a new request =====
+        $restoredContext = (new TransitionContextSerializer())->unserialize(
+            $serialized,
+            $this->stateFactory,
+            $this->actionFactory,
+            $this->gateFactory
+        );
+
+        $this->assertTrue($restoredContext->executionStatus()->isYielded());
+        $this->assertCount(2, $restoredContext->executionHistory()->getActionExecutions());
+        $this->assertEquals(['checkId' => 'abc'], $restoredContext->getStatusMetadata());
+
+        // ===== PART 4: Resume the workflow with the external response =====
+        $stateFlow2 = new StateFlow(fn () => $config);
+        $worker2 = $stateFlow2->fromContext($restoredContext);
+        $completedContext = $worker2->resumeWithResponse(['outcome' => 'approved']);
+
+        $this->assertTrue($completedContext->executionStatus()->isCompleted());
+        $this->assertFalse($completedContext->executionStatus()->isYielded());
+        $this->assertCount(4, $completedContext->executionHistory()->getActionExecutions());
+
+        // Verify action 3 executed after resume
+        $this->assertContains('Action:PublishDocument', $this->logger->log);
+
+        // Verify the yielding action ran exactly twice (initial yield + resumed continue)
+        $action2Count = count(array_keys($this->logger->log, 'Action:RequestExternalCheck', true));
+        $this->assertSame(2, $action2Count);
+    }
+
     protected function getLogger(): ExecutionLogger
     {
         return $this->logger;
@@ -312,6 +374,26 @@ class StoppingAction implements Action
         $this->logger->log[] = 'Action:' . $this->name;
 
         return ActionResult::stop(null, $this->metadata);
+    }
+}
+
+class YieldingAction implements Action, Yieldable
+{
+    public function __construct(
+        private string $name,
+        private ExecutionLogger $logger,
+        private mixed $yieldMetadata = null
+    ) {}
+
+    public function execute(ActionContext $context): ActionResult
+    {
+        $this->logger->log[] = 'Action:' . $this->name;
+
+        if ($context->hasYieldResponse()) {
+            return ActionResult::continue();
+        }
+
+        return ActionResult::yield($this->yieldMetadata);
     }
 }
 
@@ -388,6 +470,7 @@ class SerializationActionFactory implements ActionFactory
             LoggingAction::class => new LoggingAction('PublishDocument', $this->logger),
             PausingAction::class => new PausingAction('RequestApproval', $this->logger, ['awaiting' => 'manager']),
             StoppingAction::class => new StoppingAction('ValidatePayment', $this->logger),
+            YieldingAction::class => new YieldingAction('RequestExternalCheck', $this->logger, ['checkId' => 'abc']),
             StateChangingAction::class => new StateChangingAction(
                 'ReviewAction',
                 $this->logger,
