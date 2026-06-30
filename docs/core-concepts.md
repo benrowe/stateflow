@@ -477,6 +477,7 @@ enum ExecutionState
     case CONTINUE;  // Continue to next action
     case PAUSE;     // Pause execution (lock persists)
     case STOP;      // Stop execution (lock released)
+    case YIELD;     // Suspend this action only (lock persists, cursor holds)
 }
 
 class ActionResult
@@ -501,13 +502,18 @@ class ActionResult
     {
         return new self(ExecutionState::STOP, $newState, $metadata);
     }
+
+    public static function yield(mixed $metadata = null): self
+    {
+        return new self(ExecutionState::YIELD, null, $metadata);
+    }
 }
 
 interface Action
 {
     /**
      * Execute the action
-     * Return new state or signal pause/stop
+     * Return new state or signal pause/stop/yield
      */
     public function execute(ActionContext $context): ActionResult;
 }
@@ -519,6 +525,12 @@ class ActionContext
         public readonly Delta $desiredDelta,
         public readonly TransitionContext $executionContext,
     ) {}
+
+    // True when this invocation is resuming a prior ActionResult::yield()
+    public function hasYieldResponse(): bool;
+
+    // The response data passed to StateWorker::resumeWithResponse()
+    public function yieldResponse(): mixed;
 }
 ```
 
@@ -579,6 +591,53 @@ class GenerateThumbnailsAction implements Action
 
 // Later, when job completes, resume the workflow
 ```
+
+**Async operation with yield:**
+
+```php
+final class RunFraudCheckAction implements Action, Yieldable
+{
+    public function __construct(private FraudCheckClient $client) {}
+
+    public function execute(ActionContext $context): ActionResult
+    {
+        // Resumed call: the webhook handler supplied the async response.
+        if ($context->hasYieldResponse()) {
+            $response = $context->yieldResponse(); // mixed, caller-defined shape
+
+            if ($response['outcome'] === 'rejected') {
+                return ActionResult::stop(metadata: ['reason' => 'fraud_check_rejected']);
+            }
+
+            $newState = $context->currentState->with(['fraudCheckId' => $response['checkId']]);
+
+            return ActionResult::continue($newState);
+        }
+
+        // First call: dispatch the external work and suspend.
+        $checkId = $this->client->startCheck($context->currentState, $context->desiredDelta);
+
+        return ActionResult::yield(['checkId' => $checkId, 'dispatchedAt' => time()]);
+    }
+}
+
+// Later, when the fraud check responds (e.g. a webhook):
+$worker = $stateFlow->fromContext($persistedContext);
+$worker->resumeWithResponse(['outcome' => 'approved', 'checkId' => $checkId]);
+// Re-invokes RunFraudCheckAction with hasYieldResponse() === true; once it
+// returns continue()/stop(), any remaining actions run immediately after,
+// in the same call.
+```
+
+`pause()` and `yield()` both suspend a transition and hold the lock, but differ in scope:
+
+| | `pause()` | `yield()` |
+|---|---|---|
+| Scope | Suspends the whole transition | Suspends only the current action |
+| Resume target | Next action in the queue | The *same* action, re-invoked |
+| Resume call | `StateWorker::execute()` / `runNextAction()` | `StateWorker::resumeWithResponse()` |
+| Lock | Held until completion/stop | Held until completion/stop |
+| Opt-in | Any `Action` | Requires `implements Yieldable` |
 
 **Conditional stop:**
 

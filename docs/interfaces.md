@@ -148,6 +148,17 @@ interface Guardable
 }
 ```
 
+### Yieldable
+
+```php
+/**
+ * Optional capability interface. An Action implements this to opt in to
+ * returning ActionResult::yield() - suspending itself mid-transition without
+ * suspending the whole transition the way pause() does.
+ */
+interface Yieldable {}
+```
+
 ## Actions
 
 ### Action
@@ -177,6 +188,7 @@ class ActionResult
     public static function continue(?State $newState = null): self;
     public static function pause(?State $newState = null, mixed $metadata = null): self;
     public static function stop(?State $newState = null, mixed $metadata = null): self;
+    public static function yield(mixed $metadata = null): self;
 }
 ```
 
@@ -188,6 +200,7 @@ enum ExecutionState
     case CONTINUE;  // Continue to next action
     case PAUSE;     // Pause execution (lock persists)
     case STOP;      // Stop execution (lock released)
+    case YIELD;     // Suspend this action only (lock persists, cursor holds)
 }
 ```
 
@@ -201,6 +214,16 @@ class ActionContext
         public readonly Delta $desiredDelta,
         public readonly TransitionContext $executionContext,
     ) {}
+
+    /**
+     * Whether this invocation is resuming from a prior ActionResult::yield().
+     */
+    public function hasYieldResponse(): bool;
+
+    /**
+     * The response data supplied to StateWorker::resumeWithResponse().
+     */
+    public function yieldResponse(): mixed;
 }
 ```
 
@@ -373,6 +396,17 @@ class TransitionPaused extends Event
 }
 
 class TransitionStopped extends Event
+{
+    public function __construct(
+        public readonly State $currentState,
+        public readonly TransitionContext $context,
+        public readonly mixed $metadata,
+    ) {
+        parent::__construct();
+    }
+}
+
+class TransitionYielded extends Event
 {
     public function __construct(
         public readonly State $currentState,
@@ -702,6 +736,17 @@ class StateWorker
     public function releaseLock(): bool;
 
     /**
+     * Resume a yielded transition by re-invoking the action that yielded with
+     * response data. The same action runs again with hasYieldResponse() true;
+     * once it returns continue()/stop(), any remaining actions run immediately
+     * after, in the same call.
+     *
+     * @throws TransitionException if the transition is not currently yielded
+     * @throws NonYieldableActionException if the action at the resume cursor no longer implements Yieldable
+     */
+    public function resumeWithResponse(mixed $data): TransitionContext;
+
+    /**
      * Get the current TransitionContext.
      */
     public function getContext(): TransitionContext;
@@ -723,6 +768,7 @@ class TransitionContext implements \Serializable
     public function isCompleted(): bool;
     public function isPaused(): bool;
     public function isStopped(): bool;
+    public function isYielded(): bool;
     public function wasSkippedDueToLock(): bool;
 
     // Execution history (returns collections)
@@ -754,6 +800,8 @@ class LockExpiredException extends \RuntimeException {}
 class LockLostException extends \RuntimeException {}
 
 class TransitionException extends \RuntimeException {}
+
+class NonYieldableActionException extends \RuntimeException {}
 ```
 
 ## Helper Classes
