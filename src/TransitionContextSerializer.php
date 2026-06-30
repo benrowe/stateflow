@@ -131,6 +131,7 @@ class TransitionContextSerializer
             'completed' => $context->executionStatus()->isCompleted(),
             'paused' => $context->executionStatus()->isPaused(),
             'stopped' => $context->executionStatus()->isStopped(),
+            'yielded' => $context->executionStatus()->isYielded(),
             'skippedDueToLock' => $context->executionStatus()->wasSkippedDueToLock(),
             'metadata' => $context->getStatusMetadata(),
         ];
@@ -262,6 +263,8 @@ class TransitionContextSerializer
             $context->executionStatus()->markPaused($metadata);
         } elseif ($statusData['stopped'] ?? false) {
             $context->executionStatus()->markStopped($metadata);
+        } elseif ($statusData['yielded'] ?? false) {
+            $context->executionStatus()->markYielded($metadata);
         }
 
         if ($statusData['skippedDueToLock'] ?? false) {
@@ -326,6 +329,7 @@ class TransitionContextSerializer
                 'CONTINUE' => ExecutionState::CONTINUE,
                 'PAUSE' => ExecutionState::PAUSE,
                 'STOP' => ExecutionState::STOP,
+                'YIELD' => ExecutionState::YIELD,
                 default => ExecutionState::CONTINUE,
             };
             $newState = null;
