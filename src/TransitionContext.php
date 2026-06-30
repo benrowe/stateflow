@@ -6,6 +6,7 @@ namespace BenRowe\StateFlow;
 
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\Action\YieldResponse;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -193,9 +194,21 @@ class TransitionContext
     }
 
     /**
+     * Consume the pending yield response wrapped for ActionContext, or null if none is pending.
+     */
+    public function consumePendingYieldResponseAsObject(): ?YieldResponse
+    {
+        if (!$this->hasPendingYieldResponse) {
+            return null;
+        }
+
+        return new YieldResponse($this->consumePendingYieldResponse());
+    }
+
+    /**
      * Consume and clear the pending yield response.
      */
-    public function consumePendingYieldResponse(): mixed
+    private function consumePendingYieldResponse(): mixed
     {
         $data = $this->pendingYieldResponse;
         $this->hasPendingYieldResponse = false;

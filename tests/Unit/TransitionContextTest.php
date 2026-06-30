@@ -6,6 +6,7 @@ namespace BenRowe\StateFlow\Tests\Unit;
 
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\Action\YieldResponse;
 use BenRowe\StateFlow\ActionSkip;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
@@ -431,16 +432,23 @@ class TransitionContextTest extends TestCase
         $this->assertTrue($context->hasPendingYieldResponse());
     }
 
-    public function testConsumePendingYieldResponseReturnsDataAndClears(): void
+    public function testConsumePendingYieldResponseAsObjectReturnsNullWhenNothingPending(): void
+    {
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
+
+        $this->assertNull($context->consumePendingYieldResponseAsObject());
+    }
+
+    public function testConsumePendingYieldResponseAsObjectReturnsWrappedDataAndClears(): void
     {
         $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
         $context->setPendingYieldResponse(['outcome' => 'approved']);
 
-        $data = $context->consumePendingYieldResponse();
+        $response = $context->consumePendingYieldResponseAsObject();
 
-        $this->assertSame(['outcome' => 'approved'], $data);
+        $this->assertEquals(new YieldResponse(['outcome' => 'approved']), $response);
         $this->assertFalse($context->hasPendingYieldResponse());
-        $this->assertNull($context->consumePendingYieldResponse());
+        $this->assertNull($context->consumePendingYieldResponseAsObject());
     }
 
     protected function getLogger(): ExecutionLogger
