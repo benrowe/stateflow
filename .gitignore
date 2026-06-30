@@ -36,5 +36,5 @@ clover.xml
 # Logs
 *.log
 
-# Claude
-.claude
+# Claude (local-only overrides - do not commit)
+.claude/settings.local.json
