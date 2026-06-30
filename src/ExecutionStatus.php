@@ -18,6 +18,8 @@ final class ExecutionStatus
 
     private bool $stopped = false;
 
+    private bool $yielded = false;
+
     private bool $skippedDueToLock = false;
 
     private mixed $metadata = null;
@@ -32,6 +34,7 @@ final class ExecutionStatus
         $this->completed = true;
         $this->paused = false;
         $this->stopped = false;
+        $this->yielded = false;
         $this->metadata = null;
     }
 
@@ -45,6 +48,7 @@ final class ExecutionStatus
         $this->paused = true;
         $this->completed = false;
         $this->stopped = false;
+        $this->yielded = false;
         $this->metadata = $metadata;
     }
 
@@ -58,6 +62,21 @@ final class ExecutionStatus
         $this->stopped = true;
         $this->completed = false;
         $this->paused = false;
+        $this->yielded = false;
+        $this->metadata = $metadata;
+    }
+
+    /**
+     * Mark the execution as yielded.
+     *
+     * @param mixed $metadata Optional metadata about why the execution was yielded
+     */
+    public function markYielded(mixed $metadata = null): void
+    {
+        $this->yielded = true;
+        $this->completed = false;
+        $this->paused = false;
+        $this->stopped = false;
         $this->metadata = $metadata;
     }
 
@@ -78,6 +97,19 @@ final class ExecutionStatus
     {
         if ($this->paused) {
             $this->paused = false;
+            $this->metadata = null;
+        }
+    }
+
+    /**
+     * Clear the yielded status.
+     *
+     * Only clears if currently yielded. Does not affect stopped, paused, or completed states.
+     */
+    public function clearYieldStatus(): void
+    {
+        if ($this->yielded) {
+            $this->yielded = false;
             $this->metadata = null;
         }
     }
@@ -104,6 +136,14 @@ final class ExecutionStatus
     public function isStopped(): bool
     {
         return $this->stopped;
+    }
+
+    /**
+     * Check if the execution is yielded.
+     */
+    public function isYielded(): bool
+    {
+        return $this->yielded;
     }
 
     /**
