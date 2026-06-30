@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Unit;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\Action\Yieldable;
 use BenRowe\StateFlow\ArrayDelta;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\ActionExecuted;
@@ -17,6 +18,7 @@ use BenRowe\StateFlow\Events\GateEvaluating;
 use BenRowe\StateFlow\Events\NullEventDispatcher;
 use BenRowe\StateFlow\Events\TransitionCompleted;
 use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
+use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
 use BenRowe\StateFlow\Exceptions\TransitionException;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
@@ -25,6 +27,7 @@ use BenRowe\StateFlow\Gate\Guardable;
 use BenRowe\StateFlow\GateEvaluation;
 use BenRowe\StateFlow\StateWorker;
 use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
+use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
 use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use BenRowe\StateFlow\TransitionContext;
@@ -36,6 +39,7 @@ use stdClass;
  */
 class StateWorkerTest extends TestCase
 {
+    use CreatesTestActions;
     use CreatesTestGates;
     use CreatesTestStates;
 
@@ -414,6 +418,92 @@ class StateWorkerTest extends TestCase
         // Only first action should execute, second should not
         $this->assertCount(1, $context->executionHistory()->getActionExecutions());
         $this->assertTrue($context->executionStatus()->isStopped());
+    }
+
+    public function testExecuteActionsHoldsCursorWhenActionReturnsYield(): void
+    {
+        $yieldAction = $this->createTestYieldableAction('Action1', ActionResult::yield(['checkId' => 'abc123']));
+        $secondAction = $this->createStubAction('SecondAction');
+
+        $config = Configuration::fromArray([], [$yieldAction, $secondAction]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
+
+        $mockDispatcher = new NullEventDispatcher();
+
+        $worker = new StateWorker($context, $mockDispatcher);
+        $worker->runActions();
+
+        // Only first action should execute, second should not
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
+        $this->assertTrue($context->executionStatus()->isYielded());
+
+        // Cursor must not have advanced past the yielding action; a stray runNextAction()
+        // call must not silently re-dispatch the action without response data
+        $worker->runNextAction();
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions(), 'Yielded action must not re-execute via runNextAction()');
+    }
+
+    public function testResumeWithResponseThrowsWhenNotYielded(): void
+    {
+        $action = $this->createStubAction('TestAction');
+
+        $config = Configuration::fromArray([], [$action]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
+
+        $worker = new StateWorker($context, new NullEventDispatcher());
+
+        $this->expectException(TransitionException::class);
+        $worker->resumeWithResponse(['outcome' => 'approved']);
+    }
+
+    public function testResumeWithResponseThrowsWhenActionNoLongerYieldable(): void
+    {
+        // Action is no longer Yieldable (e.g. configuration drift since the original yield)
+        $action = $this->createStubAction('TestAction');
+
+        $config = Configuration::fromArray([], [$action]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
+        $context->executionStatus()->markYielded(['checkId' => 'abc123']);
+
+        $worker = new StateWorker($context, new NullEventDispatcher());
+
+        $this->expectException(NonYieldableActionException::class);
+        $worker->resumeWithResponse(['outcome' => 'approved']);
+    }
+
+    public function testResumeWithResponseReinvokesSameActionAndRunsRemainingActions(): void
+    {
+        $responseData = ['outcome' => 'approved'];
+        $yieldAction = $this->createTestYieldableAction(
+            'Action1',
+            ActionResult::yield(['checkId' => 'abc123']),
+            ActionResult::continue()
+        );
+        $secondAction = $this->createTestAction('SecondAction');
+
+        $config = Configuration::fromArray([], [$yieldAction, $secondAction]);
+        $state = $this->createTestState(['status' => 'draft']);
+        $context = new TransitionContext($state, new ArrayDelta(['status' => 'published']), $config);
+
+        $worker = new StateWorker($context, new NullEventDispatcher());
+        $worker->runActions();
+
+        $this->assertTrue($context->executionStatus()->isYielded());
+        $this->assertCount(1, $context->executionHistory()->getActionExecutions());
+
+        $resumedContext = $worker->resumeWithResponse($responseData);
+
+        // Same action re-invoked (now recorded with CONTINUE) plus the second action
+        $this->assertCount(3, $resumedContext->executionHistory()->getActionExecutions());
+        $this->assertSame(
+            ['Action:Action1', 'Action:Action1', 'Action:SecondAction'],
+            $this->logger->log
+        );
+        $this->assertTrue($resumedContext->executionStatus()->isCompleted());
+        $this->assertFalse($resumedContext->executionStatus()->isYielded());
     }
 
     public function testEvaluateGateThrowsInvalidGateResultExceptionOnTypeError(): void

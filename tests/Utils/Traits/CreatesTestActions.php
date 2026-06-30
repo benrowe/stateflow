@@ -7,6 +7,7 @@ namespace BenRowe\StateFlow\Tests\Utils\Traits;
 use BenRowe\StateFlow\Action\Action;
 use BenRowe\StateFlow\Action\ActionContext;
 use BenRowe\StateFlow\Action\ActionResult;
+use BenRowe\StateFlow\Action\Yieldable;
 use BenRowe\StateFlow\Gate\Gate;
 use BenRowe\StateFlow\Gate\GateContext;
 use BenRowe\StateFlow\Gate\GateResult;
@@ -79,6 +80,37 @@ trait CreatesTestActions
                 $this->logger->log[] = 'Action:' . $this->name;
 
                 return $this->result;
+            }
+        };
+    }
+
+    private function createTestYieldableAction(
+        string $name,
+        ActionResult $firstResult,
+        ?ActionResult $resumedResult = null
+    ): Action {
+        $logger = $this->getLogger();
+
+        return new class ($name, $firstResult, $resumedResult, $logger) implements Action, Yieldable
+        {
+            public function __construct(
+                private string $name,
+                private ActionResult $firstResult,
+                private ?ActionResult $resumedResult,
+                private ExecutionLogger $logger
+            ) {}
+
+            public function execute(ActionContext $context): ActionResult
+            {
+                $this->logger->log[] = 'Action:' . $this->name;
+
+                if ($context->hasYieldResponse()) {
+                    assert($this->resumedResult !== null);
+
+                    return $this->resumedResult;
+                }
+
+                return $this->firstResult;
             }
         };
     }
