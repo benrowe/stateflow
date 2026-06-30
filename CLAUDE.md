@@ -66,6 +66,8 @@ This runs all quality checks in one command:
 
 Only consider your changes complete when `make check` passes with all green checks.
 
+> **Note (Claude Code web sessions):** `make check` runs linting and static analysis successfully, but test coverage (`composer test:coverage`) requires the pcov PHP extension which is not available in the web session environment. Run `make test` to verify tests pass locally, then push to CI and inspect the coverage results there.
+
 ## Core Architecture
 
 ### State Flow Execution Model
