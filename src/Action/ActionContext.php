@@ -14,17 +14,16 @@ readonly class ActionContext
         public State $currentState,
         public Delta $desiredDelta,
         public TransitionContext $executionContext,
-        private bool $hasYieldResponse = false,
-        private mixed $yieldResponseData = null,
+        private ?YieldResponse $yieldResponse = null,
     ) {}
 
     public function hasYieldResponse(): bool
     {
-        return $this->hasYieldResponse;
+        return $this->yieldResponse !== null;
     }
 
     public function yieldResponse(): mixed
     {
-        return $this->yieldResponseData;
+        return $this->yieldResponse?->data;
     }
 }
