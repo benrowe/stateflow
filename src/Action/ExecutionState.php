@@ -9,4 +9,5 @@ enum ExecutionState
     case CONTINUE;
     case PAUSE;
     case STOP;
+    case YIELD;
 }

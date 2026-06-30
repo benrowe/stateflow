@@ -50,6 +50,19 @@ class ActionResultTest extends TestCase
     }
 
     /**
+     * @param ?mixed[] $metadata
+     */
+    #[DataProvider('provideYieldData')]
+    public function testYield(?array $metadata): void
+    {
+        $result = ActionResult::yield($metadata);
+        $this->assertInstanceOf(ActionResult::class, $result);
+        $this->assertSame(ExecutionState::YIELD, $result->executionState);
+        $this->assertNull($result->newState);
+        $this->assertSame($metadata, $result->metadata);
+    }
+
+    /**
      * @return array<string, mixed[]>
      */
     public static function provideContinueData(): array
@@ -82,6 +95,17 @@ class ActionResultTest extends TestCase
             'with state' => [self::mockState(), null],
             'with metadata' => [null, ['foo' => 'bar']],
             'with state and metadata' => [self::mockState(), ['foo' => 'bar']],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed[]>
+     */
+    public static function provideYieldData(): array
+    {
+        return [
+            'no metadata' => [null],
+            'with metadata' => [['foo' => 'bar']],
         ];
     }
 
