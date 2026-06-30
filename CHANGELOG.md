@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ActionResult::yield()` for actions to suspend themselves mid-transition pending an async response, resumed via `StateWorker::resumeWithResponse()` without re-running prior actions
+- `Yieldable` marker interface for actions opting in to `ActionResult::yield()`
 - Initial package structure
 - Basic StateMachine class with state transitions
 - Support for named events

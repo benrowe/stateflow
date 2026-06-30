@@ -92,6 +92,14 @@ $resumedWorker = $stateFlow->fromContext($resumedContext);
 $finalContext = $resumedWorker->execute(); // Continues from where it left off
 ```
 
+`pause()` suspends the whole transition; for a single action awaiting an
+async response (e.g. an external API call) while keeping the rest of the
+transition scoped to that one action, use `ActionResult::yield()` instead.
+A `Yieldable` action holds the cursor and the lock, and is resumed via
+`StateWorker::resumeWithResponse()`, which re-invokes the same action with
+the response data before continuing to any remaining actions in the same
+call.
+
 ### 5. Observable Orchestration
 
 Every step emits events:
