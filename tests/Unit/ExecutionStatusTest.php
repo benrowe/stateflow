@@ -16,6 +16,7 @@ class ExecutionStatusTest extends TestCase
         $this->assertFalse($status->isCompleted());
         $this->assertFalse($status->isPaused());
         $this->assertFalse($status->isStopped());
+        $this->assertFalse($status->isYielded());
         $this->assertFalse($status->wasSkippedDueToLock());
         $this->assertNull($status->getMetadata());
     }
@@ -28,6 +29,85 @@ class ExecutionStatusTest extends TestCase
         $this->assertTrue($status->isCompleted());
         $this->assertFalse($status->isPaused());
         $this->assertFalse($status->isStopped());
+        $this->assertFalse($status->isYielded());
+    }
+
+    public function testMarkYieldedWithoutMetadata(): void
+    {
+        $status = new ExecutionStatus();
+        $status->markYielded();
+
+        $this->assertFalse($status->isCompleted());
+        $this->assertFalse($status->isPaused());
+        $this->assertFalse($status->isStopped());
+        $this->assertTrue($status->isYielded());
+        $this->assertNull($status->getMetadata());
+    }
+
+    public function testMarkYieldedWithMetadata(): void
+    {
+        $status = new ExecutionStatus();
+        $metadata = ['checkId' => 'abc123'];
+
+        $status->markYielded($metadata);
+
+        $this->assertTrue($status->isYielded());
+        $this->assertSame($metadata, $status->getMetadata());
+    }
+
+    public function testMarkCompletedClearsYielded(): void
+    {
+        $status = new ExecutionStatus();
+        $status->markYielded(['checkId' => 'abc123']);
+
+        $status->markCompleted();
+
+        $this->assertFalse($status->isYielded());
+    }
+
+    public function testMarkPausedClearsYielded(): void
+    {
+        $status = new ExecutionStatus();
+        $status->markYielded(['checkId' => 'abc123']);
+
+        $status->markPaused();
+
+        $this->assertFalse($status->isYielded());
+    }
+
+    public function testMarkStoppedClearsYielded(): void
+    {
+        $status = new ExecutionStatus();
+        $status->markYielded(['checkId' => 'abc123']);
+
+        $status->markStopped();
+
+        $this->assertFalse($status->isYielded());
+    }
+
+    public function testClearYieldStatusWhenYielded(): void
+    {
+        $status = new ExecutionStatus();
+        $status->markYielded(['checkId' => 'abc123']);
+
+        $status->clearYieldStatus();
+
+        $this->assertFalse($status->isYielded());
+        $this->assertFalse($status->isCompleted());
+        $this->assertFalse($status->isPaused());
+        $this->assertFalse($status->isStopped());
+        $this->assertNull($status->getMetadata());
+    }
+
+    public function testClearYieldStatusWhenNotYieldedDoesNothing(): void
+    {
+        $status = new ExecutionStatus();
+        $status->markStopped(['error' => 'test']);
+
+        $status->clearYieldStatus();
+
+        $this->assertTrue($status->isStopped());
+        $this->assertSame(['error' => 'test'], $status->getMetadata());
     }
 
     public function testMarkPausedWithoutMetadata(): void
@@ -167,15 +247,24 @@ class ExecutionStatusTest extends TestCase
         $this->assertTrue($status->isCompleted());
         $this->assertFalse($status->isPaused());
         $this->assertFalse($status->isStopped());
+        $this->assertFalse($status->isYielded());
 
         $status->markPaused();
         $this->assertFalse($status->isCompleted());
         $this->assertTrue($status->isPaused());
         $this->assertFalse($status->isStopped());
+        $this->assertFalse($status->isYielded());
 
         $status->markStopped();
         $this->assertFalse($status->isCompleted());
         $this->assertFalse($status->isPaused());
         $this->assertTrue($status->isStopped());
+        $this->assertFalse($status->isYielded());
+
+        $status->markYielded();
+        $this->assertFalse($status->isCompleted());
+        $this->assertFalse($status->isPaused());
+        $this->assertFalse($status->isStopped());
+        $this->assertTrue($status->isYielded());
     }
 }
