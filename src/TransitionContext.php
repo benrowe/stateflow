@@ -19,6 +19,10 @@ class TransitionContext
 
     private LockState $lockState;
 
+    private bool $hasPendingYieldResponse = false;
+
+    private mixed $pendingYieldResponse = null;
+
     public function __construct(
         private readonly State $initialState,
         private readonly Delta $desiredDelta,
@@ -167,5 +171,36 @@ class TransitionContext
     public function setExecutionHistory(ExecutionHistory $history): void
     {
         $this->history = $history;
+    }
+
+    /**
+     * Check if a yield response is pending consumption.
+     */
+    public function hasPendingYieldResponse(): bool
+    {
+        return $this->hasPendingYieldResponse;
+    }
+
+    /**
+     * Stash a yield response for the next action invocation.
+     *
+     * Transient: not part of the serialized context.
+     */
+    public function setPendingYieldResponse(mixed $data): void
+    {
+        $this->hasPendingYieldResponse = true;
+        $this->pendingYieldResponse = $data;
+    }
+
+    /**
+     * Consume and clear the pending yield response.
+     */
+    public function consumePendingYieldResponse(): mixed
+    {
+        $data = $this->pendingYieldResponse;
+        $this->hasPendingYieldResponse = false;
+        $this->pendingYieldResponse = null;
+
+        return $data;
     }
 }

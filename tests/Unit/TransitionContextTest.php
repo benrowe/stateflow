@@ -415,6 +415,34 @@ class TransitionContextTest extends TestCase
         $this->assertNull($context->getStatusMetadata());
     }
 
+    public function testHasPendingYieldResponseDefaultsToFalse(): void
+    {
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
+
+        $this->assertFalse($context->hasPendingYieldResponse());
+    }
+
+    public function testSetPendingYieldResponseMarksItPending(): void
+    {
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
+
+        $context->setPendingYieldResponse(['outcome' => 'approved']);
+
+        $this->assertTrue($context->hasPendingYieldResponse());
+    }
+
+    public function testConsumePendingYieldResponseReturnsDataAndClears(): void
+    {
+        $context = new TransitionContext($this->mockState, new ArrayDelta([]), $this->mockConfiguration);
+        $context->setPendingYieldResponse(['outcome' => 'approved']);
+
+        $data = $context->consumePendingYieldResponse();
+
+        $this->assertSame(['outcome' => 'approved'], $data);
+        $this->assertFalse($context->hasPendingYieldResponse());
+        $this->assertNull($context->consumePendingYieldResponse());
+    }
+
     protected function getLogger(): ExecutionLogger
     {
         return $this->logger;
