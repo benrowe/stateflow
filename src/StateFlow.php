@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow;
 
-use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Configuration\ConfigurationProvider;
@@ -39,9 +38,7 @@ class StateFlow
         return new StateWorker(
             $context,
             $this->eventDispatcher,
-            $this->lockContext?->provider,
-            $this->lockContext?->keyProvider,
-            $this->lockContext?->configuration
+            $this->lockContext
         );
     }
 
@@ -57,22 +54,11 @@ class StateFlow
         $worker = new StateWorker(
             $context,
             $this->eventDispatcher,
-            $this->lockContext?->provider,
-            $this->lockContext?->keyProvider,
-            $this->lockContext?->configuration
+            $this->lockContext
         );
 
-        // Resume from where we left off - count already executed actions
-        $actionExecutions = $context->executionHistory()->getActionExecutions()->toArray();
-        $executedActionCount = count($actionExecutions);
-
-        // A yielded action holds the cursor: resume at its index, not past it
-        $lastExecution = end($actionExecutions);
-        if ($lastExecution !== false && $lastExecution->executionState === ExecutionState::YIELD) {
-            $executedActionCount--;
-        }
-
-        $worker->setNextActionIndex($executedActionCount);
+        // Resume from where we left off - a held yield cursor resumes at its own index
+        $worker->setNextActionIndex($context->executionHistory()->getResumeActionIndex());
 
         return $worker;
     }

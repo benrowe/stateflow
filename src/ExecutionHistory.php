@@ -172,6 +172,24 @@ final readonly class ExecutionHistory
     }
 
     /**
+     * Get the action index to resume execution from.
+     *
+     * Normally this is the count of executed actions. A held yield cursor is
+     * the exception: the yielded action must be re-invoked, not skipped.
+     */
+    public function getResumeActionIndex(): int
+    {
+        $executedCount = $this->actionExecutions->count();
+        $lastExecution = $this->actionExecutions->last();
+
+        if ($lastExecution !== false && $lastExecution->executionState === ExecutionState::YIELD) {
+            return $executedCount - 1;
+        }
+
+        return $executedCount;
+    }
+
+    /**
      * Get metadata from the last PAUSE or STOP action.
      *
      * Returns null if no PAUSE/STOP action has been executed or if the action had no metadata.
