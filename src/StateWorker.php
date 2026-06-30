@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace BenRowe\StateFlow;
 
 use BenRowe\StateFlow\Action\ActionExecutionService;
-use BenRowe\StateFlow\Action\ExecutionState;
-use BenRowe\StateFlow\Action\Yieldable;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Events\EventDispatcher;
 use BenRowe\StateFlow\Events\EventOrchestrator;
@@ -14,10 +12,8 @@ use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
 use BenRowe\StateFlow\Exceptions\TransitionException;
 use BenRowe\StateFlow\Gate\GateEvaluationService;
 use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Locking\LockConfiguration;
-use BenRowe\StateFlow\Locking\LockKeyProvider;
+use BenRowe\StateFlow\Locking\LockContext;
 use BenRowe\StateFlow\Locking\LockManager;
-use BenRowe\StateFlow\Locking\LockProvider;
 
 class StateWorker
 {
@@ -36,9 +32,7 @@ class StateWorker
     public function __construct(
         private readonly TransitionContext $context,
         private readonly EventDispatcher $eventDispatcher,
-        private readonly ?LockProvider $lockProvider = null,
-        private readonly ?LockKeyProvider $lockKeyProvider = null,
-        private readonly ?LockConfiguration $lockConfiguration = null,
+        private readonly ?LockContext $lockContext = null,
     ) {
         $this->configuration = $this->context->getConfiguration();
 
@@ -47,9 +41,9 @@ class StateWorker
 
         // Create lock manager
         $this->lockManager = new LockManager(
-            $this->lockProvider,
-            $this->lockKeyProvider,
-            $this->lockConfiguration,
+            $this->lockContext?->provider,
+            $this->lockContext?->keyProvider,
+            $this->lockContext?->configuration,
             $this->context,
             $this->eventOrchestrator
         );
@@ -130,11 +124,7 @@ class StateWorker
 
                 // SKIP_IDEMPOTENT should complete successfully (idempotent transitions are considered complete)
                 if ($gateResult === GateResult::SKIP_IDEMPOTENT) {
-                    $this->context->executionStatus()->markCompleted();
-                    $this->eventOrchestrator->transitionCompleted(
-                        $this->context->getCurrentState(),
-                        $this->context
-                    );
+                    $this->completeTransition();
                 }
 
                 return $this->context;
@@ -142,23 +132,11 @@ class StateWorker
 
             // Only run actions if all gates allowed
             $this->executeActions();
-
-            // Mark as completed if we got through all actions
-            if ($this->isReadyToComplete()) {
-                $this->context->executionStatus()->markCompleted();
-                $this->eventOrchestrator->transitionCompleted(
-                    $this->context->getCurrentState(),
-                    $this->context
-                );
-            }
+            $this->completeTransitionIfReady();
 
             return $this->context;
         } finally {
-            // Always release lock if it was acquired (including on exception or pause/stop)
-            // Only keep lock if paused or yielded (scenario 9.8)
-            if ($this->context->lockState()->isLocked() && !$this->isHoldingLock()) {
-                $this->lockManager->releaseLock();
-            }
+            $this->releaseLockUnlessHeld();
         }
     }
 
@@ -175,12 +153,7 @@ class StateWorker
         }
 
         $action = $this->configuration->actions->toArray()[$this->nextActionIndex];
-
-        if (!$action instanceof Yieldable) {
-            throw new NonYieldableActionException(
-                'Action ' . $action::class . ' no longer implements Yieldable; cannot resume yielded transition'
-            );
-        }
+        $this->actionExecutor->assertYieldable($action);
 
         $this->context->executionStatus()->clearYieldStatus();
         $this->context->setPendingYieldResponse($data);
@@ -195,21 +168,40 @@ class StateWorker
 
         try {
             $this->executeActions();
-
-            // Mark as completed if we got through all actions
-            if ($this->isReadyToComplete()) {
-                $this->context->executionStatus()->markCompleted();
-                $this->eventOrchestrator->transitionCompleted(
-                    $this->context->getCurrentState(),
-                    $this->context
-                );
-            }
+            $this->completeTransitionIfReady();
 
             return $this->context;
         } finally {
-            if ($this->context->lockState()->isLocked() && !$this->isHoldingLock()) {
-                $this->lockManager->releaseLock();
-            }
+            $this->releaseLockUnlessHeld();
+        }
+    }
+
+    /**
+     * Mark the transition completed and dispatch the completion event if all actions ran through.
+     */
+    private function completeTransitionIfReady(): void
+    {
+        if ($this->isReadyToComplete()) {
+            $this->completeTransition();
+        }
+    }
+
+    private function completeTransition(): void
+    {
+        $this->context->executionStatus()->markCompleted();
+        $this->eventOrchestrator->transitionCompleted(
+            $this->context->getCurrentState(),
+            $this->context
+        );
+    }
+
+    /**
+     * Release the lock unless the transition is suspended in a way that must retain it (paused/yielded).
+     */
+    private function releaseLockUnlessHeld(): void
+    {
+        if ($this->context->lockState()->isLocked() && !$this->isHoldingLock()) {
+            $this->lockManager->releaseLock();
         }
     }
 
@@ -257,10 +249,10 @@ class StateWorker
         $action = $actions[$this->nextActionIndex];
         $this->nextActionIndex++;
 
-        $executionState = $this->actionExecutor->executeAction($action, $this->context);
+        $this->actionExecutor->executeAction($action, $this->context);
 
         // Hold the cursor on the yielding action so resumption re-invokes it
-        if ($executionState === ExecutionState::YIELD) {
+        if ($this->context->executionStatus()->isYielded()) {
             $this->nextActionIndex--;
         }
     }
