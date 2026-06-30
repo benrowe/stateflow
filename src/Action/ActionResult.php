@@ -28,4 +28,9 @@ readonly class ActionResult
     {
         return new self(ExecutionState::STOP, $newState, $metadata);
     }
+
+    public static function yield(mixed $metadata = null): self
+    {
+        return new self(ExecutionState::YIELD, null, $metadata);
+    }
 }
