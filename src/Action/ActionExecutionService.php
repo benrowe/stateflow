@@ -27,8 +27,6 @@ class ActionExecutionService
      * @return ExecutionState The execution state after running this action
      *
      * @throws Throwable when action execute fails for any reason (runtime, static)
-     *
-     * @phpstan-impure Mutates the supplied TransitionContext (history, current state, execution status).
      */
     public function executeAction(
         Action $action,

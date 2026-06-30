@@ -249,10 +249,10 @@ class StateWorker
         $action = $actions[$this->nextActionIndex];
         $this->nextActionIndex++;
 
-        $this->actionExecutor->executeAction($action, $this->context);
+        $executionState = $this->actionExecutor->executeAction($action, $this->context);
 
         // Hold the cursor on the yielding action so resumption re-invokes it
-        if ($this->context->executionStatus()->isYielded()) {
+        if ($executionState->isYield()) {
             $this->nextActionIndex--;
         }
     }
