@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BenRowe\StateFlow;
 
+use BenRowe\StateFlow\Action\ExecutionState;
 use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
 use BenRowe\StateFlow\Configuration\Configuration;
 use BenRowe\StateFlow\Configuration\ConfigurationProvider;
@@ -62,7 +63,15 @@ class StateFlow
         );
 
         // Resume from where we left off - count already executed actions
-        $executedActionCount = count($context->executionHistory()->getActionExecutions());
+        $actionExecutions = $context->executionHistory()->getActionExecutions()->toArray();
+        $executedActionCount = count($actionExecutions);
+
+        // A yielded action holds the cursor: resume at its index, not past it
+        $lastExecution = end($actionExecutions);
+        if ($lastExecution !== false && $lastExecution->executionState === ExecutionState::YIELD) {
+            $executedActionCount--;
+        }
+
         $worker->setNextActionIndex($executedActionCount);
 
         return $worker;
