@@ -22,7 +22,7 @@ Most state machines force you into rigid patterns. StateFlow is different:
 - 👀 **Fully Observable** - Events fired at every step for monitoring and debugging
 - 🎨 **Flexible Validation** - Two-tier gates (transition-level + action-level)
 - 📦 **Serializable Context** - Pause, store, and resume workflows hours or days later
-- ⏳ **Async Action Yielding** - Suspend a single action for external async work (webhooks, fraud checks, third-party APIs) and resume with the response; remaining actions in the same transition continue automatically
+- ⏳ **Async Action Yielding** - Suspend a single action for external async work (webhooks, third-party APIs, external events) and resume with the response; remaining actions in the same transition continue automatically
 - 🔧 **User-Controlled** - You define state structure, merge strategy, and lock behavior
 
 ## Perfect For
@@ -31,6 +31,7 @@ Most state machines force you into rigid patterns. StateFlow is different:
 - Content publishing pipelines with approval stages and notifications
 - Long-running batch jobs that need checkpointing
 - Multi-step user onboarding flows
+- Complex workflow systems
 - Any scenario where state transitions need audit trails and concurrency control
 
 ## Quick Example
