@@ -61,7 +61,7 @@ class Order implements State {
 
 // Configure the workflow
 $stateFlow = new StateFlow(
-    configProvider: fn($state, $delta) => new Configuration(
+    configProvider: fn(State $state, Delta $delta) => new Configuration( // your configuration can be dynamic based on the current state & incoming delta
         transitionGates: [new CanProcessGate()],  // Must pass to proceed
         actions: [
             new ChargePaymentAction(),   // Execute in order
@@ -70,7 +70,7 @@ $stateFlow = new StateFlow(
         ],
     ),
     eventDispatcher: new Logger(),      // See everything that happens
-    lockProvider: new RedisLock($redis), // Prevent race conditions
+    lockProvider: new RedisLock($redis), // Prevent race conditions, leave null for no locking.
 );
 
 // Execute transition with automatic locking
