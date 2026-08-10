@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace CoverGenius\StateFlow\Configuration;
 
+use Closure;
 use CoverGenius\StateFlow\Delta;
 use CoverGenius\StateFlow\State;
-use Closure;
 
 readonly class CallableConfigurationProvider implements ConfigurationProvider
 {

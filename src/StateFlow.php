@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CoverGenius\StateFlow;
 
+use Closure;
 use CoverGenius\StateFlow\Configuration\CallableConfigurationProvider;
 use CoverGenius\StateFlow\Configuration\Configuration;
 use CoverGenius\StateFlow\Configuration\ConfigurationProvider;
@@ -11,7 +12,6 @@ use CoverGenius\StateFlow\Events\EventDispatcher;
 use CoverGenius\StateFlow\Events\NullEventDispatcher;
 use CoverGenius\StateFlow\Events\TransitionStarting;
 use CoverGenius\StateFlow\Locking\LockContext;
-use Closure;
 
 /**
  * StateFlow - A flexible state machine implementation
