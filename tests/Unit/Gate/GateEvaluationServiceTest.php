@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Gate;
+namespace CoverGenius\StateFlow\Tests\Unit\Gate;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateCollection;
-use BenRowe\StateFlow\Gate\GateEvaluationService;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Gate\Guardable;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Events\EventOrchestrator;
+use CoverGenius\StateFlow\Exceptions\InvalidGateResultException;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateCollection;
+use CoverGenius\StateFlow\Gate\GateEvaluationService;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Gate\Guardable;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 interface GuardableTestAction extends Action, Guardable {}

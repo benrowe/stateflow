@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Action;
+namespace CoverGenius\StateFlow\Action;
 
-use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
-use BenRowe\StateFlow\Gate\GateEvaluationService;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Events\EventOrchestrator;
+use CoverGenius\StateFlow\Exceptions\NonYieldableActionException;
+use CoverGenius\StateFlow\Gate\GateEvaluationService;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\TransitionContext;
 use Throwable;
 
 /**

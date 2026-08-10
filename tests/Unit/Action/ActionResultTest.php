@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Action;
+namespace CoverGenius\StateFlow\Tests\Unit\Action;
 
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ExecutionState;
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\ExecutionState;
+use CoverGenius\StateFlow\State;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\Generator\Generator as MockGenerator;
 use PHPUnit\Framework\TestCase;

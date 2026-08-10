@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Events;
+namespace CoverGenius\StateFlow\Events;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
 
 class ActionExecuting extends Event
 {

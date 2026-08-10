@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Events;
+namespace CoverGenius\StateFlow\Tests\Unit\Events;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Events\ActionExecuted;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Events\ActionExecuted;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 class ActionExecutedTest extends TestCase

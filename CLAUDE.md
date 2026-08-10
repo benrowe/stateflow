@@ -265,7 +265,7 @@ make test
 - **Coverage target:** 100% (enforced in CI)
 - **Code style:** PHP-CS-Fixer (run `composer lint:fix` before committing)
 - **Static analysis:** PHPStan + PHPMD (run `composer quality`)
-- **PSR-4 autoloading:** `BenRowe\StateFlow\` → `src/`
+- **PSR-4 autoloading:** `CoverGenius\StateFlow\` → `src/`
   - There should only be one class per file. and the class/interface/enum should match the file name. e.g. `class MyClass` => `MyClass.php`
 
 ## Design Principles

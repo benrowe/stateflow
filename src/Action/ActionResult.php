@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Action;
+namespace CoverGenius\StateFlow\Action;
 
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\State;
 
 readonly class ActionResult
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Action;
+namespace CoverGenius\StateFlow\Action;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;

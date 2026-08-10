@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Events;
+namespace CoverGenius\StateFlow\Tests\Unit\Events;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Events\ActionSkipped;
-use BenRowe\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Events\ActionSkipped;
+use CoverGenius\StateFlow\Gate\GateResult;
 use PHPUnit\Framework\TestCase;
 
 class ActionSkippedTest extends TestCase

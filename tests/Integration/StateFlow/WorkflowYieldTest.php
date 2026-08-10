@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
+namespace CoverGenius\StateFlow\Tests\Integration\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ExecutionState;
-use BenRowe\StateFlow\Action\Yieldable;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Events\Event;
-use BenRowe\StateFlow\Events\EventDispatcher;
-use BenRowe\StateFlow\Events\LockReleased;
-use BenRowe\StateFlow\Exceptions\TransitionException;
-use BenRowe\StateFlow\Locking\LockConfiguration;
-use BenRowe\StateFlow\Locking\LockContext;
-use BenRowe\StateFlow\Locking\LockKeyProvider;
-use BenRowe\StateFlow\Locking\LockProvider;
-use BenRowe\StateFlow\Locking\LockStrategy;
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\ExecutionState;
+use CoverGenius\StateFlow\Action\Yieldable;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Events\Event;
+use CoverGenius\StateFlow\Events\EventDispatcher;
+use CoverGenius\StateFlow\Events\LockReleased;
+use CoverGenius\StateFlow\Exceptions\TransitionException;
+use CoverGenius\StateFlow\Locking\LockConfiguration;
+use CoverGenius\StateFlow\Locking\LockContext;
+use CoverGenius\StateFlow\Locking\LockKeyProvider;
+use CoverGenius\StateFlow\Locking\LockProvider;
+use CoverGenius\StateFlow\Locking\LockStrategy;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\Tests\Utils\ExecutionLogger;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestActions;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use PHPUnit\Framework\TestCase;
 
 /**

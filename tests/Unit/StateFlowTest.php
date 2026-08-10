@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\StateWorker;
-use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\StateWorker;
+use CoverGenius\StateFlow\Tests\Utils\ExecutionLogger;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestActions;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 class StateFlowTest extends TestCase

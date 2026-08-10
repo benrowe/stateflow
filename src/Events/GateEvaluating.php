@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Events;
+namespace CoverGenius\StateFlow\Events;
 
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateContext;
 
 class GateEvaluating extends Event
 {

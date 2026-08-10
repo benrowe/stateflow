@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\ActionSkip;
-use BenRowe\StateFlow\ActionSkipCollection;
-use BenRowe\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\ActionSkip;
+use CoverGenius\StateFlow\ActionSkipCollection;
+use CoverGenius\StateFlow\Gate\GateResult;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 

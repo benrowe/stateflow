@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Locking;
+namespace CoverGenius\StateFlow\Locking;
 
 /**
  * Configuration for lock behavior

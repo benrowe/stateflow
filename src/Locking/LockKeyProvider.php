@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Locking;
+namespace CoverGenius\StateFlow\Locking;
 
-use BenRowe\StateFlow\Delta;
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\Delta;
+use CoverGenius\StateFlow\State;
 
 /**
  * Interface for generating lock keys based on state and delta

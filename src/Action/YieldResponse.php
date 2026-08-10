@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Action;
+namespace CoverGenius\StateFlow\Action;
 
 /**
  * Wraps response data supplied to StateWorker::resumeWithResponse(), distinguishing

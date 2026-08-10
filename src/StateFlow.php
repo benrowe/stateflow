@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
-use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Configuration\ConfigurationProvider;
-use BenRowe\StateFlow\Events\EventDispatcher;
-use BenRowe\StateFlow\Events\NullEventDispatcher;
-use BenRowe\StateFlow\Events\TransitionStarting;
-use BenRowe\StateFlow\Locking\LockContext;
+use CoverGenius\StateFlow\Configuration\CallableConfigurationProvider;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Configuration\ConfigurationProvider;
+use CoverGenius\StateFlow\Events\EventDispatcher;
+use CoverGenius\StateFlow\Events\NullEventDispatcher;
+use CoverGenius\StateFlow\Events\TransitionStarting;
+use CoverGenius\StateFlow\Locking\LockContext;
 use Closure;
 
 /**

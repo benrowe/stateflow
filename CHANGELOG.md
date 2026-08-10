@@ -20,4 +20,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI/CD pipeline
 - Comprehensive documentation
 
-[Unreleased]: https://github.com/benrowe/stateflow/commits/main
+[Unreleased]: https://github.com/covergenius/stateflow/commits/master

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\Action;
 
 interface ActionFactory
 {

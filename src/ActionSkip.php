@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Gate\GateResult;
 
 readonly class ActionSkip
 {

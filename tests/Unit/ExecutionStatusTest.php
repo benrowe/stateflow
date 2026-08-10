@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\ExecutionStatus;
+use CoverGenius\StateFlow\ExecutionStatus;
 use PHPUnit\Framework\TestCase;
 
 class ExecutionStatusTest extends TestCase

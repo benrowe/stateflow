@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
 /**
  * Tracks execution status for state transitions.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Events;
+namespace CoverGenius\StateFlow\Events;
 
-use BenRowe\StateFlow\Delta;
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\Delta;
+use CoverGenius\StateFlow\State;
 
 class TransitionStarting extends Event
 {

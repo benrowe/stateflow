@@ -17,8 +17,8 @@ This document provides comprehensive examples of using StateFlow in various scen
 ### Simple State Transition
 
 ```php
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\Configuration;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\Configuration;
 
 // 1. Define your state
 class ArticleState implements State

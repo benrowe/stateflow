@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Events;
+namespace CoverGenius\StateFlow\Tests\Unit\Events;
 
-use BenRowe\StateFlow\Events\TransitionPaused;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Events\TransitionPaused;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 class TransitionPausedTest extends TestCase

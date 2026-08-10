@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Locking;
+namespace CoverGenius\StateFlow\Tests\Unit\Locking;
 
-use BenRowe\StateFlow\Locking\LockConfiguration;
-use BenRowe\StateFlow\Locking\LockStrategy;
+use CoverGenius\StateFlow\Locking\LockConfiguration;
+use CoverGenius\StateFlow\Locking\LockStrategy;
 use PHPUnit\Framework\TestCase;
 
 /**

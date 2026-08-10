@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Locking;
+namespace CoverGenius\StateFlow\Locking;
 
-use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
-use BenRowe\StateFlow\Exceptions\LockLostException;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Events\EventOrchestrator;
+use CoverGenius\StateFlow\Exceptions\LockAcquisitionException;
+use CoverGenius\StateFlow\Exceptions\LockLostException;
+use CoverGenius\StateFlow\TransitionContext;
 
 /**
  * Manages distributed locking for transitions

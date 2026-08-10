@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Events;
+namespace CoverGenius\StateFlow\Events;
 
 /**
  * A null event dispatcher that does nothing.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Events;
+namespace CoverGenius\StateFlow\Events;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Gate\GateResult;
 
 class ActionSkipped extends Event
 {

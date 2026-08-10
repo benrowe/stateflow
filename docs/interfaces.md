@@ -245,8 +245,8 @@ interface ConfigurationProvider
 ### Configuration
 
 ```php
-use BenRowe\StateFlow\Gate\GateCollection;
-use BenRowe\StateFlow\Action\ActionCollection;
+use CoverGenius\StateFlow\Gate\GateCollection;
+use CoverGenius\StateFlow\Action\ActionCollection;
 
 class Configuration
 {
@@ -271,11 +271,11 @@ class Configuration
 StateFlow uses typed, immutable collections built on Doctrine Collections for runtime type safety:
 
 ```php
-use BenRowe\StateFlow\Gate\GateCollection;
-use BenRowe\StateFlow\Action\ActionCollection;
-use BenRowe\StateFlow\Action\ActionResultCollection;
-use BenRowe\StateFlow\GateEvaluationCollection;
-use BenRowe\StateFlow\ActionSkipCollection;
+use CoverGenius\StateFlow\Gate\GateCollection;
+use CoverGenius\StateFlow\Action\ActionCollection;
+use CoverGenius\StateFlow\Action\ActionResultCollection;
+use CoverGenius\StateFlow\GateEvaluationCollection;
+use CoverGenius\StateFlow\ActionSkipCollection;
 
 // GateCollection - for Gate objects
 final class GateCollection extends ArrayCollection

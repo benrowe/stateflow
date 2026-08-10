@@ -4,9 +4,9 @@
 
 <p align="center">
 <a href="https://php.net/"><img src="https://img.shields.io/badge/php-%3E%3D8.2-8892BF.svg" alt="PHP Version"></a>
-<a href="https://github.com/benrowe/stateflow/actions"><img src="https://github.com/benrowe/stateflow/actions/workflows/ci.yml/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/benrowe/stateflow"><img src="https://img.shields.io/packagist/dt/benrowe/stateflow" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/benrowe/stateflow"><img src="https://img.shields.io/packagist/v/benrowe/stateflow" alt="Latest Stable Version"></a>
+<a href="https://github.com/covergenius/stateflow/actions"><img src="https://github.com/covergenius/stateflow/actions/workflows/ci.yml/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/covergenius/stateflow"><img src="https://img.shields.io/packagist/dt/covergenius/stateflow" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/covergenius/stateflow"><img src="https://img.shields.io/packagist/v/covergenius/stateflow" alt="Latest Stable Version"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
 </p>
 
@@ -37,8 +37,8 @@ Most state machines force you into rigid patterns. StateFlow is different:
 ## Quick Example
 
 ```php
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\Configuration;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\Configuration;
 
 // Define your state
 class Order implements State {
@@ -232,7 +232,7 @@ class NotifyAction implements Action, Guardable {
 ## Installation
 
 ```bash
-composer require benrowe/stateflow
+composer require covergenius/stateflow
 ```
 
 **Requirements:** PHP 8.2+

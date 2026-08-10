@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Action;
+namespace CoverGenius\StateFlow\Tests\Unit\Action;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionCollection;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionCollection;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use stdClass;

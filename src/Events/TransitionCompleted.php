@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Events;
+namespace CoverGenius\StateFlow\Events;
 
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\TransitionContext;
 
 class TransitionCompleted extends Event
 {

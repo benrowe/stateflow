@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
+namespace CoverGenius\StateFlow\Tests\Integration\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateContext;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use PHPUnit\Framework\TestCase;
 
 /**

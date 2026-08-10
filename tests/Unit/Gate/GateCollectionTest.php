@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Gate;
+namespace CoverGenius\StateFlow\Tests\Unit\Gate;
 
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateCollection;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateCollection;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
