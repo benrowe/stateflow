@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Gate;
+namespace CoverGenius\StateFlow\Gate;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Utils\Traits;
+namespace CoverGenius\StateFlow\Tests\Utils\Traits;
 
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateContext;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Tests\Utils\ExecutionLogger;
 
 /**
  * Trait for creating test Gate implementations

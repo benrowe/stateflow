@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
-use BenRowe\StateFlow\Action\ActionExecutionService;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Events\EventDispatcher;
-use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
-use BenRowe\StateFlow\Exceptions\TransitionException;
-use BenRowe\StateFlow\Gate\GateEvaluationService;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Locking\LockContext;
-use BenRowe\StateFlow\Locking\LockManager;
+use CoverGenius\StateFlow\Action\ActionExecutionService;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Events\EventDispatcher;
+use CoverGenius\StateFlow\Events\EventOrchestrator;
+use CoverGenius\StateFlow\Exceptions\NonYieldableActionException;
+use CoverGenius\StateFlow\Exceptions\TransitionException;
+use CoverGenius\StateFlow\Gate\GateEvaluationService;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Locking\LockContext;
+use CoverGenius\StateFlow\Locking\LockManager;
 
 class StateWorker
 {

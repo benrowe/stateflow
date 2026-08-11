@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Configuration;
+namespace CoverGenius\StateFlow\Tests\Unit\Configuration;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Delta;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\CallableConfigurationProvider;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Delta;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\State;
 use PHPUnit\Framework\TestCase;
 
 class CallableConfigurationProviderTest extends TestCase

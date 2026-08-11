@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Integration\Configuration;
+namespace CoverGenius\StateFlow\Tests\Integration\Configuration;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\CallableConfigurationProvider;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Configuration\ConfigurationFactory;
-use BenRowe\StateFlow\Delta;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\CallableConfigurationProvider;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Configuration\ConfigurationFactory;
+use CoverGenius\StateFlow\Delta;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase

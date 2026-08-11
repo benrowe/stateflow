@@ -38,7 +38,7 @@ interface Delta
 StateFlow provides `ArrayDelta` as the default implementation:
 
 ```php
-use BenRowe\StateFlow\Delta\ArrayDelta;
+use CoverGenius\StateFlow\Delta\ArrayDelta;
 
 // Create a delta
 $delta = new ArrayDelta(['status' => 'published', 'publishedAt' => '2025-01-01']);
@@ -59,7 +59,7 @@ $changes = $delta->asArray(); // ['status' => 'published', 'publishedAt' => '202
 ### Usage in Transitions
 
 ```php
-use BenRowe\StateFlow\Delta\ArrayDelta;
+use CoverGenius\StateFlow\Delta\ArrayDelta;
 
 $state = new OrderState('ORD-123', 'pending', 99.99);
 $worker = $stateFlow->transition($state, new ArrayDelta(['status' => 'processing']));
@@ -730,7 +730,7 @@ StateFlow uses typed, immutable collections for runtime type safety. All collect
 All collections are immutable. Use the `with()` method to add items, which returns a new collection instance:
 
 ```php
-use BenRowe\StateFlow\Action\ActionCollection;
+use CoverGenius\StateFlow\Action\ActionCollection;
 
 $actions = ActionCollection::empty();
 $newActions = $actions->with(new MyAction());  // Returns new instance
@@ -748,7 +748,7 @@ $gates->set(0, new stdClass()); // InvalidArgumentException
 Since all collections extend `ArrayCollection`, you have access to the full Doctrine Collections API:
 
 ```php
-use BenRowe\StateFlow\Gate\GateCollection;
+use CoverGenius\StateFlow\Gate\GateCollection;
 
 $gates = GateCollection::fromArray([
     new PermissionGate(),
@@ -779,8 +779,8 @@ $array = $gates->toArray(); // Gate[]
 ### Interface Definition
 
 ```php
-use BenRowe\StateFlow\Gate\GateCollection;
-use BenRowe\StateFlow\Action\ActionCollection;
+use CoverGenius\StateFlow\Gate\GateCollection;
+use CoverGenius\StateFlow\Action\ActionCollection;
 
 interface ConfigurationProvider
 {
@@ -947,9 +947,9 @@ The `TransitionContext` is an object that **tracks everything about a single tra
 ### Key Methods
 
 ```php
-use BenRowe\StateFlow\GateEvaluationCollection;
-use BenRowe\StateFlow\Action\ActionResultCollection;
-use BenRowe\StateFlow\ActionSkipCollection;
+use CoverGenius\StateFlow\GateEvaluationCollection;
+use CoverGenius\StateFlow\Action\ActionResultCollection;
+use CoverGenius\StateFlow\ActionSkipCollection;
 
 class TransitionContext
 {

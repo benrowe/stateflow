@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Utils\Traits;
+namespace CoverGenius\StateFlow\Tests\Utils\Traits;
 
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\State;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 

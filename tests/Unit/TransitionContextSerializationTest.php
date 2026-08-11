@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ExecutionState;
-use BenRowe\StateFlow\ActionFactory;
-use BenRowe\StateFlow\ActionSkip;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\GateEvaluation;
-use BenRowe\StateFlow\GateFactory;
-use BenRowe\StateFlow\Locking\LockState;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\StateFactory;
-use BenRowe\StateFlow\TransitionContext;
-use BenRowe\StateFlow\TransitionContextSerializer;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\ExecutionState;
+use CoverGenius\StateFlow\ActionFactory;
+use CoverGenius\StateFlow\ActionSkip;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateContext;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\GateEvaluation;
+use CoverGenius\StateFlow\GateFactory;
+use CoverGenius\StateFlow\Locking\LockState;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\StateFactory;
+use CoverGenius\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\TransitionContextSerializer;
 use JsonException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\YieldResponse;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Locking\LockState;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\YieldResponse;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Locking\LockState;
 
 class TransitionContext
 {

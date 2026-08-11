@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\ArrayDelta;
 use PHPUnit\Framework\TestCase;
 
 class ArrayDeltaTest extends TestCase

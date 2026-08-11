@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
+namespace CoverGenius\StateFlow\Tests\Integration\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Exceptions\InvalidConfigurationException;
-use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Exceptions\InvalidConfigurationException;
+use CoverGenius\StateFlow\Exceptions\InvalidGateResultException;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateContext;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
@@ -37,7 +37,7 @@ class ErrorHandlingTest extends TestCase
     public function testInvalidGateThrowsException(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Gate at index 0 must implement BenRowe\StateFlow\Gate\Gate');
+        $this->expectExceptionMessage('Gate at index 0 must implement CoverGenius\StateFlow\Gate\Gate');
 
         $invalidGate = new stdClass();
 
@@ -49,7 +49,7 @@ class ErrorHandlingTest extends TestCase
     public function testInvalidActionThrowsException(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Action at index 0 must implement BenRowe\StateFlow\Action\Action');
+        $this->expectExceptionMessage('Action at index 0 must implement CoverGenius\StateFlow\Action\Action');
 
         $invalidAction = new stdClass();
 
@@ -61,7 +61,7 @@ class ErrorHandlingTest extends TestCase
     public function testMultipleInvalidGatesReportsFirstInvalid(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Gate at index 1 must implement BenRowe\StateFlow\Gate\Gate');
+        $this->expectExceptionMessage('Gate at index 1 must implement CoverGenius\StateFlow\Gate\Gate');
 
         $validGate = $this->createStubGate('ValidGate', GateResult::ALLOW);
         $invalidGate = 'not a gate';
@@ -73,7 +73,7 @@ class ErrorHandlingTest extends TestCase
     public function testMultipleInvalidActionsReportsFirstInvalid(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Action at index 2 must implement BenRowe\StateFlow\Action\Action');
+        $this->expectExceptionMessage('Action at index 2 must implement CoverGenius\StateFlow\Action\Action');
 
         $validAction1 = $this->createStubAction('Action1');
         $validAction2 = $this->createStubAction('Action2');

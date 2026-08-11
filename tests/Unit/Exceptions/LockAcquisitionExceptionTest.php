@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Exceptions;
+namespace CoverGenius\StateFlow\Tests\Unit\Exceptions;
 
-use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
+use CoverGenius\StateFlow\Exceptions\LockAcquisitionException;
 use PHPUnit\Framework\TestCase;
 
 /**

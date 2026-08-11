@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Action;
+namespace CoverGenius\StateFlow\Action;
 
-use BenRowe\StateFlow\Delta;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Delta;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\TransitionContext;
 
 readonly class ActionContext
 {

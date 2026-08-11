@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Utils\Traits;
+namespace CoverGenius\StateFlow\Tests\Utils\Traits;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\Yieldable;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Gate\Guardable;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\Yieldable;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateContext;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Gate\Guardable;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\Tests\Utils\ExecutionLogger;
 
 /**
  * Trait for creating test Action implementations

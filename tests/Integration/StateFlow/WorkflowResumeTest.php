@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
+namespace CoverGenius\StateFlow\Tests\Integration\StateFlow;
 
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\Tests\Utils\ExecutionLogger;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestActions;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestGates;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
 use PHPUnit\Framework\TestCase;
 
 class WorkflowResumeTest extends TestCase

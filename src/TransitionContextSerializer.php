@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ActionResultCollection;
-use BenRowe\StateFlow\Action\ExecutionState;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Configuration\ConfigurationFactory;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Locking\LockState;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\ActionResultCollection;
+use CoverGenius\StateFlow\Action\ExecutionState;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Configuration\ConfigurationFactory;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Locking\LockState;
 use JsonException;
 
 /**

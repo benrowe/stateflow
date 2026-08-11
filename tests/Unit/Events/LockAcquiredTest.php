@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Events;
+namespace CoverGenius\StateFlow\Tests\Unit\Events;
 
-use BenRowe\StateFlow\Events\LockAcquired;
-use BenRowe\StateFlow\Locking\LockState;
+use CoverGenius\StateFlow\Events\LockAcquired;
+use CoverGenius\StateFlow\Locking\LockState;
 use PHPUnit\Framework\TestCase;
 
 class LockAcquiredTest extends TestCase

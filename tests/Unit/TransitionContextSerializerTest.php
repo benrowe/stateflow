@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\ActionFactory;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\GateFactory;
-use BenRowe\StateFlow\StateFactory;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
-use BenRowe\StateFlow\TransitionContext;
-use BenRowe\StateFlow\TransitionContextSerializer;
+use CoverGenius\StateFlow\ActionFactory;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\GateFactory;
+use CoverGenius\StateFlow\StateFactory;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\TransitionContextSerializer;
 use PHPUnit\Framework\TestCase;
 
 final class TransitionContextSerializerTest extends TestCase

@@ -1,5 +1,5 @@
 {
-    "name": "benrowe/stateflow",
+    "name": "covergenius/stateflow",
     "description": "A flexible state machine library for PHP",
     "type": "library",
     "keywords": ["state-machine", "workflow", "state", "transition"],
@@ -7,7 +7,7 @@
     "authors": [
         {
             "name": "Ben Rowe",
-            "email": "ben.rowe.83@gmail.com"
+            "email": "ben.rowe@covergenius.com"
         }
     ],
     "require": {
@@ -24,12 +24,12 @@
     },
     "autoload": {
         "psr-4": {
-            "BenRowe\\StateFlow\\": "src/"
+            "CoverGenius\\StateFlow\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "BenRowe\\StateFlow\\Tests\\": "tests/"
+            "CoverGenius\\StateFlow\\Tests\\": "tests/"
         }
     },
     "scripts": {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Configuration;
+namespace CoverGenius\StateFlow\Configuration;
 
-use BenRowe\StateFlow\Delta;
-use BenRowe\StateFlow\State;
 use Closure;
+use CoverGenius\StateFlow\Delta;
+use CoverGenius\StateFlow\State;
 
 readonly class CallableConfigurationProvider implements ConfigurationProvider
 {

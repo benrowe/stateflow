@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ActionResultCollection;
-use BenRowe\StateFlow\ActionSkip;
-use BenRowe\StateFlow\ActionSkipCollection;
-use BenRowe\StateFlow\ExecutionHistory;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\GateEvaluation;
-use BenRowe\StateFlow\GateEvaluationCollection;
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\ActionResultCollection;
+use CoverGenius\StateFlow\ActionSkip;
+use CoverGenius\StateFlow\ActionSkipCollection;
+use CoverGenius\StateFlow\ExecutionHistory;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\GateEvaluation;
+use CoverGenius\StateFlow\GateEvaluationCollection;
+use CoverGenius\StateFlow\State;
 use PHPUnit\Framework\TestCase;
 
 class ExecutionHistoryTest extends TestCase

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Locking;
+namespace CoverGenius\StateFlow\Tests\Unit\Locking;
 
-use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Exceptions\LockAcquisitionException;
-use BenRowe\StateFlow\Locking\LockConfiguration;
-use BenRowe\StateFlow\Locking\LockKeyProvider;
-use BenRowe\StateFlow\Locking\LockManager;
-use BenRowe\StateFlow\Locking\LockProvider;
-use BenRowe\StateFlow\Locking\LockState;
-use BenRowe\StateFlow\Locking\LockStrategy;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Events\EventOrchestrator;
+use CoverGenius\StateFlow\Exceptions\LockAcquisitionException;
+use CoverGenius\StateFlow\Locking\LockConfiguration;
+use CoverGenius\StateFlow\Locking\LockKeyProvider;
+use CoverGenius\StateFlow\Locking\LockManager;
+use CoverGenius\StateFlow\Locking\LockProvider;
+use CoverGenius\StateFlow\Locking\LockState;
+use CoverGenius\StateFlow\Locking\LockStrategy;
+use CoverGenius\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 final class LockManagerTest extends TestCase

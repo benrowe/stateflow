@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Action;
+namespace CoverGenius\StateFlow\Tests\Unit\Action;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionCollection;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionExecutionService;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ExecutionState;
-use BenRowe\StateFlow\Action\Yieldable;
-use BenRowe\StateFlow\Action\YieldResponse;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Exceptions\NonYieldableActionException;
-use BenRowe\StateFlow\ExecutionStatus;
-use BenRowe\StateFlow\Gate\GateEvaluationService;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\Gate\Guardable;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionCollection;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionExecutionService;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\ExecutionState;
+use CoverGenius\StateFlow\Action\Yieldable;
+use CoverGenius\StateFlow\Action\YieldResponse;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Events\EventOrchestrator;
+use CoverGenius\StateFlow\Exceptions\NonYieldableActionException;
+use CoverGenius\StateFlow\ExecutionStatus;
+use CoverGenius\StateFlow\Gate\GateEvaluationService;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Gate\Guardable;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\TransitionContext;
 use Exception;
 use PHPUnit\Framework\TestCase;
 

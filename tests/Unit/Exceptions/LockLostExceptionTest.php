@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Exceptions;
+namespace CoverGenius\StateFlow\Tests\Unit\Exceptions;
 
-use BenRowe\StateFlow\Exceptions\LockLostException;
+use CoverGenius\StateFlow\Exceptions\LockLostException;
 use PHPUnit\Framework\TestCase;
 
 /**

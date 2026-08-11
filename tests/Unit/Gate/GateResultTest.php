@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Gate;
+namespace CoverGenius\StateFlow\Tests\Unit\Gate;
 
-use BenRowe\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Gate\GateResult;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

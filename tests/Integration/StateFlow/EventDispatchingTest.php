@@ -2,32 +2,32 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Integration\StateFlow;
+namespace CoverGenius\StateFlow\Tests\Integration\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionContext;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Events\ActionExecuted;
-use BenRowe\StateFlow\Events\ActionExecuting;
-use BenRowe\StateFlow\Events\ActionSkipped;
-use BenRowe\StateFlow\Events\Event;
-use BenRowe\StateFlow\Events\EventDispatcher;
-use BenRowe\StateFlow\Events\GateEvaluated;
-use BenRowe\StateFlow\Events\GateEvaluating;
-use BenRowe\StateFlow\Events\TransitionCompleted;
-use BenRowe\StateFlow\Events\TransitionFailed;
-use BenRowe\StateFlow\Events\TransitionPaused;
-use BenRowe\StateFlow\Events\TransitionStarting;
-use BenRowe\StateFlow\Events\TransitionStopped;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\StateFlow;
-use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestActions;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestStates;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionContext;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Events\ActionExecuted;
+use CoverGenius\StateFlow\Events\ActionExecuting;
+use CoverGenius\StateFlow\Events\ActionSkipped;
+use CoverGenius\StateFlow\Events\Event;
+use CoverGenius\StateFlow\Events\EventDispatcher;
+use CoverGenius\StateFlow\Events\GateEvaluated;
+use CoverGenius\StateFlow\Events\GateEvaluating;
+use CoverGenius\StateFlow\Events\TransitionCompleted;
+use CoverGenius\StateFlow\Events\TransitionFailed;
+use CoverGenius\StateFlow\Events\TransitionPaused;
+use CoverGenius\StateFlow\Events\TransitionStarting;
+use CoverGenius\StateFlow\Events\TransitionStopped;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\StateFlow;
+use CoverGenius\StateFlow\Tests\Utils\ExecutionLogger;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestActions;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestGates;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestStates;
+use CoverGenius\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

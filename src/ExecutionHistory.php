@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow;
+namespace CoverGenius\StateFlow;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\ActionResultCollection;
-use BenRowe\StateFlow\Action\ExecutionState;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\ActionResultCollection;
+use CoverGenius\StateFlow\Action\ExecutionState;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateResult;
 
 /**
  * Immutable execution history tracking for state transitions.

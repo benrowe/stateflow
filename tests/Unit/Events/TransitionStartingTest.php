@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Events;
+namespace CoverGenius\StateFlow\Tests\Unit\Events;
 
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Events\TransitionStarting;
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Events\TransitionStarting;
+use CoverGenius\StateFlow\State;
 use PHPUnit\Framework\TestCase;
 
 class TransitionStartingTest extends TestCase

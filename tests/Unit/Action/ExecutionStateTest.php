@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Action;
+namespace CoverGenius\StateFlow\Tests\Unit\Action;
 
-use BenRowe\StateFlow\Action\ExecutionState;
+use CoverGenius\StateFlow\Action\ExecutionState;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

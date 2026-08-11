@@ -38,7 +38,7 @@ jobs:
             ## Installation
 
             ```bash
-            composer require benrowe/stateflow:^${{ steps.version.outputs.version }}
+            composer require covergenius/stateflow:^${{ steps.version.outputs.version }}
             ```
           draft: false
           prerelease: false

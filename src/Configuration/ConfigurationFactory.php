@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Configuration;
+namespace CoverGenius\StateFlow\Configuration;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionCollection;
-use BenRowe\StateFlow\Exceptions\InvalidConfigurationException;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateCollection;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionCollection;
+use CoverGenius\StateFlow\Exceptions\InvalidConfigurationException;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateCollection;
 
 class ConfigurationFactory
 {

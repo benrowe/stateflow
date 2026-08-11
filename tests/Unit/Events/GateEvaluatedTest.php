@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit\Events;
+namespace CoverGenius\StateFlow\Tests\Unit\Events;
 
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Events\GateEvaluated;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateContext;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\State;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Events\GateEvaluated;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateContext;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\State;
 use PHPUnit\Framework\TestCase;
 
 class GateEvaluatedTest extends TestCase

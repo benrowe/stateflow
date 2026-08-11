@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Gate;
+namespace CoverGenius\StateFlow\Gate;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Events\EventOrchestrator;
-use BenRowe\StateFlow\Exceptions\InvalidGateResultException;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Events\EventOrchestrator;
+use CoverGenius\StateFlow\Exceptions\InvalidGateResultException;
+use CoverGenius\StateFlow\TransitionContext;
 use TypeError;
 
 /**

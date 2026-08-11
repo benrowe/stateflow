@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Utils;
+namespace CoverGenius\StateFlow\Tests\Utils;
 
 /**
  * Helper class to track execution order in tests

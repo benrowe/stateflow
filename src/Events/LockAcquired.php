@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Events;
+namespace CoverGenius\StateFlow\Events;
 
-use BenRowe\StateFlow\Locking\LockState;
+use CoverGenius\StateFlow\Locking\LockState;
 
 class LockAcquired extends Event
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Exceptions;
+namespace CoverGenius\StateFlow\Exceptions;
 
 use RuntimeException;
 

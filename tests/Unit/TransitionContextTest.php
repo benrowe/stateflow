@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace BenRowe\StateFlow\Tests\Unit;
+namespace CoverGenius\StateFlow\Tests\Unit;
 
-use BenRowe\StateFlow\Action\Action;
-use BenRowe\StateFlow\Action\ActionResult;
-use BenRowe\StateFlow\Action\YieldResponse;
-use BenRowe\StateFlow\ActionSkip;
-use BenRowe\StateFlow\ArrayDelta;
-use BenRowe\StateFlow\Configuration\Configuration;
-use BenRowe\StateFlow\Gate\Gate;
-use BenRowe\StateFlow\Gate\GateResult;
-use BenRowe\StateFlow\GateEvaluation;
-use BenRowe\StateFlow\Locking\LockState;
-use BenRowe\StateFlow\State;
-use BenRowe\StateFlow\Tests\Utils\ExecutionLogger;
-use BenRowe\StateFlow\Tests\Utils\Traits\CreatesTestGates;
-use BenRowe\StateFlow\TransitionContext;
+use CoverGenius\StateFlow\Action\Action;
+use CoverGenius\StateFlow\Action\ActionResult;
+use CoverGenius\StateFlow\Action\YieldResponse;
+use CoverGenius\StateFlow\ActionSkip;
+use CoverGenius\StateFlow\ArrayDelta;
+use CoverGenius\StateFlow\Configuration\Configuration;
+use CoverGenius\StateFlow\Gate\Gate;
+use CoverGenius\StateFlow\Gate\GateResult;
+use CoverGenius\StateFlow\GateEvaluation;
+use CoverGenius\StateFlow\Locking\LockState;
+use CoverGenius\StateFlow\State;
+use CoverGenius\StateFlow\Tests\Utils\ExecutionLogger;
+use CoverGenius\StateFlow\Tests\Utils\Traits\CreatesTestGates;
+use CoverGenius\StateFlow\TransitionContext;
 use PHPUnit\Framework\TestCase;
 
 class TransitionContextTest extends TestCase
